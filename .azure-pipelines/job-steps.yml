@@ -15,12 +15,14 @@ steps:
   - task: Npm@1
     displayName: 'Test'
     inputs:
-      command: test
+      command: custom
+      customCommand: test
 
   - task: Npm@1
     displayName: 'Pack'
     inputs:
       command: pack
+      customCommand: pack
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 
   - task: CopyFiles@2
