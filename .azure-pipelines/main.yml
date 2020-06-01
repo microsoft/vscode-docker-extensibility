@@ -18,7 +18,9 @@ jobs:
   - template: job-steps.yml
 
 trigger:
-- master
+  branches:
+    include:
+    - '*'
 
 pr:
 - master
