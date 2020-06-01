@@ -8,9 +8,4 @@ describe('hello world', function () {
         const x = 5;
         x.should.equal(5);
     });
-
-    it('should fail', function () {
-        const x = 5;
-        x.should.equal(6);
-    });
 });
