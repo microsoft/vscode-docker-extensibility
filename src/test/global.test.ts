@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-describe('hello world', function () {
-    it('should test', function () {
-        const x = 5;
-        x.should.equal(5);
-    });
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+before('Global setup', function () {
+    console.log('Global setup');
+    chai.use(chaiAsPromised);
+    chai.should();
 });
