@@ -21,7 +21,7 @@ steps:
   - task: Npm@1
     displayName: 'Pack'
     inputs:
-      command: pack
+      command: custom
       customCommand: pack
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 
