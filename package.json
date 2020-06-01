@@ -6,12 +6,12 @@
     "license": "See LICENSE in the project root for license information.",
     "repository": {
         "type": "git",
-        "url": "https://github.com/microsoft/vscode-docker-registries"
+        "url": "https://github.com/microsoft/vscode-docker-extensibility"
     },
     "bugs": {
-        "url": "https://github.com/microsoft/vscode-docker-registries/issues"
+        "url": "https://github.com/microsoft/vscode-docker/issues"
     },
-    "homepage": "https://github.com/microsoft/vscode-docker-registries/blob/master/README.md",
+    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/master/README.md",
     "keywords": [
         "vscode",
         "docker"
