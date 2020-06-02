@@ -105,8 +105,10 @@ Note: "register...Registry" is a bit of a tongue twister, but all of the VSCode 
 ```typescript
 /**
  * Interface for all nodes that appear in the Docker extension's explorer view for registries.
- * This is mostly-identical to `vscode.TreeItem` but intentionally does not extend it, because the object returned
- * will not be directly displayed--instead, the properties will be copied into an `AzExtTreeItem` from Node package `vscode-azureextensionui`.
+ * This is mostly-identical to `vscode.TreeItem` but intentionally does not extend it--`RegistryTreeItem` objects
+ * created by the provider will not be directly used to build the tree in the VS Code UI, nor will they be passed
+ * as context when commands are invoked. Instead, the properties below will be copied into a new object. Any
+ * additional properties will not be copied.
  */
 export interface RegistryTreeItem {
     /**
