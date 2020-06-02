@@ -8,8 +8,6 @@ Several concerns around registry providers have motivated us to explore a better
 
 In order to alleviate these concerns it is necessary to establish a better extensibility model.
 
----
-
 ## Overview
 
 Adding a registry provider would involve creating an extension, which can communicate with the Docker extension to provide a view into a given registry. Optionally, the extension could also implement context and palette commands. With the correct context values on nodes, the existing context and palette commands will also work. These commands include:
@@ -29,8 +27,6 @@ Adding a registry provider would involve creating an extension, which can commun
 
 A Node package (`vscode-docker-registries`) contains the interfaces necessary to properly implement the provider, and also includes a generic V2 provider, since _most_ providers would be little more than a slim inheriting implementation on top of that.
 
----
-
 ## Implementing a registry provider
 In order to connect to a given registry, the provider author must write the necessary code to authenticate and query their offering, and implement the necessary provider interfaces (alluded to above and described in detail below).
 
@@ -46,8 +42,6 @@ Implementing a registry provider this way is very simple, but additional feature
 
 ### 2. Show arbitrary tree structure
 An extension gives a tree object which will show anything they wish. It is more difficult to implement but offers greater flexibility.
-
----
 
 ## Registering a registry provider
 The Docker extension implements an interface (see below) allowing for registry providers to register themselves with the extension. The extensions need to call this registration method every time the Docker extension is activated, and can accomplish this by setting an activation event on the command `vscode-docker.registries.providerActivation`. In `package.json`:
@@ -72,8 +66,6 @@ export function activate(ctx: vscode.ExtensionContext): void {
 }
 ```
 
----
-
 ## Showing up in the provider pick list
 In order to be used, an extension needs to show up in the quick pick list for registry providers. The list will consist of:
 
@@ -85,8 +77,6 @@ In order to be used, an extension needs to show up in the quick pick list for re
     - It's rather subjective, but their provider must appear like a serious effort that will be maintained in the future; not a passing side project
 
 Optionally, the Docker extension may also establish a tag that can be used by provider extensions to easily filter for them on the marketplace, and a link/command/etc. within the Docker extension to open the marketplace with that filter.
-
----
 
 ## Interfaces
 
