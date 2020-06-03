@@ -12,7 +12,7 @@ import { RegistryTreeItem } from "./RegistryTreeItem";
  */
 export interface DockerRepository extends RegistryTreeItem {
     /**
-     * Gets all the tags for this repository. Should also update the cache.
+     * Gets all the tags for this repository.
      * @param refresh If true, a refresh is being done, and caching should not be used
      * @param token Cancellation token
      */

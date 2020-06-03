@@ -23,7 +23,7 @@ export interface DockerRegistry extends RegistryTreeItem {
     readonly registryId: string;
 
     /**
-     * Gets the repositories that are contained in this registry. Should also update the cache.
+     * Gets the repositories that are contained in this registry.
      * @param refresh If true, a refresh is being done, and caching should not be used
      * @param token Cancellation token
      */
