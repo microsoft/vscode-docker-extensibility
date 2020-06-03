@@ -12,7 +12,8 @@ import { CancellationToken } from "vscode";
 export interface ParentTreeItem extends RegistryTreeItem {
     /**
      * Gets the child items for this tree node
+     * @param refresh If true, a refresh is being done, and caching should not be used
      * @param token Cancellation token
      */
-    getChildTreeItems(token: CancellationToken): Promise<RegistryTreeItem[]>;
+    getChildTreeItems(refresh: boolean, token: CancellationToken): Promise<RegistryTreeItem[]>;
 }

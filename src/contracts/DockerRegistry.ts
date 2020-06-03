@@ -24,15 +24,10 @@ export interface DockerRegistry extends RegistryTreeItem {
 
     /**
      * Gets the repositories that are contained in this registry. Should also update the cache.
+     * @param refresh If true, a refresh is being done, and caching should not be used
      * @param token Cancellation token
      */
-    getRepositories(token: CancellationToken): Promise<DockerRepository[]>;
-
-    /**
-     * Gets the repositories that are contained in this registry from cache
-     * @param token Cancellation token
-     */
-    getCachedRepositories(token: CancellationToken): Promise<DockerRepository[]>;
+    getRepositories(refresh: boolean, token: CancellationToken): Promise<DockerRepository[]>;
 
     /**
      * Gets the login credentials for this registry

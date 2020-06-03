@@ -15,4 +15,5 @@ export { ParentTreeItem } from "./contracts/ParentTreeItem";
 export { RegistryTreeItem } from "./contracts/RegistryTreeItem";
 
 // Other interfaces
+export { CommandContext } from "./contracts/CommandContext";
 export { DockerCredentials } from "./contracts/DockerCredentials";
