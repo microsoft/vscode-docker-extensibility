@@ -18,4 +18,3 @@ export interface DockerExtension {
      */
     registerDockerRegistryProvider(provider: BasicDockerRegistryProvider | CustomDockerRegistryProvider): Disposable;
 }
-
