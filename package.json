@@ -23,6 +23,7 @@
         "lint": "eslint --max-warnings 0 **/*.ts",
         "test": "mocha lib/test/**/*.test.js",
         "unittest": "npm test -- --grep /unit/i",
+        "update-design": "npx embedme DESIGN.md",
         "pretest": "npm run build",
         "prepack": "npm run build"
     },

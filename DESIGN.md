@@ -58,7 +58,7 @@ The Docker extension implements an interface (see below) allowing for registry p
 
 Upon activation, the provider extension must call the Docker extension to register. The `registerDockerRegistryProvider` method returns a `Disposable` which should be pushed to the extension activation context's subscriptions.
 
-```typescript
+```ts
 export function activate(ctx: vscode.ExtensionContext): void {
     const provider = new MyDockerRegistryProvider();
     const dockerExtension = vscode.extensions.getExtension<DockerExtension>('ms-azuretools.vscode-docker');
@@ -83,7 +83,9 @@ Optionally, the Docker extension may also establish a tag that can be used by pr
 ### Docker extension
 
 `DockerExtension`:
-```typescript
+```ts
+// src/contracts/DockerExtension.ts#L9-L20
+
 /**
  * Interface implemented by the Docker extension.
  * @example const dockerExtension = vscode.extensions.getExtension<DockerExtension>('ms-azuretools.vscode-docker').exports;
@@ -102,7 +104,9 @@ Note: "register...Registry" is a bit of a tongue twister, but all of the VSCode 
 ### Basic registry provider
 
 `RegistryTreeItem`:
-```typescript
+```ts
+// src/contracts/RegistryTreeItem.ts#L8-L50
+
 /**
  * Interface for all nodes that appear in the Docker extension's explorer view for registries.
  * This is mostly-identical to `vscode.TreeItem` but intentionally does not extend it--`RegistryTreeItem` objects
@@ -149,7 +153,9 @@ export interface RegistryTreeItem {
 ```
 
 `DockerRegistryProviderBase`:
-```typescript
+```ts
+// src/contracts/DockerRegistryProvider.ts#L11-L30
+
 /**
  * Base interface for registry providers
  */
@@ -173,7 +179,9 @@ export interface DockerRegistryProviderBase extends RegistryTreeItem {
 ```
 
 `BasicDockerRegistryProvider`:
-```typescript
+```ts
+// src/contracts/DockerRegistryProvider.ts#L32-L42
+
 /**
  * Interface for a basic registry provider that implements `getRegistries`, to provide a set of registries, repositories, and tags
  */
@@ -188,7 +196,9 @@ export interface BasicDockerRegistryProvider extends DockerRegistryProviderBase 
 ```
 
 `DockerRegistry`:
-```typescript
+```ts
+// src/contracts/DockerRegistry.ts#L11-L37
+
 /**
  * Interface for a Docker registry. A registry contains a set of repositories.
  */
@@ -219,7 +229,9 @@ export interface DockerRegistry extends RegistryTreeItem {
 ```
 
 `DockerRepository`:
-```typescript
+```ts
+// src/contracts/DockerRepository.ts#L10-L26
+
 /**
  * Interface for a Docker repository
  */
@@ -240,7 +252,9 @@ export interface DockerRepository extends RegistryTreeItem {
 ```
 
 `DockerTag`:
-```typescript
+```ts
+// src/contracts/DockerTag.ts#L9-L18
+
 /**
  * Interface for a Docker tag
  */
@@ -256,7 +270,9 @@ export interface DockerTag extends RegistryTreeItem {
 ### Custom registry provider
 
 `CustomDockerRegistryProvider`:
-```typescript
+```ts
+// src/contracts/DockerRegistryProvider.ts#L44-L48
+
 /**
  * Interface for a custom registry provider that implements `getChildTreeItems`, to provide an arbitrary tree of nodes
  */
@@ -265,7 +281,9 @@ export interface CustomDockerRegistryProvider extends DockerRegistryProviderBase
 ```
 
 `ParentTreeItem`:
-```typescript
+```ts
+// src/contracts/ParentTreeItem.ts#L9-L19
+
 /**
  * Interface for a `RegistryTreeItem` with children. Part of the `CustomDockerRegistryProvider` implementation.
  */
@@ -282,7 +300,9 @@ export interface ParentTreeItem extends RegistryTreeItem {
 ### Others
 
 `DockerCredentials`:
-```typescript
+```ts
+// src/contracts/DockerCredentials.ts#L6-L24
+
 /**
  * Interface for Docker credentials, used for `docker login` commands and authenticating to registries.
  */
@@ -305,4 +325,18 @@ export interface DockerCredentials {
 ```
 
 `CommandContext`:
-https://github.com/microsoft/vscode-docker-extensibility/blob/master/src/contracts/CommandContext.ts#L8-L18
+```ts
+// src/contracts/CommandContext.ts#L8-L18
+
+/**
+ * When context/palette commands are called on nodes under the basic provider model,
+ * the command will be given arguments in the form of: `CommandContext?`, `CommandContext[]?`
+ * Where the first is the selected node, and the second is the list of selected nodes
+ */
+export interface CommandContext {
+    /**
+     * The original `RegistryTreeItem` used to create this tree node
+     */
+    readonly originalRegistryTreeItem: RegistryTreeItem;
+}
+```
