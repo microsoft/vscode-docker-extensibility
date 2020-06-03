@@ -17,3 +17,17 @@ export { RegistryTreeItem } from "./contracts/RegistryTreeItem";
 // Other interfaces
 export { CommandContext } from "./contracts/CommandContext";
 export { DockerCredentials } from "./contracts/DockerCredentials";
+
+// Generic caching provider implementation and utilities
+export { CachingRegistryProviderBase } from "./CachingProvider/CachingRegistryProviderBase";
+export { CachingRegistryBase } from "./CachingProvider/CachingRegistryBase";
+export { CachingRepositoryBase } from "./CachingProvider/CachingRepositoryBase";
+
+// Generic V2 registry implementation and utilities
+export { RegistryV2ProviderBase } from "./RegistryV2Provider/RegistryV2ProviderBase";
+export { RegistryV2 } from "./RegistryV2Provider/RegistryV2";
+export { RepositoryV2 } from "./RegistryV2Provider/RepositoryV2";
+export { TagV2 } from "./RegistryV2Provider/TagV2";
+export { asCancellable, CancelError } from "./RegistryV2Provider/utils/asCancellable";
+export { registryV2Request } from "./RegistryV2Provider/utils/registryV2Request";
+export * from './RegistryV2Provider/utils/RegistryV2Responses';
