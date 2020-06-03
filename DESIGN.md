@@ -305,16 +305,4 @@ export interface DockerCredentials {
 ```
 
 `CommandContext`:
-```typescript
-/**
- * When context/palette commands are called on nodes under the command will be given
- * arguments in the form of: `CommandContext?`, `CommandContext[]?`
- * Where the first is the selected node, and the second is the list of selected nodes
- */
-export interface CommandContext {
-    /**
-     * The original `RegistryTreeItem` used to create this tree node
-     */
-    readonly originalRegistryTreeItem: RegistryTreeItem;
-}
-```
+https://github.com/microsoft/vscode-docker-extensibility/blob/master/src/contracts/CommandContext.ts#L8-L18
