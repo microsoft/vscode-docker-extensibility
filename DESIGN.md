@@ -315,6 +315,6 @@ export interface CommandContext {
     /**
      * The original `RegistryTreeItem` used to create this tree node
      */
-    readonly originalObject: RegistryTreeItem;
+    readonly originalRegistryTreeItem: RegistryTreeItem;
 }
 ```
