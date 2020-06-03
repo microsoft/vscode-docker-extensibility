@@ -6,9 +6,11 @@
 import { RegistryTreeItem } from "./RegistryTreeItem";
 
 /**
- * When context/palette commands are called on nodes under the basic provider model,
- * the command will be given arguments in the form of: `CommandContext?`, `CommandContext[]?`
- * Where the first is the selected node, and the second is the list of selected nodes
+ * When context/palette commands are called on nodes, the command will be given arguments
+ * in the form of: `CommandContext?`, `CommandContext[]?` (standard VSCode behavior)
+ *
+ * The first is the right-clicked node, and the second is the list of selected nodes
+ * if multi-select is enabled
  */
 export interface CommandContext {
     /**
