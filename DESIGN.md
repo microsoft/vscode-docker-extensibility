@@ -160,24 +160,6 @@ export interface DockerRegistryProviderBase extends RegistryTreeItem {
     readonly providerId: string;
 
     /**
-     * Gets the registries for this provider. If this is implemented, `getChildTreeItems` should not be implemented. Should also update the cache.
-     * @param token Cancellation token
-     */
-    getRegistries?(token: CancellationToken): Promise<DockerRegistry[]>;
-
-    /**
-     * Gets the registries for this provider from cache. If this is implemented, `getChildTreeItems` should not be implemented.
-     * @param token Cancellation token
-     */
-    getCachedRegistries?(token: CancellationToken): Promise<DockerRegistry[]>;
-
-    /**
-     * Gets the child tree nodes for this provider. If this is implemented, `getRegistries` / `getCachedRegistries` should not be implemented.
-     * @param token Cancellation token
-     */
-    getChildTreeItems?(token: CancellationToken): Promise<RegistryTreeItem[]>;
-
-    /**
      * Connects a registry. UI prompts should be implemented to gather the necessary information to connect. This method is optional if a provider can determine all the necessary information on its own without prompts.
      * @param token Cancellation token
      */
@@ -196,11 +178,12 @@ export interface DockerRegistryProviderBase extends RegistryTreeItem {
  * Interface for a basic registry provider that implements `getRegistries`, to provide a set of registries, repositories, and tags
  */
 export interface BasicDockerRegistryProvider extends DockerRegistryProviderBase {
-    // @inheritdoc
-    getRegistries(token: CancellationToken): Promise<DockerRegistry[]>;
-
-    // @inheritdoc
-    getCachedRegistries(token: CancellationToken): Promise<DockerRegistry[]>;
+    /**
+     * Gets the registries for this provider
+     * @param refresh If true, a refresh is being done, and caching should not be used
+     * @param token Cancellation token
+     */
+    getRegistries(refresh: boolean, token: CancellationToken): Promise<DockerRegistry[]>;
 }
 ```
 
@@ -224,16 +207,11 @@ export interface DockerRegistry extends RegistryTreeItem {
      * Gets the repositories that are contained in this registry. Should also update the cache.
      * @param token Cancellation token
      */
-    getRepositories(token: CancellationToken): Promise<DockerRepository[]>;
-
-    /**
-     * Gets the repositories that are contained in this registry from cache
-     * @param token Cancellation token
-     */
-    getCachedRepositories(token: CancellationToken): Promise<DockerRepository[]>;
+    getRepositories(refresh: boolean, token: CancellationToken): Promise<DockerRepository[]>;
 
     /**
      * Gets the login credentials for this registry
+     * @param refresh If true, a refresh is being done, and caching should not be used
      * @param token Cancellation token
      */
     getDockerLoginCredentials?(token: CancellationToken): Promise<DockerCredentials>;
@@ -248,15 +226,10 @@ export interface DockerRegistry extends RegistryTreeItem {
 export interface DockerRepository extends RegistryTreeItem {
     /**
      * Gets all the tags for this repository. Should also update the cache.
+     * @param refresh If true, a refresh is being done, and caching should not be used
      * @param token Cancellation token
      */
-    getTags(token: CancellationToken): Promise<DockerTag[]>;
-
-    /**
-     * Gets all the tags for this repository from cache
-     * @param token Cancellation token
-     */
-    getCachedTags(token: CancellationToken): Promise<DockerTag[]>;
+    getTags(refresh: boolean, token: CancellationToken): Promise<DockerTag[]>;
 
     /**
      * Deletes a repository. This method is optional.
@@ -288,8 +261,6 @@ export interface DockerTag extends RegistryTreeItem {
  * Interface for a custom registry provider that implements `getChildTreeItems`, to provide an arbitrary tree of nodes
  */
 export interface CustomDockerRegistryProvider extends DockerRegistryProviderBase, ParentTreeItem {
-    // @inheritdoc
-    getChildTreeItems(token: CancellationToken): Promise<RegistryTreeItem[]>;
 }
 ```
 
@@ -301,9 +272,10 @@ export interface CustomDockerRegistryProvider extends DockerRegistryProviderBase
 export interface ParentTreeItem extends RegistryTreeItem {
     /**
      * Gets the child items for this tree node
+     * @param refresh If true, a refresh is being done, and caching should not be used
      * @param token Cancellation token
      */
-    getChildTreeItems(token: CancellationToken): Promise<RegistryTreeItem[]>;
+    getChildTreeItems(refresh: boolean, token: CancellationToken): Promise<RegistryTreeItem[]>;
 }
 ```
 
