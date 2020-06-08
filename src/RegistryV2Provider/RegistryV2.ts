@@ -22,8 +22,14 @@ const catalogScope = 'registry:catalog:*';
  */
 export interface RegistryV2State extends CachingRegistryState {
     /**
+     * True if the registry is a monolith (public), false otherwise
+     */
+    isMonolith: boolean;
+
+    /**
      * If the registry is a monolith (public), this contains the list of connected repositories,
-     * allowing the `_catalog` endpoint to be skipped
+     * allowing the `_catalog` endpoint to be skipped. It will always be defined if isMonolith
+     * is true.
      */
     monolithRepositories?: string[];
 }
@@ -39,7 +45,7 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
 
     // @inheritdoc
     public get contextValue(): string {
-        if (this.isMonolith) {
+        if (this.state.isMonolith) {
             return 'RegistryV2;Monolith;';
         }
 
@@ -72,22 +78,21 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
     }
 
     /**
-     * Whether the registry is a monolith (public) or not (private)
-     */
-    public get isMonolith(): boolean {
-        return this.state.monolithRepositories !== undefined;
-    }
-
-    /**
      * For monolith registries, adds a specific repository to the list of connected ones
      * @param repositoryName The name of the repository to add
      */
     public async connectMonolithRepository(repositoryName: string): Promise<void> {
-        if (!this.isMonolith) {
+        if (!this.state.isMonolith) {
             throw new Error('Cannot add monolith repository to non-monolith registry.');
         }
 
-        const monolithRepositories = this.state.monolithRepositories ?? [];
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        if (this.state.monolithRepositories!.some(r => r === repositoryName)) {
+            throw new Error(`Cannot add monolith repository '${repositoryName}' because it is already added.`);
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const monolithRepositories = this.state.monolithRepositories!;
         monolithRepositories.push(repositoryName);
         await this.setState({ ...this.state, monolithRepositories: monolithRepositories });
     }
@@ -97,7 +102,7 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
      * @param repositoryName The name of the repository to remove
      */
     public async disconnectMonolithRepository(repositoryName: string): Promise<void> {
-        if (!this.isMonolith) {
+        if (!this.state.isMonolith) {
             throw new Error('Cannot remove monolith repository from non-monolith registry.');
         }
 
@@ -117,7 +122,8 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
             return this.signRequestBasic(request, token);
         }
 
-        request.headers.set('Authorization', `Bearer ${await getOAuthTokenFromBasic(this, this.authContext, scope, token)}`);
+        const oAuthToken = await getOAuthTokenFromBasic(this, this.authContext, scope, token);
+        request.headers.set('Authorization', `Bearer ${oAuthToken}`);
     }
 
     /**
@@ -140,13 +146,19 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
      * @param parent The parent registry provider
      * @param registryId The registry ID
      * @param credentials The service and credentials for the registry
+     * @param isMonolith True if using a monolith, false otherwise
      * @param monolithRepositories If using a monolith, the list of monolith repositories of interest
      */
-    public static async connect(parent: RegistryV2ProviderBase, registryId: string, globalState: Memento, credentials: DockerCredentials, monolithRepositories?: string[]): Promise<RegistryV2> {
+    public static async connect(parent: RegistryV2ProviderBase, registryId: string, globalState: Memento, credentials: DockerCredentials, isMonolith: boolean, monolithRepositories?: string[]): Promise<RegistryV2> {
+        if (!isMonolith && monolithRepositories) {
+            throw new Error('Cannot create a non-monolith registry with monolith repositories.');
+        }
+
         const state: RegistryV2State = {
             service: credentials.service,
             account: credentials.account,
-            monolithRepositories: monolithRepositories,
+            isMonolith: isMonolith,
+            monolithRepositories: isMonolith ? monolithRepositories ?? [] : undefined,
         };
 
         const registry = new RegistryV2(parent, registryId, globalState);
@@ -158,7 +170,7 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
 
     // @inheritdoc
     protected async getRepositoriesImpl(token: CancellationToken): Promise<RepositoryV2[]> {
-        if (this.isMonolith) {
+        if (this.state.isMonolith) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             return (this.state.monolithRepositories!).map(r => new RepositoryV2(this, r));
         } else {

@@ -21,7 +21,7 @@ export class RegistryV2Simulator implements Disposable {
     public readonly cache: { [key: string]: { tag: string; digest: string }[] } = { 'myimage': [{ tag: 'latest', digest: digest }] };
     public catalogCalled = false;
 
-    public constructor(public readonly registryPort: number, public readonly authPort: number, public readonly isMonolith: boolean) {
+    public constructor(public readonly registryPort: number, public readonly authPort: number, private readonly disableCatalog: boolean) {
         this.authServer = this.createAuthServer();
         this.registryServer = this.createRegistryServer();
     }
@@ -79,7 +79,7 @@ export class RegistryV2Simulator implements Disposable {
                 statusMessage = 'OK';
             }
             // Catalog
-            else if (request.url === '/v2/_catalog' && !this.isMonolith) {
+            else if (request.url === '/v2/_catalog' && !this.disableCatalog) {
                 this.catalogCalled = true;
                 statusCode = 200;
                 statusMessage = 'OK';

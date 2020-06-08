@@ -43,13 +43,18 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
     private cache: DockerRepository[] | undefined;
 
     /**
+     * Memento state key
+     */
+    private readonly stateKey: string;
+
+    /**
      * Gets the persistent state for this registry. Not modifiable, use `setState` instead.
      */
     protected get state(): TState {
-        const state = this.globalState.get<TState | undefined>(`vscode-docker-registries.${this.parent.providerId}.${this.registryId}.state`);
+        const state = this.globalState.get<TState | undefined>(this.stateKey);
 
         if (!state) {
-            throw new Error('Registry state retrieved before being set.');
+            throw new Error(`Registry state retrieved before being set. Key = '${this.stateKey}'`);
         }
 
         return state;
@@ -60,7 +65,7 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
      * @param state The state to set
      */
     protected async setState(state: TState | undefined): Promise<void> {
-        return this.globalState.update(`vscode-docker-registries.${this.parent.providerId}.${this.registryId}.state`, state);
+        return this.globalState.update(this.stateKey, state);
     }
 
     /**
@@ -70,6 +75,7 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
      * @param globalState Memento storage
      */
     public constructor(protected readonly parent: DockerRegistryProviderBase, public readonly registryId: string, private readonly globalState: Memento) {
+        this.stateKey = `vscode-docker-registries.${this.parent.providerId}.${this.registryId}.state`;
     }
 
     // @inheritdoc

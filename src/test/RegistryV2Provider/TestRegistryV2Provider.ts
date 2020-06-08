@@ -22,22 +22,22 @@ export class TestRegistryV2Provider extends RegistryV2ProviderBase implements Di
         };
     }
 
-    private constructor(public readonly simulator: RegistryV2Simulator, public readonly memento: TestMemento, private readonly isMonolith: boolean) {
+    private constructor(public readonly simulator: RegistryV2Simulator, public readonly memento: TestMemento, private readonly registryIsMonolith: boolean) {
         super(memento);
     }
 
     public async connectRegistryImpl(registryId: string, token: CancellationToken): Promise<RegistryV2> {
-        return RegistryV2.connect(this, registryId, this.memento, this.credentials, this.isMonolith ? Object.keys(this.simulator.cache) : undefined);
+        return RegistryV2.connect(this, registryId, this.memento, this.credentials, this.registryIsMonolith, this.registryIsMonolith ? Object.keys(this.simulator.cache) : undefined);
     }
 
-    public static async setup(registryPort: number, authPort: number, isMonolith: boolean): Promise<{ provider: TestRegistryV2Provider; firstReg: RegistryV2; firstRepo: RepositoryV2; firstTag: TagV2 }> {
-        const simulator = new RegistryV2Simulator(registryPort, authPort, isMonolith);
+    public static async setup(registryPort: number, authPort: number, registryIsMonolith: boolean): Promise<{ provider: TestRegistryV2Provider; firstReg: RegistryV2; firstRepo: RepositoryV2; firstTag: TagV2 }> {
+        const simulator = new RegistryV2Simulator(registryPort, authPort, registryIsMonolith);
         await simulator.startListening();
 
         const token = new TestCancellationToken();
         const memento = new TestMemento();
 
-        const provider = new TestRegistryV2Provider(simulator, memento, isMonolith);
+        const provider = new TestRegistryV2Provider(simulator, memento, registryIsMonolith);
         await provider.connectRegistry(token);
         const firstReg = (await provider.getRegistries(true, token))[0] as RegistryV2;
         const firstRepo = (await firstReg.getRepositories(true, token))[0] as RepositoryV2;
