@@ -75,7 +75,11 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
     }
 
     // @inheritdoc
-    public async disconnectRegistry(registry: DockerRegistry): Promise<void> {
+    public async disconnectRegistry(registry: CachingRegistryBase<never>): Promise<void> {
+        if (this.providerId !== registry.providerId) {
+            throw new Error(`Cannot disconnect registry with ID '${registry.registryId}' because it does not belong to provider with ID '${this.providerId}'.`);
+        }
+
         await this.setRegistryIds(this.registryIds.filter(r => r !== registry.registryId));
 
         if (registry instanceof CachingRegistryBase) {

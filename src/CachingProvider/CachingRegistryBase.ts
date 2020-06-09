@@ -69,6 +69,13 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
     }
 
     /**
+     * Gets the providerId for this registry's parent provider
+     */
+    public get providerId(): string {
+        return this.parent.providerId;
+    }
+
+    /**
      * Constructs a `CachingRegistryBase` object
      * @param parent The parent provider
      * @param registryId The registry ID
