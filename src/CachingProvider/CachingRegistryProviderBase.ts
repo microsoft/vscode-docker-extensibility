@@ -7,7 +7,7 @@ import * as crypto from "crypto";
 import { BasicDockerRegistryProvider, DockerRegistryProviderBase } from "../contracts/DockerRegistryProvider";
 import { Memento, CancellationToken } from "vscode";
 import { DockerRegistry } from "../contracts/DockerRegistry";
-import { CachingRegistryBase } from "./CachingRegistryBase";
+import { CachingRegistryBase, CachingRegistryState } from "./CachingRegistryBase";
 
 function getRandomRegistryId(length = 8): string {
     const buffer: Buffer = crypto.randomBytes(Math.ceil(length / 2));
@@ -75,7 +75,7 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
     }
 
     // @inheritdoc
-    public async disconnectRegistry(registry: CachingRegistryBase<never>): Promise<void> {
+    public async disconnectRegistry(registry: CachingRegistryBase<CachingRegistryState>): Promise<void> {
         if (this.providerId !== registry.providerId) {
             throw new Error(`Cannot disconnect registry with ID '${registry.registryId}' because it does not belong to provider with ID '${this.providerId}'.`);
         }

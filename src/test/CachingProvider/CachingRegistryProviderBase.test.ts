@@ -56,7 +56,7 @@ describe('(Unit) CachingRegistryProviderBase', function () {
         console.log('    CachingRegistryProviderBase Cleanup');
 
         // Validate that everything is cleaned up
-        await provider.disconnectRegistry((await provider.getRegistries(true, token))[0]);
+        await provider.disconnectRegistry((await provider.getRegistries(true, token))[0] as TestCachingRegistry);
         Object.keys(provider.memento.cache).should.be.empty;
     });
 });

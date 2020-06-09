@@ -45,7 +45,7 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
 
     // @inheritdoc
     public get contextValue(): string {
-        if (this.state.isMonolith) {
+        if (this.isMonolith) {
             return 'RegistryV2;Monolith;';
         }
 
@@ -78,11 +78,18 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
     }
 
     /**
+     * Whether the registry is a monolith (public) or not (private)
+     */
+    public get isMonolith(): boolean {
+        return this.state.isMonolith;
+    }
+
+    /**
      * For monolith registries, adds a specific repository to the list of connected ones
      * @param repositoryName The name of the repository to add
      */
     public async connectMonolithRepository(repositoryName: string): Promise<void> {
-        if (!this.state.isMonolith) {
+        if (!this.isMonolith) {
             throw new Error('Cannot add monolith repository to non-monolith registry.');
         }
 
@@ -102,7 +109,7 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
      * @param repositoryName The name of the repository to remove
      */
     public async disconnectMonolithRepository(repositoryName: string): Promise<void> {
-        if (!this.state.isMonolith) {
+        if (!this.isMonolith) {
             throw new Error('Cannot remove monolith repository from non-monolith registry.');
         }
 
@@ -170,7 +177,7 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
 
     // @inheritdoc
     protected async getRepositoriesImpl(token: CancellationToken): Promise<RepositoryV2[]> {
-        if (this.state.isMonolith) {
+        if (this.isMonolith) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             return (this.state.monolithRepositories!).map(r => new RepositoryV2(this, r));
         } else {
