@@ -71,6 +71,8 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
 
         await this.setRegistryIds([...this.registryIds, registry.registryId]);
 
+        this.cache?.push(registry);
+
         return registry;
     }
 
@@ -85,6 +87,8 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
         if (registry instanceof CachingRegistryBase) {
             await registry.clearState();
         }
+
+        this.cache = this.cache?.filter(r => r.registryId !== registry.registryId);
     }
 
     /**

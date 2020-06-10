@@ -5,6 +5,7 @@
 
 import { TestCancellationToken } from '../TestCancellationToken';
 import { TestCachingRegistryProvider, testLabel, TestCachingRegistry } from "./TestCachingRegistryProvider";
+import { expect } from 'chai';
 
 describe('(Unit) CachingRegistryProviderBase', function () {
     let provider: TestCachingRegistryProvider;
@@ -49,6 +50,36 @@ describe('(Unit) CachingRegistryProviderBase', function () {
             (provider as any).cache = undefined;
 
             provider.getRegistries(false, token).should.eventually.not.be.undefined;
+        });
+    });
+
+    describe('connectRegistry / disconnectRegistry', function () {
+        it('Should put the new registry into the cache, and remove it upon disconnect', async function () {
+            const regA = await provider.connectRegistry(token) as TestCachingRegistry;
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (provider as any).cache.should.include(regA);
+
+            await provider.disconnectRegistry(regA);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (provider as any).cache.should.not.include(regA);
+        });
+
+        it('Should not alter the cache if it is undefined', async function () {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (provider as any).cache = undefined;
+
+            const regA = await provider.connectRegistry(token) as TestCachingRegistry;
+
+            expect(regA).to.not.be.undefined;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expect((provider as any).cache).to.be.undefined;
+
+            await provider.disconnectRegistry(regA);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expect((provider as any).cache).to.be.undefined;
         });
     });
 
