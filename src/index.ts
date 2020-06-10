@@ -29,5 +29,5 @@ export { RegistryV2 } from "./RegistryV2Provider/RegistryV2";
 export { RepositoryV2 } from "./RegistryV2Provider/RepositoryV2";
 export { TagV2 } from "./RegistryV2Provider/TagV2";
 export { asCancellable, CancelError } from "./RegistryV2Provider/utils/asCancellable";
-export { registryV2Request } from "./RegistryV2Provider/utils/registryV2Request";
+export { registryV2Request, AuthContext } from "./RegistryV2Provider/utils/registryV2Request";
 export * from './RegistryV2Provider/utils/RegistryV2Responses';

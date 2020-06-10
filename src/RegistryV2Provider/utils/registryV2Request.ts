@@ -54,6 +54,7 @@ export async function registryV2Request<T>(method: 'GET' | 'POST' | 'DELETE', re
  * @param context The OAuth authentication context
  * @param scope The OAuth scope for the requested token
  * @param cancelToken Cancellation token
+ * @internal
  */
 export async function getOAuthTokenFromBasic(registry: RegistryV2, context: AuthContext, scope: string, cancelToken: CancellationToken): Promise<string> {
     const oAuthHeaders = new Headers({
@@ -80,6 +81,7 @@ export async function getOAuthTokenFromBasic(registry: RegistryV2, context: Auth
 /**
  * Given a registry response, fetches the OAuth context from the WWW-Authenticate header
  * @param response The response to parse the auth context from
+ * @internal
  */
 export function getAuthContext(response: RegistryV2Response<unknown>): AuthContext | undefined {
     const realmRegExp = /realm="([^"]+)"/i;
