@@ -122,25 +122,25 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
      * Signs an HTTP request with the necessary authorization header. If OAuth is enabled, this gets the token first.
      * @param request The request to sign
      * @param scope The OAuth scope of the request
-     * @param token Cancellation token
+     * @param cancelToken Cancellation token
      */
-    public async signRequest(request: Request, scope: string, token: CancellationToken): Promise<void> {
+    public async signRequest(request: Request, scope: string, cancelToken: CancellationToken): Promise<void> {
         if (!this.authContext) {
-            return this.signRequestBasic(request, token);
+            return this.signRequestBasic(request, cancelToken);
         }
 
-        const oAuthToken = await getOAuthTokenFromBasic(this, this.authContext, scope, token);
+        const oAuthToken = await getOAuthTokenFromBasic(this, this.authContext, scope, cancelToken);
         request.headers.set('Authorization', `Bearer ${oAuthToken}`);
     }
 
     /**
      * Signs an HTTP request with basic auth only.
      * @param request The request to sign
-     * @param token Cancellation token
+     * @param cancelToken Cancellation token
      * @internal
      */
-    public async signRequestBasic(request: Request, token: CancellationToken): Promise<void> {
-        const creds = await this.getDockerLoginCredentials(token);
+    public async signRequestBasic(request: Request, cancelToken: CancellationToken): Promise<void> {
+        const creds = await this.getDockerLoginCredentials(cancelToken);
         const buffer = Buffer.from(`${creds.account}:${creds.secret}`);
 
         const basicAuthHeader = `Basic ${buffer.toString('base64')}`;

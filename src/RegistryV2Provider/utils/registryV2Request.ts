@@ -53,9 +53,9 @@ export async function registryV2Request<T>(method: 'GET' | 'POST' | 'DELETE', re
  * @param registry The registry to make the request to
  * @param context The OAuth authentication context
  * @param scope The OAuth scope for the requested token
- * @param token Cancellation token
+ * @param cancelToken Cancellation token
  */
-export async function getOAuthTokenFromBasic(registry: RegistryV2, context: AuthContext, scope: string, token: CancellationToken): Promise<string> {
+export async function getOAuthTokenFromBasic(registry: RegistryV2, context: AuthContext, scope: string, cancelToken: CancellationToken): Promise<string> {
     const oAuthHeaders = new Headers({
         'Content-Type': 'x-www-form-urlencoded',
         'grant_type': 'password',
@@ -65,9 +65,9 @@ export async function getOAuthTokenFromBasic(registry: RegistryV2, context: Auth
 
     const request = new Request(context.realm, { method: 'POST', headers: oAuthHeaders });
 
-    await registry.signRequestBasic(request, token);
+    await registry.signRequestBasic(request, cancelToken);
 
-    const response = await asCancellable(fetch(request), token);
+    const response = await asCancellable(fetch(request), cancelToken);
 
     if (response.status >= 200 && response.status < 300) {
         const body = await response.json();
