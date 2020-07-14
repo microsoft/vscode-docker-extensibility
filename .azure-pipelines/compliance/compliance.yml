@@ -5,14 +5,14 @@ steps:
       targetType: F # search files and folders
       optionsUEPATH: '$(Build.SourcesDirectory)/.azure-pipelines/compliance/PoliCheckExclusions.xml'
     continueOnError: true
-    condition: eq(variables['Agent.OS'], 'Windows')
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
     displayName: 'Publish Security Analysis Logs'
-    condition: eq(variables['Agent.OS'], 'Windows')
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
 
   - task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
     displayName: 'Post Analysis'
     inputs:
       AllTools: true
-    condition: eq(variables['Agent.OS'], 'Windows')
+    condition: eq(variables['Agent.OS'], 'Windows_NT')
