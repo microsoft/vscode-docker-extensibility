@@ -4,4 +4,3 @@ steps:
     condition: ne(variables['System.PullRequest.IsFork'], 'True')
 
   - template: compliance/compliance.yml
-    condition: eq(variables['Agent.OS'], 'Windows_NT') # Compliance tasks only work on Windows
