@@ -12,7 +12,6 @@ steps:
     inputs:
       toolMajorVersion: V2
       suppressionsFile: '$(Build.SourcesDirectory)/.azure-pipelines/compliance/CredScanSuppressions.json'
-      debugMode: true # Needed to suppress folders
       folderSuppression: true
     continueOnError: true
     #condition: and(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['Build.Reason'], 'Schedule'))
