@@ -5,7 +5,15 @@ steps:
       targetType: F # search files and folders
       optionsUEPATH: '$(Build.SourcesDirectory)/.azure-pipelines/compliance/PoliCheckExclusions.xml'
     continueOnError: true
-    condition: and(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['Build.Reason'], 'Schedule'))
+    condition: and(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['Build.Reason'], 'Schedule')) # Only on scheduled builds because it is slow
+
+  - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+    displayName: 'Run CredScan'
+    inputs:
+      toolMajorVersion: V2
+      suppressionsFile: '$(Build.SourcesDirectory)/.azure-pipelines/compliance/CredScanSuppressions.json'
+    continueOnError: true
+    condition: and(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['Build.Reason'], 'Schedule')) # Only on scheduled builds because it is slow
 
   - task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
     displayName: 'Publish Security Analysis Logs'
