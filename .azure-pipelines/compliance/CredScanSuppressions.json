@@ -2,7 +2,15 @@
     "tool": "Credential Scanner",
     "suppressions": [
         {
-            "folder": "node_modules\\",
+            "file": "node_modules\\enquirer\\README.md",
+            "_justification": "No need to scan external node modules."
+        },
+        {
+            "file": "node_modules\\ini\\README.md",
+            "_justification": "No need to scan external node modules."
+        },
+        {
+            "file": "node_modules\\keytar\\README.md",
             "_justification": "No need to scan external node modules."
         },
         {
