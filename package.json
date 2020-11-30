@@ -11,7 +11,7 @@
     "bugs": {
         "url": "https://github.com/microsoft/vscode-docker/issues"
     },
-    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/master/README.md",
+    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/README.md",
     "keywords": [
         "vscode",
         "docker"
