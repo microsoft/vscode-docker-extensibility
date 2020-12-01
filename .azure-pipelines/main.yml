@@ -23,12 +23,12 @@ trigger:
       - '*'
 
 pr:
-  - master
+  - main
 
 schedules:
   - cron: "0 0 * * *"
     displayName: Daily midnight build
     branches:
       include:
-        - master
+        - main
     always: false
