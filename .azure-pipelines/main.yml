@@ -23,7 +23,9 @@ trigger:
       - '*'
 
 pr:
-  - main
+  branches:
+    include:
+      - main
 
 schedules:
   - cron: "0 0 * * *"
