@@ -10,7 +10,7 @@ describe('(Unit) asCancellable', function () {
     it('Should throw CancelError when cancelling', function () {
         const token = new TestCancellationToken();
 
-        const callback = new Promise((resolve, reject) => {
+        const callback = new Promise<void>((resolve, reject) => {
             const timer = setTimeout(() => {
                 clearTimeout(timer);
                 resolve();
