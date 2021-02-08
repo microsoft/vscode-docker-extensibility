@@ -8,6 +8,7 @@ import { RegistryV2 } from "../../RegistryV2Provider/RegistryV2";
 import { TestCancellationToken } from "../TestCancellationToken";
 import { Request } from "node-fetch";
 import { RepositoryV2 } from "../../RegistryV2Provider/RepositoryV2";
+import { ExtensionContext } from "vscode";
 
 async function getAuthHeaderFromSignedRequest(registry: RegistryV2, scope: string, token: TestCancellationToken): Promise<string> {
     const request = new Request('https://microsoft.com');
@@ -100,7 +101,13 @@ describe('(E2E) RegistryV2', function () {
 
     describe('connect', function () {
         it('Should return a non-monolith if monolith is false', async function () {
-            const reg = await RegistryV2.connect(provider, 'abc123', provider.memento, provider.credentials, false);
+            const reg = await RegistryV2.connect(
+                provider,
+                'abc123',
+                provider.testExtensionContext as unknown as ExtensionContext,
+                provider.credentials,
+                false
+            );
 
             reg.isMonolith.should.be.false;
 
@@ -108,7 +115,13 @@ describe('(E2E) RegistryV2', function () {
         });
 
         it('Should throw if monolith is false but monolith repositories are given', function () {
-            RegistryV2.connect(provider, 'abc123', provider.memento, provider.credentials, false, ['abcd1234']).should.eventually.be.rejected;
+            RegistryV2.connect(provider,
+                'abc123',
+                provider.testExtensionContext as unknown as ExtensionContext,
+                provider.credentials,
+                false,
+                ['abcd1234']
+            ).should.eventually.be.rejected;
         });
     });
 
@@ -150,7 +163,13 @@ describe('(E2E) Monolith RegistryV2', function () {
 
     describe('connect', function () {
         it('Should return a monolith if monolith repositories given', async function () {
-            const reg = await RegistryV2.connect(provider, 'abc123', provider.memento, provider.credentials, true, Object.keys(provider.simulator.cache));
+            const reg = await RegistryV2.connect(provider,
+                'abc123',
+                provider.testExtensionContext as unknown as ExtensionContext,
+                provider.credentials,
+                true,
+                Object.keys(provider.simulator.cache)
+            );
 
             reg.isMonolith.should.be.true;
 
@@ -158,7 +177,12 @@ describe('(E2E) Monolith RegistryV2', function () {
         });
 
         it('Should return a monolith even if no monolith repositories given', async function () {
-            const reg = await RegistryV2.connect(provider, 'abc123', provider.memento, provider.credentials, true);
+            const reg = await RegistryV2.connect(provider,
+                'abc123',
+                provider.testExtensionContext as unknown as ExtensionContext,
+                provider.credentials,
+                true
+            );
 
             reg.isMonolith.should.be.true;
 
