@@ -5,7 +5,7 @@
 
 import { Memento } from "vscode";
 
-export class TestMemento implements Memento {
+export class TestMemento implements Partial<Memento> {
     public readonly cache: { [key: string]: unknown } = {};
 
     public get<T>(key: string): T | undefined;

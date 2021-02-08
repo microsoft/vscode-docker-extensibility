@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken, Memento, ThemeIcon } from "vscode";
+import { CancellationToken, ExtensionContext, ThemeIcon } from "vscode";
 import { RepositoryV2 } from "./RepositoryV2";
 import { RegistryV2CatalogResponseBody, RegistryV2Response } from "./utils/RegistryV2Responses";
 import { registryV2Request, getOAuthTokenFromBasic, AuthContext, getAuthContext } from "./utils/registryV2Request";
 import { RegistryV2ProviderBase } from "./RegistryV2ProviderBase";
 import { Request } from "node-fetch";
 import { CachingRegistryBase, CachingRegistryState } from "../CachingProvider/CachingRegistryBase";
-import { DockerCredentials } from "..";
-import { keytar } from "../CachingProvider/utils/keytar";
+import { DockerCredentials } from "../contracts/DockerCredentials";
 import { URL } from "url";
 
 const invalidImagePathParts = /\w+:\/\/|\/v2|\/$/ig;
@@ -152,11 +151,12 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
      * Connects a new generic V2 registry
      * @param parent The parent registry provider
      * @param registryId The registry ID
+     * @param extensionContext Extension context provided at activation
      * @param credentials The service and credentials for the registry
      * @param isMonolith True if using a monolith, false otherwise
      * @param monolithRepositories If using a monolith, the list of monolith repositories of interest
      */
-    public static async connect(parent: RegistryV2ProviderBase, registryId: string, globalState: Memento, credentials: DockerCredentials, isMonolith: boolean, monolithRepositories?: string[]): Promise<RegistryV2> {
+    public static async connect(parent: RegistryV2ProviderBase, registryId: string, extensionContext: ExtensionContext, credentials: DockerCredentials, isMonolith: boolean, monolithRepositories?: string[]): Promise<RegistryV2> {
         if (!isMonolith && monolithRepositories) {
             throw new Error('Cannot create a non-monolith registry with monolith repositories.');
         }
@@ -168,9 +168,9 @@ export class RegistryV2 extends CachingRegistryBase<RegistryV2State> {
             monolithRepositories: isMonolith ? monolithRepositories ?? [] : undefined,
         };
 
-        const registry = new RegistryV2(parent, registryId, globalState);
+        const registry = new RegistryV2(parent, registryId, extensionContext);
         await registry.setState(state);
-        await keytar.instance.setPassword(credentials.service, credentials.account, credentials.secret);
+        await extensionContext.secrets.store(registry.secretStoreKey, credentials.secret);
 
         return registry;
     }

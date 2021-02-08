@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DockerRegistry } from "../contracts/DockerRegistry";
-import { CancellationToken, Memento } from "vscode";
+import { CancellationToken, ExtensionContext } from "vscode";
 import { DockerRepository } from "../contracts/DockerRepository";
-import { DockerRegistryProviderBase, DockerCredentials } from "..";
-import { keytar } from "./utils/keytar";
+import { DockerCredentials } from "../contracts/DockerCredentials";
+import { DockerRegistryProviderBase } from "../contracts/DockerRegistryProvider";
 
 /**
  * State kept for all `CachingRegistryBase` implementations
@@ -51,7 +51,7 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
      * Gets the persistent state for this registry. Not modifiable, use `setState` instead.
      */
     protected get state(): TState {
-        const state = this.globalState.get<TState | undefined>(this.stateKey);
+        const state = this.extensionContext.globalState.get<TState | undefined>(this.stateKey);
 
         if (!state) {
             throw new Error(`Registry state retrieved before being set. Key = '${this.stateKey}'`);
@@ -65,7 +65,7 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
      * @param state The state to set
      */
     protected async setState(state: TState | undefined): Promise<void> {
-        return this.globalState.update(this.stateKey, state);
+        return this.extensionContext.globalState.update(this.stateKey, state);
     }
 
     /**
@@ -79,9 +79,9 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
      * Constructs a `CachingRegistryBase` object
      * @param parent The parent provider
      * @param registryId The registry ID
-     * @param globalState Memento storage
+     * @param extensionContext Extension context provided at activation
      */
-    public constructor(protected readonly parent: DockerRegistryProviderBase, public readonly registryId: string, private readonly globalState: Memento) {
+    public constructor(protected readonly parent: DockerRegistryProviderBase, public readonly registryId: string, private readonly extensionContext: ExtensionContext) {
         this.stateKey = `vscode-docker-registries.${this.parent.providerId}.${this.registryId}.state`;
     }
 
@@ -109,7 +109,7 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
         return {
             service: this.state.service,
             account: this.state.account,
-            secret: await keytar.instance.getPassword(this.state.service, this.state.account) ?? '',
+            secret: await this.extensionContext.secrets.get(this.secretStoreKey) ?? '',
         };
     }
 
@@ -118,7 +118,11 @@ export abstract class CachingRegistryBase<TState extends CachingRegistryState> i
      * @internal
      */
     public async clearState(): Promise<void> {
-        await keytar.instance.deletePassword(this.state.service, this.state.account)
+        await this.extensionContext.secrets.delete(this.secretStoreKey);
         await this.setState(undefined);
+    }
+
+    protected get secretStoreKey(): string {
+        return `${this.state.service}.${this.state.account}`;
     }
 }
