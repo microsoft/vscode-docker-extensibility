@@ -88,6 +88,6 @@ describe('(Unit) CachingRegistryProviderBase', function () {
 
         // Validate that everything is cleaned up
         await provider.disconnectRegistry((await provider.getRegistries(true, token))[0] as TestCachingRegistry);
-        Object.keys(provider.memento.cache).should.be.empty;
+        Object.keys(provider.testExtensionContext.globalState.cache).should.be.empty;
     });
 });

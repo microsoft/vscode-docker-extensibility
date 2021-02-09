@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RegistryV2ProviderBase } from "../../RegistryV2Provider/RegistryV2ProviderBase";
-import { CancellationToken, Disposable } from "vscode";
+import { CancellationToken, Disposable, ExtensionContext } from "vscode";
 import { RegistryV2 } from "../../RegistryV2Provider/RegistryV2";
-import { TestMemento } from "../TestMemento";
 import { DockerCredentials } from "../../contracts/DockerCredentials";
 import { RegistryV2Simulator } from "./RegistryV2Simulator";
 import { RepositoryV2 } from "../../RegistryV2Provider/RepositoryV2";
 import { TagV2 } from "../../RegistryV2Provider/TagV2";
 import { TestCancellationToken } from "../TestCancellationToken";
+import { TestExtensionContext } from "../TestExtensionContext";
 
 export class TestRegistryV2Provider extends RegistryV2ProviderBase implements Disposable {
     public get credentials(): DockerCredentials {
@@ -22,12 +22,12 @@ export class TestRegistryV2Provider extends RegistryV2ProviderBase implements Di
         };
     }
 
-    private constructor(public readonly simulator: RegistryV2Simulator, public readonly memento: TestMemento, private readonly registryIsMonolith: boolean) {
-        super(memento);
+    private constructor(public readonly simulator: RegistryV2Simulator, public readonly testExtensionContext: TestExtensionContext, private readonly registryIsMonolith: boolean) {
+        super(testExtensionContext as unknown as ExtensionContext);
     }
 
     public async connectRegistryImpl(registryId: string, token: CancellationToken): Promise<RegistryV2> {
-        return RegistryV2.connect(this, registryId, this.memento, this.credentials, this.registryIsMonolith, this.registryIsMonolith ? Object.keys(this.simulator.cache) : undefined);
+        return RegistryV2.connect(this, registryId, this.testExtensionContext as unknown as ExtensionContext, this.credentials, this.registryIsMonolith, this.registryIsMonolith ? Object.keys(this.simulator.cache) : undefined);
     }
 
     public static async setup(registryPort: number, authPort: number, registryIsMonolith: boolean): Promise<{ provider: TestRegistryV2Provider; firstReg: RegistryV2; firstRepo: RepositoryV2; firstTag: TagV2 }> {
@@ -35,9 +35,8 @@ export class TestRegistryV2Provider extends RegistryV2ProviderBase implements Di
         await simulator.startListening();
 
         const token = new TestCancellationToken();
-        const memento = new TestMemento();
 
-        const provider = new TestRegistryV2Provider(simulator, memento, registryIsMonolith);
+        const provider = new TestRegistryV2Provider(simulator, new TestExtensionContext(), registryIsMonolith);
         await provider.connectRegistry(token);
         const firstReg = (await provider.getRegistries(true, token))[0] as RegistryV2;
         const firstRepo = (await firstReg.getRepositories(true, token))[0] as RepositoryV2;

@@ -5,7 +5,7 @@
 
 import * as crypto from "crypto";
 import { BasicDockerRegistryProvider, DockerRegistryProviderBase } from "../contracts/DockerRegistryProvider";
-import { Memento, CancellationToken } from "vscode";
+import { CancellationToken, ExtensionContext } from "vscode";
 import { DockerRegistry } from "../contracts/DockerRegistry";
 import { CachingRegistryBase, CachingRegistryState } from "./CachingRegistryBase";
 
@@ -34,7 +34,7 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
      * Gets the connected registry IDs
      */
     private get registryIds(): string[] {
-        return this.globalState.get(`vscode-docker-registries.${this.providerId}.registries`, []);
+        return this.extensionContext.globalState.get(`vscode-docker-registries.${this.providerId}.registries`, []);
     }
 
     /**
@@ -42,14 +42,14 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
      * @param registryIds The registry IDs
      */
     private async setRegistryIds(registryIds: string[]): Promise<void> {
-        return this.globalState.update(`vscode-docker-registries.${this.providerId}.registries`, registryIds.length ? registryIds : undefined);
+        return this.extensionContext.globalState.update(`vscode-docker-registries.${this.providerId}.registries`, registryIds.length ? registryIds : undefined);
     }
 
     /**
      * Constructs a `CachingRegistryProviderBase` object
-     * @param globalState Memento storage
+     * @param extensionContext Extension context provided at activation
      */
-    public constructor(private readonly globalState: Memento) {
+    public constructor(private readonly extensionContext: ExtensionContext) {
     }
 
     // @inheritdoc
@@ -59,7 +59,7 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
         }
 
         if (this.cache === undefined) {
-            this.cache = this.registryIds.map(r => new this.registryConstructor(this, r, this.globalState));
+            this.cache = this.registryIds.map(r => new this.registryConstructor(this, r, this.extensionContext));
         }
 
         return this.cache;
@@ -94,7 +94,7 @@ export abstract class CachingRegistryProviderBase implements BasicDockerRegistry
     /**
      * Constructs a new `DockerRegistry` object
      */
-    protected abstract registryConstructor: new (parent: DockerRegistryProviderBase, registryId: string, globalState: Memento) => DockerRegistry;
+    protected abstract registryConstructor: new (parent: DockerRegistryProviderBase, registryId: string, extensionContext: ExtensionContext) => DockerRegistry;
 
     /**
      * Connects and constructs a new `DockerRegistry` object

@@ -9,11 +9,10 @@ import { CachingRepositoryBase } from "../../CachingProvider/CachingRepositoryBa
 import { DockerTag } from "../../contracts/DockerTag";
 import { DockerRepository } from "../../contracts/DockerRepository";
 import { DockerRegistry } from "../../contracts/DockerRegistry";
-import { CancellationToken, Memento } from "vscode";
-import { TestMemento } from "../TestMemento";
-import { keytar } from "../../CachingProvider/utils/keytar";
+import { CancellationToken, ExtensionContext } from "vscode";
 import { DockerCredentials } from "../../contracts/DockerCredentials";
 import { TestCancellationToken } from "../TestCancellationToken";
+import { TestExtensionContext } from "../TestExtensionContext";
 
 export const testLabel = 'test label';
 export const testContextValue = 'testContextValue';
@@ -57,13 +56,14 @@ export class TestCachingRegistry extends CachingRegistryBase<CachingRegistryStat
         return [new TestCachingRepository()];
     }
 
-    public static async connect(parent: TestCachingRegistryProvider, registryId: string, memento: TestMemento): Promise<TestCachingRegistry> {
-        const reg = new TestCachingRegistry(parent, registryId, memento);
+    public static async connect(parent: TestCachingRegistryProvider, registryId: string, testExtensionContext: TestExtensionContext): Promise<TestCachingRegistry> {
+        const reg = new TestCachingRegistry(parent, registryId, testExtensionContext as unknown as ExtensionContext);
         await reg.setState({
             service: credentials.service,
             account: credentials.account,
         });
-        await keytar.instance.setPassword(credentials.service, credentials.account, credentials.secret);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await testExtensionContext.secrets.store((reg as any).secretStoreKey, credentials.secret);
 
         return reg;
     }
@@ -76,22 +76,17 @@ export class TestCachingRegistryProvider extends CachingRegistryProviderBase {
 
     protected readonly registryConstructor = TestCachingRegistry;
 
-    private constructor(globalState: Memento) {
-        super(globalState);
-    }
-
-    public get memento(): TestMemento {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (this as any).globalState
+    private constructor(public readonly testExtensionContext: TestExtensionContext) {
+        super(testExtensionContext as unknown as ExtensionContext);
     }
 
     protected async connectRegistryImpl(registryId: string, token: CancellationToken): Promise<DockerRegistry> {
-        return TestCachingRegistry.connect(this, registryId, this.memento);
+        return TestCachingRegistry.connect(this, registryId, this.testExtensionContext);
     }
 
     public static async setup(): Promise<{ provider: TestCachingRegistryProvider; firstReg: TestCachingRegistry; firstRepo: TestCachingRepository }> {
         const token = new TestCancellationToken();
-        const provider = new TestCachingRegistryProvider(new TestMemento());
+        const provider = new TestCachingRegistryProvider(new TestExtensionContext());
         await provider.connectRegistry(new TestCancellationToken());
         const firstReg = (await provider.getRegistries(true, token))[0] as TestCachingRegistry;
         const firstRepo = (await firstReg.getRepositories(true, token))[0] as TestCachingRepository;

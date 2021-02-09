@@ -5,8 +5,6 @@
 
 import { TestCancellationToken } from '../TestCancellationToken';
 import { TestCachingRegistryProvider, testLabel, TestCachingRegistry, TestCachingRepository, credentials } from "./TestCachingRegistryProvider";
-import { TestKeytar } from '../TestKeytar';
-import { keytar } from '../../CachingProvider/utils/keytar';
 
 describe('(Unit) CachingRegistryBase', function () {
     let provider: TestCachingRegistryProvider;
@@ -61,10 +59,10 @@ describe('(Unit) CachingRegistryBase', function () {
             creds.should.deep.equal(credentials);
         });
 
-        it('Should be using keytar for storage', function () {
-            Object.keys((keytar.instance as TestKeytar).cache).should.have.lengthOf(1);
-            Object.keys((keytar.instance as TestKeytar).cache[credentials.service]).should.have.lengthOf(1);
-            (keytar.instance as TestKeytar).cache[credentials.service][credentials.account].should.equal(credentials.secret);
+        it('Should be using VSCode for storage', function () {
+            Object.keys(provider.testExtensionContext.secrets.cache).should.have.lengthOf(1);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            provider.testExtensionContext.secrets.cache[(firstReg as any).secretStoreKey].should.equal(credentials.secret);
         });
     });
 
@@ -73,7 +71,7 @@ describe('(Unit) CachingRegistryBase', function () {
 
         // Validate that everything is cleaned up
         await provider.disconnectRegistry(firstReg);
-        Object.keys(provider.memento.cache).should.be.empty;
-        Object.keys((keytar.instance as TestKeytar).cache).should.be.empty;
+        Object.keys(provider.testExtensionContext.globalState.cache).should.be.empty;
+        Object.keys(provider.testExtensionContext.secrets.cache).should.be.empty;
     });
 });
