@@ -22,7 +22,7 @@ export const credentials: DockerCredentials = {
     service: 'test',
     account: 'test',
     secret: 'test',
-}
+};
 
 export class TestCachingTag implements DockerTag {
     public readonly contextValue = testContextValue;

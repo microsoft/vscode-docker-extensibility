@@ -70,7 +70,7 @@ export class RegistryV2Simulator implements Disposable {
                 statusMessage = 'Unauthorized';
 
                 if (this.oAuth) {
-                    response.setHeader('www-authenticate', `Bearer realm="http://localhost:${this.authPort}",service="${this.registry}"`)
+                    response.setHeader('www-authenticate', `Bearer realm="http://localhost:${this.authPort}",service="${this.registry}"`);
                 }
             }
             // Version check

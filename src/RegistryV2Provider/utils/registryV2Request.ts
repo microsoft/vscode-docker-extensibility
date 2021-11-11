@@ -33,7 +33,7 @@ export async function registryV2Request<T>(method: 'GET' | 'POST' | 'DELETE', re
     const response = await asCancellable(fetch(request), token);
 
     if (throwOnFailure && (response.status < 200 || response.status >= 300)) {
-        throw new Error(`Request failed: ${response.status} ${response.statusText}`)
+        throw new Error(`Request failed: ${response.status} ${response.statusText}`);
     }
 
     const headers: { [key: string]: string } = {};
@@ -43,7 +43,7 @@ export async function registryV2Request<T>(method: 'GET' | 'POST' | 'DELETE', re
         status: response.status,
         statusText: response.statusText,
         succeeded: response.status >= 200 && response.status < 300,
-        body: headers['content-length'] && Number(headers['content-length']) ? await response.json() : {},
+        body: headers['content-length'] && Number(headers['content-length']) ? await response.json() as T : {} as T,
         headers: headers,
     };
 }
@@ -59,6 +59,7 @@ export async function registryV2Request<T>(method: 'GET' | 'POST' | 'DELETE', re
 export async function getOAuthTokenFromBasic(registry: RegistryV2, context: AuthContext, scope: string, cancelToken: CancellationToken): Promise<string> {
     const oAuthHeaders = new Headers({
         'Content-Type': 'x-www-form-urlencoded',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'grant_type': 'password',
         'service': context.service,
         'scope': scope,
@@ -71,7 +72,7 @@ export async function getOAuthTokenFromBasic(registry: RegistryV2, context: Auth
     const response = await asCancellable(fetch(request), cancelToken);
 
     if (response.status >= 200 && response.status < 300) {
-        const body = await response.json();
+        const body = await response.json() as { token: string };
         return body.token;
     } else {
         throw new Error(`Failed to acquire OAuth token. Status Code: ${response.status}, Status: ${response.statusText}`);

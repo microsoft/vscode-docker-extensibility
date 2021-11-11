@@ -15,7 +15,7 @@ export class TestCancellationToken implements CancellationToken {
         this.emitter.on('cancel', listener);
 
         return {
-            dispose: (): void => { this.emitter.off('cancel', listener) }
+            dispose: (): void => { this.emitter.off('cancel', listener); }
         };
     }
 
