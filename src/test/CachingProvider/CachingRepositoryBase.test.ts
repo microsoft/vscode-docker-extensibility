@@ -48,7 +48,7 @@ describe('(Unit) CachingRegistryProviderBase', function () {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (firstRepo as any).cache = undefined;
 
-            firstRepo.getTags(false, token).should.eventually.not.be.undefined;
+            return firstRepo.getTags(false, token).should.eventually.not.be.undefined;
         });
     });
 });

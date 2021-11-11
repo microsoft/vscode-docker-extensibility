@@ -49,7 +49,7 @@ describe('(Unit) CachingRegistryBase', function () {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (firstReg as any).cache = undefined;
 
-            firstReg.getRepositories(false, token).should.eventually.not.be.undefined;
+            return firstReg.getRepositories(false, token).should.eventually.not.be.undefined;
         });
     });
 

@@ -48,7 +48,7 @@ export class RepositoryV2 extends CachingRepositoryBase {
     // @inheritdoc
     public async delete(token: CancellationToken): Promise<void> {
         const tags = (await this.getTags(true, token)) as TagV2[];
-        await Promise.all(tags.map(t => t.delete(token)))
+        await Promise.all(tags.map(t => t.delete(token)));
     }
 
     /**

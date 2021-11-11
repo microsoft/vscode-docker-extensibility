@@ -54,7 +54,7 @@ describe('(E2E) TagV2', function () {
 
     describe('getManifest', function () {
         it('Should equal the expected value', function () {
-            return firstTag.getManifest(token).should.eventually.deep.equal(expectedManifest)
+            return firstTag.getManifest(token).should.eventually.deep.equal(expectedManifest);
         });
     });
 

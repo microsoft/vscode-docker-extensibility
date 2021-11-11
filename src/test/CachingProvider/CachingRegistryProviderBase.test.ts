@@ -49,7 +49,7 @@ describe('(Unit) CachingRegistryProviderBase', function () {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (provider as any).cache = undefined;
 
-            provider.getRegistries(false, token).should.eventually.not.be.undefined;
+            return provider.getRegistries(false, token).should.eventually.not.be.undefined;
         });
     });
 

@@ -76,7 +76,7 @@ describe('(E2E) RegistryV2', function () {
 
     describe('getAuthHeader', function () {
         it('Should initially be using basic auth', function () {
-            initialAuthHeader.should.equal(`Basic ${Buffer.from(`${provider.credentials.account}:${provider.credentials.secret}`).toString('base64')}`)
+            initialAuthHeader.should.equal(`Basic ${Buffer.from(`${provider.credentials.account}:${provider.credentials.secret}`).toString('base64')}`);
         });
 
         it('Should switch to OAuth automatically if it gets an unauthorized result', async function () {
@@ -89,13 +89,13 @@ describe('(E2E) RegistryV2', function () {
 
     describe('connectMonolithRepository', function () {
         it('Should throw', function () {
-            firstReg.connectMonolithRepository('test').should.eventually.be.rejected;
+            return firstReg.connectMonolithRepository('test').should.eventually.be.rejected;
         });
     });
 
     describe('disconnectMonolithRepository', function () {
         it('Should throw', function () {
-            firstReg.disconnectMonolithRepository('test').should.eventually.be.rejected;
+            return firstReg.disconnectMonolithRepository('test').should.eventually.be.rejected;
         });
     });
 
@@ -115,7 +115,7 @@ describe('(E2E) RegistryV2', function () {
         });
 
         it('Should throw if monolith is false but monolith repositories are given', function () {
-            RegistryV2.connect(provider,
+            return RegistryV2.connect(provider,
                 'abc123',
                 provider.testExtensionContext as unknown as ExtensionContext,
                 provider.credentials,
