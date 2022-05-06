@@ -7,12 +7,12 @@ import * as crypto from 'crypto';
 import { describe, it } from 'mocha';
 import { ShellQuotedString, ShellQuoting } from 'vscode';
 
-import { range } from '../src/utils/range';
+import { range } from '../utils/range';
 import {
     escaped,
     quoted,
     withArg,
-} from '../src/utils/commandLineBuilder';
+} from '../utils/commandLineBuilder';
 
 describe('commandLineBuilder', () => {
     describe('#withArg()', () => {
@@ -31,10 +31,10 @@ describe('commandLineBuilder', () => {
             expect(args).to.deep.equal([escaped(arg)]);
         });
         it('appends to initial arg list', () => {
-            const initialArgs = new Array<ShellQuotedString>({value: 'first', quoting: ShellQuoting.Escape }, {value: 'second', quoting: ShellQuoting.Strong});
+            const initialArgs = new Array<ShellQuotedString>({ value: 'first', quoting: ShellQuoting.Escape }, { value: 'second', quoting: ShellQuoting.Strong });
             const newArgsCount = crypto.randomInt(1, 5);
             const newArgs: Array<ShellQuotedString> = [...range(newArgsCount)].map(() => {
-                return {value: crypto.randomBytes(crypto.randomInt(20, 101)).toString('utf8'), quoting: ShellQuoting.Weak};
+                return { value: crypto.randomBytes(crypto.randomInt(20, 101)).toString('utf8'), quoting: ShellQuoting.Weak };
             });
             const args = withArg(...newArgs)(initialArgs);
 
@@ -43,7 +43,7 @@ describe('commandLineBuilder', () => {
             expect(args).to.deep.equal([...initialArgs, ...newArgs]);
         });
         it("doesn't append empty args", () => {
-            const initialArgs = new Array<ShellQuotedString>({value: 'first', quoting: ShellQuoting.Escape }, {value: 'second', quoting: ShellQuoting.Strong});
+            const initialArgs = new Array<ShellQuotedString>({ value: 'first', quoting: ShellQuoting.Escape }, { value: 'second', quoting: ShellQuoting.Strong });
             const newArgs = ['third', '', 'fifth'];
             const args = withArg(...newArgs)(initialArgs);
 

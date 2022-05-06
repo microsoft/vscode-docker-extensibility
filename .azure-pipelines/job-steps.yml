@@ -10,13 +10,13 @@ steps:
     displayName: 'Lint'
     inputs:
       command: custom
-      customCommand: run lint
+      customCommand: run lint -ws
 
   - task: Npm@1
     displayName: 'Test'
     inputs:
       command: custom
-      customCommand: test
+      customCommand: test -ws
 
   - task: Npm@1
     displayName: 'Pack'

@@ -2,6 +2,10 @@
     "eslint.validate": [
         "typescript"
     ],
+    "eslint.workingDirectories": [
+        "./packages/vscode-container-runtimes",
+        "./packages/vscode-docker-registries"
+    ],
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,
     "editor.formatOnSave": true,

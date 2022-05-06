@@ -32,6 +32,7 @@ describe('(Unit) getAuthContext', function () {
             status: 401,
             statusText: '',
             succeeded: false,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             headers: { 'www-authenticate': 'two' },
             body: undefined
         })).to.be.undefined;
@@ -42,6 +43,7 @@ describe('(Unit) getAuthContext', function () {
             status: 401,
             statusText: '',
             succeeded: false,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             headers: { 'www-authenticate': 'Bearer realm="https://localhost:5442/auth"' },
             body: undefined
         })).to.be.undefined;
@@ -52,6 +54,7 @@ describe('(Unit) getAuthContext', function () {
             status: 401,
             statusText: '',
             succeeded: false,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             headers: { 'www-authenticate': 'Bearer realm="https://localhost:5442/auth",service="localhost:5443"' },
             body: undefined
         })).to.deep.equal({ realm: 'https://localhost:5442/auth', service: 'localhost:5443' });

@@ -58,6 +58,7 @@ export async function registryV2Request<T>(method: 'GET' | 'POST' | 'DELETE', re
  */
 export async function getOAuthTokenFromBasic(registry: RegistryV2, context: AuthContext, scope: string, cancelToken: CancellationToken): Promise<string> {
     const oAuthHeaders = new Headers({
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'Content-Type': 'x-www-form-urlencoded',
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'grant_type': 'password',

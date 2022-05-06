@@ -8,8 +8,8 @@ import { describe, it } from 'mocha';
 
 import {
     DockerClient,
-} from '../src/clients/DockerClient';
-import { escaped, quoted } from '../src/utils/commandLineBuilder';
+} from '../clients/DockerClient';
+import { escaped, quoted } from '../utils/commandLineBuilder';
 
 describe('DockerClient', () => {
     const client = new DockerClient();

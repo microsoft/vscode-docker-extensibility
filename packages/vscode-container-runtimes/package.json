@@ -50,11 +50,10 @@
         "./tsconfig-paths-bootstrap.js"
       ],
       "spec": [
-        "test/**/*.test.ts"
+        "src/test/**/*.test.ts"
       ],
       "watch-files": [
-        "src/**/*.ts",
-        "test/**/*.ts"
+        "src/**/*.ts"
       ]
     }
   }
