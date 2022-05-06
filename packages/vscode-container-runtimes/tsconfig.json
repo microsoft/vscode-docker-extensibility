@@ -1,0 +1,21 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "lib",
+        "rootDir": "src",
+        "strictNullChecks": true,
+        "experimentalDecorators": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "ts-node": {
+        "compilerOptions": {
+            "baseUrl": "./",
+            "module": "commonjs",
+            "paths": {
+                "vscode": ["./vscode"]
+            }
+        }
+    }
+}

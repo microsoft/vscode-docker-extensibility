@@ -1,21 +1,13 @@
 {
-    "env": {
-        "browser": false,
-        "es6": true,
-        "node": true
-    },
+    "root": true,
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "project": "tsconfig.json",
-        "sourceType": "module"
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "project": "tsconfig.json"
     },
     "plugins": [
         "@typescript-eslint"
-    ],
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended"
     ],
     "rules": {
         "@typescript-eslint/naming-convention": [ // Naming is enforced with some exceptions below
@@ -64,5 +56,10 @@
         "no-extra-boolean-cast": "off", // We !!flatten a lot of things into booleans this way
         "no-throw-literal": "warn", // Elevate this from suggestion to warning
         "semi": "off" // Covered by @typescript-eslint/semi
-    }
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ]
 }
