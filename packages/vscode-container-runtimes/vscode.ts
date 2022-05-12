@@ -1,3 +1,11 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * This file is used to provide vscode specific types when running mocha test cases
+ */
+
 /**
  * Defines how an argument should be quoted if it contains
  * spaces or unsupported characters.
@@ -9,7 +17,7 @@ export enum ShellQuoting {
      * uses \ on bash and ` on PowerShell.
      */
     Escape = 1,
-    
+
     /**
      * Strong string quoting should be used. This for example
      * uses " for Windows cmd and ' for bash and PowerShell.
