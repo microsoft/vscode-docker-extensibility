@@ -10,25 +10,27 @@ steps:
     displayName: 'Lint'
     inputs:
       command: custom
-      customCommand: run lint
+      customCommand: run lint -ws
 
   - task: Npm@1
     displayName: 'Test'
     inputs:
       command: custom
-      customCommand: test
+      customCommand: test -ws
 
   - task: Npm@1
     displayName: 'Pack'
     inputs:
       command: custom
-      customCommand: pack
+      customCommand: pack -ws
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 
   - task: CopyFiles@2
     displayName: 'Copy Package'
     inputs:
-      Contents: 'vscode-docker-registries*.tgz'
+      Contents: |
+        vscode-docker-registries*.tgz
+        microsoft-vscode-container-runtimes*.tgz
       TargetFolder: '$(build.artifactstagingdirectory)'
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 
