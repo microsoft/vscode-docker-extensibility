@@ -38,7 +38,14 @@ import {
     VersionCommandOptions,
     VersionItem
 } from "../../contracts/ContainerClient";
-import { CommandLineArgs, composeArgs, quoted, withArg, withFlagArg, withNamedArg } from "../../utils/commandLineBuilder";
+import {
+    CommandLineArgs,
+    composeArgs,
+    quoted,
+    withArg,
+    withFlagArg,
+    withNamedArg,
+} from "../../utils/commandLineBuilder";
 import { toArray } from '../../utils/toArray';
 import { DockerInspectContainerRecord, isDockerInspectContainerRecord } from './DockerInspectContainerRecord';
 import { DockerInspectImageRecord, isDockerInspectImageRecord } from './DockerInspectImageRecord';
@@ -127,7 +134,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
             withNamedArg('--file', options.file),
             withNamedArg('--target', options.stage),
             withNamedArg('--tag', options.tags),
-            withNamedArg('--disable-content-trust', typeof options.disableContentTrust === 'boolean' ? options.disableContentTrust.toString() : options.disableContentTrust),
+            withNamedArg(
+                '--disable-content-trust',
+                typeof options.disableContentTrust === 'boolean'
+                    ? options.disableContentTrust.toString()
+                    : options.disableContentTrust),
             withDockerLabelsArg(options.labels),
             withNamedArg('--iidfile', options.imageIdFile),
             withNamedArg('--build-arg', options.args),
@@ -136,13 +147,17 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
     }
 
     /**
-     * Parse the build image command standard out (defaults to returning an empty promise)
+     * Parse the build image command standard out
      * @param options Build image command options
      * @param output Standard output from the build image command
      * @param strict Should the output be strictly parsed?
      * @returns An empty promise
      */
-    protected parseBuildImageCommandOutput(options: BuildImageCommandOptions, output: string, strict: boolean): Promise<void> {
+    protected parseBuildImageCommandOutput(
+        options: BuildImageCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<void> {
         return Promise.resolve();
     }
 
@@ -172,7 +187,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         return composeArgs(
             withArg('image', 'ls'),
             withFlagArg('--all', options.all),
-            withNamedArg('--filter', typeof options.dangling === 'boolean' ? `dangling=${options.dangling}` : undefined),
+            withNamedArg(
+                '--filter',
+                typeof options.dangling === 'boolean'
+                    ? `dangling=${options.dangling}`
+                    : undefined),
             withNamedArg('--filter', options.references?.map((reference) => `reference=${reference}`)),
             withDockerLabelFilterArgs(options.labels),
             withDockerNoTruncArg,
@@ -187,10 +206,15 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
      * @param strict Should the output be strictly parsed?
      * @returns A normalized array of ListImagesItem records
      */
-    protected async parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<Array<ListImagesItem>> {
+    protected async parseListImagesCommandOutput(
+        options: ListImagesCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<Array<ListImagesItem>> {
         const images = new Array<ListImagesItem>();
         try {
-            // Docker returns JSON per-line output, so we need to split each line and parse as independent JSON objects
+            // Docker returns JSON per-line output, so we need to split each line
+            // and parse as independent JSON objects
             output.split("\n").forEach((imageJson) => {
                 try {
                     // Ignore empty lines when parsing
@@ -200,12 +224,14 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
 
                     const rawImage = JSON.parse(imageJson);
 
-                    // Validate that the image object matches the expected output for the list images command
+                    // Validate that the image object matches the expected output
+                    // for the list images command
                     if (!isDockerListImageRecord(rawImage)) {
                         throw new Error('Invalid image JSON');
                     }
 
-                    // Parse the docker image to normalize registry, image name, and image tag information
+                    // Parse the docker image to normalize registry, image name,
+                    // and image tag information
                     const [registry, imageName] = parseDockerImageRepository(rawImage.Repository);
                     const createdAt = dayjs.utc(rawImage.CreatedAt).toDate();
 
@@ -236,7 +262,8 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
     }
 
     /**
-     * Generates the necessary information for running and parsing the results of a list image command for a Docker-like client
+     * Generates the necessary information for running and parsing the results
+     * of a list image command for a Docker-like client
      * @param options Standard list images command options
      * @returns A CommandResponse indicating how to run and parse/normalize a list image command for a Docker-like client
      */
@@ -260,7 +287,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         )();
     }
 
-    protected parsePruneImagesCommandOutput(options: PruneImagesCommandOptions, output: string, strict: boolean): Promise<void> {
+    protected parsePruneImagesCommandOutput(
+        options: PruneImagesCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<void> {
         return Promise.resolve();
     }
 
@@ -276,16 +307,30 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
 
     //#region PullImage Command
 
+    /**
+     * Generate the command line arguments for invoking a pull image command on
+     * a Docker-like client
+     * @param options Pull image command options
+     * @returns Command line arguments for pulling a container image
+     */
     protected getPullImageCommandArgs(options: PullImageCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('image', 'pull'),
             withFlagArg('--all-tags', options.allTags),
-            withNamedArg('--disable-content-trust', typeof options.disableContentTrust === 'boolean' ? options.disableContentTrust.toString() : undefined),
+            withNamedArg(
+                '--disable-content-trust',
+                typeof options.disableContentTrust === 'boolean'
+                    ? options.disableContentTrust.toString()
+                    : undefined),
             withArg(options.image),
         )();
     }
 
-    protected parsePullImageCommandOutput(options: PullImageCommandOptions, output: string, strict: boolean): Promise<void> {
+    protected parsePullImageCommandOutput(
+        options: PullImageCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<void> {
         return Promise.resolve();
     }
 
@@ -308,7 +353,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         )();
     }
 
-    protected parseTagImageCommandOutput(options: TagImageCommandOptions, output: string, strict: boolean): Promise<void> {
+    protected parseTagImageCommandOutput(
+        options: TagImageCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<void> {
         return Promise.resolve();
     }
 
@@ -325,11 +374,15 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
     //#region InspectImages Command
 
     /**
-     * Generate the command line arguments to run an inspect images command on a Docker-like client
+     * Generate the command line arguments to run an inspect images command on a
+     * Docker-like client
      * @param options Standard inspect images options
      * @returns Command line args to run an inspect images command on a given Docker-like client
      */
-    protected getInspectImagesCommandArgs(options: InspectImagesCommandOptions, formatOverrides?: Partial<GoTemplateJsonFormatOptions<DockerInspectImageRecord>>): CommandLineArgs {
+    protected getInspectImagesCommandArgs(
+        options: InspectImagesCommandOptions,
+        formatOverrides?: Partial<GoTemplateJsonFormatOptions<DockerInspectImageRecord>>,
+    ): CommandLineArgs {
         return composeArgs(
             withArg('image', 'inspect'),
             withNamedArg(
@@ -357,13 +410,18 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
     }
 
     /**
-     * Parse the standard output from a Docker-like inspect images command and normalize the result
+     * Parse the standard output from a Docker-like inspect images command and
+     * normalize the result
      * @param options Inspect images command options
      * @param output The standard out from a Docker-like runtime inspect images command
      * @param strict Should strict parsing be enforced?
      * @returns Normalized array of InspectImagesItem records
      */
-    protected async parseInspectImagesCommandOutput(options: InspectImagesCommandOptions, output: string, strict: boolean): Promise<Array<InspectImagesItem>> {
+    protected async parseInspectImagesCommandOutput(
+        options: InspectImagesCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<Array<InspectImagesItem>> {
         try {
             return output.split('\n').reduce<Array<InspectImagesItem>>((images, inspectString) => {
                 if (!inspectString) {
@@ -377,10 +435,10 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                         throw new Error('Invalid image inspect json');
                     }
 
-                    // This is effectively doing firstOrDefault on the RepoTags for the image. If there are any values in RepoTags,
-                    // the first one will be parsed and returned as the tag name for the image. Otherwise if there are no
-                    // entries in RepoTags, undefined will be returned for the registry, imageName, and tagName components and the image
-                    // can be treated as an intermediate/anonymous image layer.
+                    // This is effectively doing firstOrDefault on the RepoTags for the image. If there are any values
+                    // in RepoTags, the first one will be parsed and returned as the tag name for the image. Otherwise
+                    // if there are no entries in RepoTags, undefined will be returned for the registry, imageName, and
+                    // tagName components and the image can be treated as an intermediate/anonymous image layer.
                     const [registry, imageName, tagName] = inspect.RepoTags
                         .slice(0, 1)
                         .reduce<[string | undefined, string | undefined, string | undefined]>((unused, repoTag) => {
@@ -421,12 +479,19 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                     const labels = inspect.Labels ?? {};
 
                     // Parse and normalize the image architecture
-                    const architecture = inspect.Architecture.toLowerCase() === 'amd64' ? 'amd64' : inspect.Architecture.toLowerCase() === 'arm64' ? 'arm64' : undefined;
+                    const architecture = inspect.Architecture.toLowerCase() === 'amd64'
+                        ? 'amd64'
+                        : inspect.Architecture.toLowerCase() === 'arm64' ? 'arm64' : undefined;
 
                     // Parse and normalize the image OS
-                    const os = inspect.OperatingSystem.toLowerCase() === 'linux' ? 'linux' : inspect.Architecture.toLowerCase() === 'windows' ? 'windows' : undefined;
+                    const os = inspect.OperatingSystem.toLowerCase() === 'linux'
+                        ? 'linux'
+                        : inspect.Architecture.toLowerCase() === 'windows'
+                            ? 'windows'
+                            : undefined;
 
-                    // Determine if the image has been pushed to a remote repo (no repo digests or only localhost/ repo digetss)
+                    // Determine if the image has been pushed to a remote repo
+                    // (no repo digests or only localhost/ repo digetss)
                     const isLocalImage = !(inspect.RepoDigests || []).some((digest) => !digest.toLowerCase().startsWith('localhost/'));
 
                     // Return a normalized InspectImagesItem record
@@ -465,7 +530,8 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
             }
         }
 
-        // If there were no image records or there was a parsing error but strict parsing was disabled, return an empty array
+        // If there were no image records or there was a parsing error but
+        // strict parsing was disabled, return an empty array
         return new Array<InspectImagesItem>();
     }
 
@@ -486,7 +552,8 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
     //#region RunContainer Command
 
     /**
-     * Generate the command line arguments for a Docker-like run container command
+     * Generate the command line arguments for a Docker-like run container
+     * command
      * @param options Standard run container options
      * @returns Command line arguments for a Docker-like run container command
      */
@@ -515,7 +582,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
      * @param strict Should strict parsing be enforced
      * @returns The container ID if running detached or standard out if running attached
      */
-    protected async parseRunContainerCommandOutput(options: RunContainerCommandOptions, output: string, strict: boolean): Promise<string | undefined> {
+    protected async parseRunContainerCommandOutput(
+        options: RunContainerCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<string | undefined> {
         return options.detached ? output.split('\n', 1)[0] : output;
     }
 
@@ -548,7 +619,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         )();
     }
 
-    protected parseExecContainerCommandOutput(options: ExecContainerCommandOptions, output: string, strict: boolean): Promise<void> {
+    protected parseExecContainerCommandOutput(
+        options: ExecContainerCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<void> {
         return Promise.resolve();
     }
 
@@ -564,7 +639,10 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
 
     //#region ListContainers Command
 
-    protected getListContainersCommandArgsCore(options: ListContainersCommandOptions, formatOverrides?: Partial<GoTemplateJsonFormatOptions<DockerListContainerRecord>>): CommandLineArgs {
+    protected getListContainersCommandArgsCore(
+        options: ListContainersCommandOptions,
+        formatOverrides?: Partial<GoTemplateJsonFormatOptions<DockerListContainerRecord>>,
+    ): CommandLineArgs {
         return composeArgs(
             withArg('container', 'ls'),
             withFlagArg('--all', options.all),
@@ -589,7 +667,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         return this.getListContainersCommandArgsCore(options);
     }
 
-    protected async parseListContainersCommandOutput(options: ListContainersCommandOptions, output: string, strict: boolean): Promise<Array<ListContainersItem>> {
+    protected async parseListContainersCommandOutput(
+        options: ListContainersCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<Array<ListContainersItem>> {
         const containers = new Array<ListContainersItem>();
         try {
             output.split('\n').forEach((containerJson) => {
@@ -676,7 +758,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
      * @param strict Should strict parsing be enforced
      * @returns A list of IDs for containers that were stopped
      */
-    protected async parseStopContainersCommandOutput(options: StopContainersCommandOptions, output: string, strict: boolean): Promise<Array<string>> {
+    protected async parseStopContainersCommandOutput(
+        options: StopContainersCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<Array<string>> {
         return output.split('\n').filter((id) => id);
     }
 
@@ -700,7 +786,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         )();
     }
 
-    protected async parseRemoveContainersCommandOutput(options: RemoveContainersCommandOptions, output: string, strict: boolean): Promise<Array<string>> {
+    protected async parseRemoveContainersCommandOutput(
+        options: RemoveContainersCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<Array<string>> {
         return output.split('\n').filter((id) => id);
     }
 
@@ -716,6 +806,12 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
 
     //#region LogsForContainer Command
 
+    /**
+     * Generate the command line arguments for the log container command on a
+     * Docker-like client
+     * @param options Options for log container command
+     * @returns Command line arguments to invoke a log container command on a Docker-like client
+     */
     protected getLogsForContainerCommandArgs(options: LogsForContainerCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('container', 'logs'),
@@ -728,10 +824,27 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         )();
     }
 
-    protected parseLogsForContainerCommandOutput(options: LogsForContainerCommandOptions, output: string, strict: boolean): Promise<void> {
+    /**
+     * Parse the standard out from running a log container command on a
+     * Docker-like client
+     * @param options Options for the log container command
+     * @param output The standard output from running the command
+     * @param strict Should strict parsing be used?
+     * @returns An empty promise
+     */
+    protected parseLogsForContainerCommandOutput(
+        options: LogsForContainerCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<void> {
         return Promise.resolve();
     }
 
+    /**
+     * Generate a CommandResponse object for a Docker-like log container command
+     * @param options Options for the log container command
+     * @returns The CommandResponse object for the log container command
+     */
     async logsForContainer(options: LogsForContainerCommandOptions): Promise<CommandResponse<void>> {
         return {
             command: this.commandName,
@@ -745,12 +858,16 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
     //#region InspectContainers Command
 
     /**
-     * Only override this method if you need to make substantial changes to the inspect container commands required for a given runtime
+     * Only override this method if you need to make substantial changes to the inspect container commands required for
+     * a given runtime
      * @param options Inspect containers command options
      * @param formatOverrides Optional overrides for the Go template JSON mapping
      * @returns Command line args for invoking inspect containers on a Docker-like client
      */
-    protected getInspectContainersCommandArgsCore(options: InspectContainersCommandOptions, formatOverrides?: Partial<GoTemplateJsonFormatOptions<DockerInspectContainerRecord>>): CommandLineArgs {
+    protected getInspectContainersCommandArgsCore(
+        options: InspectContainersCommandOptions,
+        formatOverrides?: Partial<GoTemplateJsonFormatOptions<DockerInspectContainerRecord>>,
+    ): CommandLineArgs {
         return composeArgs(
             withArg('container', 'inspect'),
             withNamedArg(
@@ -791,7 +908,18 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         return this.getInspectContainersCommandArgsCore(options);
     }
 
-    protected async parseInspectContainersCommandOutput(options: InspectContainersCommandOptions, output: string, strict: boolean): Promise<Array<InspectContainersItem>> {
+    /**
+     * Parse the output from running an inspect containers command on a Docker-like client
+     * @param options Inspect containers command options
+     * @param output Standard out from running a Docker-like inspect containers command
+     * @param strict Should strict parsing be used to parse the output?
+     * @returns An array of InspectContainersItem records
+     */
+    protected async parseInspectContainersCommandOutput(
+        options: InspectContainersCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<Array<InspectContainersItem>> {
         try {
             return output.split('\n').reduce<Array<InspectContainersItem>>((containers, inspectString) => {
                 if (!inspectString) {
@@ -805,6 +933,7 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                         throw new Error('Invalid container inspect json');
                     }
 
+                    // Parse the environment variables assigned to the container at runtime
                     const environmentVariables = (inspect.EnvVars || []).reduce<Record<string, string>>((evs, ev) => {
                         const index = ev.indexOf('=');
                         if (index > -1) {
@@ -820,6 +949,8 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                         return evs;
                     }, {});
 
+                    // Parse the networks assigned to the container and normalize to InspectContainersItemNetwork
+                    // records
                     const networks = Object.entries(inspect.Networks || {}).map<InspectContainersItemNetwork>(([name, dockerNetwork]) => {
                         return {
                             name,
@@ -829,15 +960,21 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                         };
                     });
 
+                    // Parse the exposed ports for the container and normalize to a PortBinding record
                     const ports = Object.entries(inspect.Ports || {}).map<PortBinding>(([rawPort]) => {
                         const [port, protocol] = rawPort.split('/');
                         return {
                             containerPort: parseInt(port),
-                            protocol: protocol.toLowerCase() === 'tcp' ? 'tcp' : protocol.toLowerCase() === 'udp' ? 'udp' : undefined,
+                            protocol: protocol.toLowerCase() === 'tcp'
+                                ? 'tcp'
+                                : protocol.toLowerCase() === 'udp'
+                                    ? 'udp'
+                                    : undefined,
                         };
                     });
 
-                    // Parse the volume and bind mounts associated with the given runtime
+                    // Parse the volume and bind mounts associated with the given runtime and normalize to
+                    // InspectContainersItemMount records
                     const mounts = (inspect.Mounts || []).reduce<Array<InspectContainersItemMount>>((curMounts, mount) => {
                         switch (mount?.Type) {
                             case 'bind':
@@ -862,8 +999,12 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                     const labels = inspect.Labels ?? {};
 
                     const createdAt = dayjs.utc(inspect.CreatedAt);
-                    const startedAt = inspect.StartedAt ? dayjs.utc(inspect.StartedAt) : undefined;
-                    const finishedAt = inspect.FinishedAt ? dayjs.utc(inspect.FinishedAt) : undefined;
+                    const startedAt = inspect.StartedAt
+                        ? dayjs.utc(inspect.StartedAt)
+                        : undefined;
+                    const finishedAt = inspect.FinishedAt
+                        ? dayjs.utc(inspect.FinishedAt)
+                        : undefined;
 
                     // Return the normalized InspectContainersItem record
                     const container: InspectContainersItem = {
@@ -882,8 +1023,12 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                         command: toArray(inspect.Command ?? []),
                         currentDirectory: inspect.CWD || undefined,
                         createdAt: createdAt.toDate(),
-                        startedAt: startedAt && (startedAt.isSame(createdAt) || startedAt.isAfter(createdAt)) ? startedAt.toDate() : undefined,
-                        finishedAt: finishedAt && (finishedAt.isSame(createdAt) || finishedAt.isAfter(createdAt)) ? finishedAt.toDate() : undefined,
+                        startedAt: startedAt && (startedAt.isSame(createdAt) || startedAt.isAfter(createdAt))
+                            ? startedAt.toDate()
+                            : undefined,
+                        finishedAt: finishedAt && (finishedAt.isSame(createdAt) || finishedAt.isAfter(createdAt))
+                            ? finishedAt.toDate()
+                            : undefined,
                         raw: JSON.stringify(inspect.Raw),
                     };
 
@@ -905,7 +1050,9 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         return new Array<InspectContainersItem>();
     }
 
-    async inspectContainers(options: InspectContainersCommandOptions): Promise<CommandResponse<InspectContainersItem[]>> {
+    async inspectContainers(
+        options: InspectContainersCommandOptions,
+    ): Promise<CommandResponse<InspectContainersItem[]>> {
         return {
             command: this.commandName,
             args: this.getInspectContainersCommandArgs(options),
@@ -930,7 +1077,11 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         )();
     }
 
-    protected parseCreateVolumeCommandOutput(options: CreateVolumeCommandOptions, output: string, strict: boolean): Promise<void> {
+    protected parseCreateVolumeCommandOutput(
+        options: CreateVolumeCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<void> {
         return Promise.resolve();
     }
 
@@ -949,14 +1100,26 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
     protected getListVolumesCommandArgs(options: ListVolumesCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('volume', 'ls'),
-            withNamedArg('--filter', typeof options.dangling === 'boolean' ? `dangling=${options.dangling}` : undefined),
-            withNamedArg('--filter', options.driver ? `driver=${options.driver}` : undefined),
+            withNamedArg(
+                '--filter',
+                typeof options.dangling === 'boolean'
+                    ? `dangling=${options.dangling}`
+                    : undefined),
+            withNamedArg(
+                '--filter',
+                options.driver
+                    ? `driver=${options.driver}`
+                    : undefined),
             withDockerLabelFilterArgs(options.labels),
             withDockerJsonFormatArg,
         )();
     }
 
-    protected async parseListVolumesCommandOputput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
+    protected async parseListVolumesCommandOputput(
+        options: ListVolumesCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<ListVolumeItem[]> {
         const volumes = new Array<ListVolumeItem>();
         try {
             output.split("\n").forEach((volumeJson) => {
@@ -971,6 +1134,7 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
                         throw new Error('Invalid volume JSON');
                     }
 
+                    // Parse the labels assigned tot he volumes and normalize to key value pairs
                     const labels = rawVolume.Labels.split(',').reduce((labels, labelPair) => {
                         const index = labelPair.indexOf('=');
                         labels[labelPair.substring(0, index)] = labelPair.substring(index + 1);
@@ -1011,6 +1175,12 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
 
     //#region RemoveVolumes Command
 
+    /**
+     * Generate the command line arguments for a Docker-like remove volumes
+     * command
+     * @param options Remove volumes command options
+     * @returns Command line arguments for invoking a remove volumes command
+     */
     protected getRemoveVolumesCommandArgs(options: RemoveVolumesCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('volume', 'rm'),
@@ -1019,13 +1189,26 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         )();
     }
 
+    /**
+     * Parse the output from running a Docker-like remove volumes command
+     * @param options Options for the remove volumes command
+     * @param output Standard out from running the remove volumes command
+     * @param strict Should strict parsing be enforced?
+     * @returns A list of IDs for the volumes removed
+     */
+    protected async parseRemoveVolumesCommandOutput(
+        options: RemoveVolumesCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<string[]> {
+        return output.split('\n').filter(id => id);
+    }
+
     async removeVolumes(options: RemoveVolumesCommandOptions): Promise<CommandResponse<string[]>> {
         return {
             command: this.commandName,
             args: this.getRemoveVolumesCommandArgs(options),
-            parse: async (output, strict) => {
-                return output.split('\n').filter(id => id);
-            },
+            parse: (output, strict) => this.parseRemoveVolumesCommandOutput(options, output, strict),
         };
     }
 
