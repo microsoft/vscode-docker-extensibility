@@ -1204,6 +1204,12 @@ export abstract class DockerLikeClient implements Omit<IContainersClient, keyof 
         return output.split('\n').filter(id => id);
     }
 
+    /**
+     * Generate a CommandResponse instance for a Docker-like remove volumes
+     * command
+     * @param options Options for remove volumes command
+     * @returns CommandResponse for the remove volumes command
+     */
     async removeVolumes(options: RemoveVolumesCommandOptions): Promise<CommandResponse<string[]>> {
         return {
             command: this.commandName,

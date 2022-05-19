@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// Expected JSON format for volume records from podman
 export type PodmanVolumeRecord = {
     Name: string;
     Driver: string;
