@@ -699,6 +699,7 @@ export type InspectContainersItem = {
      * IP Address assigned to the container
      */
     ipAddress?: string;
+    operatingSystem?: "linux" | "windows";
     /**
      * Ports exposed for the container
      */
