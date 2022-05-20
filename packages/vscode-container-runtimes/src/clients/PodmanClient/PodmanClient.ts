@@ -61,7 +61,9 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
                         throw new Error('Invalid image JSON');
                     }
 
-                    const [registry, imageName, tag] = parseDockerImageRepository(rawImage.Names[0]);
+                    const [registry, imageName, tag] = rawImage.Names && rawImage.Names.length > 1
+                        ? parseDockerImageRepository(rawImage.Names[0])
+                        : [undefined, undefined, undefined];
                     const createdAt = dayjs.unix(rawImage.Created).toDate();
 
                     const image = registry ? `${registry}/${imageName}:${tag}` : `${imageName}:${tag}`;

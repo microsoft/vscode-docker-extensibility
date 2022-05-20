@@ -134,11 +134,11 @@ export type ListImagesItem = {
     /**
      * The name of the image (unless this is an anonymous base image)
      */
-    name: string;
+    name?: string;
     /**
      * The tag of the image (unless this is an anonymous base image)
      */
-    tag: string;
+    tag?: string;
     /**
      * The full image name (registry/name:tag)
      */
