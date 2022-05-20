@@ -13,11 +13,11 @@ import {
     ListImagesItem,
     ListVolumeItem,
     ListVolumesCommandOptions,
-    VersionItem,
+    VersionItem
 } from '../../contracts/ContainerClient';
 import { CommandLineArgs } from '../../utils/commandLineBuilder';
 import { DockerLikeClient } from '../DockerLikeClient/DockerLikeClient';
-import { parsePodmanImageRepository } from './parsePodmanImageRepository';
+import { parseDockerImageRepository } from '../DockerLikeClient/parseDockerImageRepository';
 import { isPodmanImageRecord } from './PodmanImageRecord';
 import { isPodmanVersionRecord } from './PodmanVersionRecord';
 import { isPodmanVolumeRecord } from './PodmanVolumeRecord';
@@ -61,7 +61,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
                         throw new Error('Invalid image JSON');
                     }
 
-                    const [registry, imageName, tag] = parsePodmanImageRepository(rawImage.Names[0]);
+                    const [registry, imageName, tag] = parseDockerImageRepository(rawImage.Names[0]);
                     const createdAt = dayjs.unix(rawImage.Created).toDate();
 
                     const image = registry ? `${registry}/${imageName}:${tag}` : `${imageName}:${tag}`;
