@@ -21,7 +21,7 @@ export function parseDockerImageRepository(repository: string): [string | undefi
     let name: string | undefined = index > -1 ? nameAndTag.substring(0, index) : nameAndTag;
     let tag: string | undefined = index > -1 ? nameAndTag.substring(index + 1) : undefined;
 
-    if (name.toLowerCase() === NONE) {
+    if (name?.toLowerCase() === NONE) {
         name = undefined;
     }
 

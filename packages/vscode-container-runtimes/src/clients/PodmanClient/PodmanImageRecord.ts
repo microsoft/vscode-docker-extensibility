@@ -20,7 +20,7 @@ export function isPodmanImageRecord(maybeImage: unknown): maybeImage is PodmanIm
         return false;
     }
 
-    if (image.Names !== null && !Array.isArray(image.Names)) {
+    if (!!image.Names && !Array.isArray(image.Names)) {
         return false;
     }
 
