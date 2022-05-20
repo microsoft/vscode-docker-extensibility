@@ -8,7 +8,6 @@ import * as customParseFormat from 'dayjs/plugin/customParseFormat';
 import * as utc from 'dayjs/plugin/utc';
 import {
     BuildImageCommandOptions,
-    ClientIdentity,
     CommandResponse,
     CreateVolumeCommandOptions,
     ExecContainerCommandOptions,
