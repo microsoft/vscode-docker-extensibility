@@ -20,7 +20,7 @@ export type DockerInspectImageRecord = {
     Raw: object;
 };
 
-export const isDockerInspectImageRecord = (maybeImage: unknown): maybeImage is DockerInspectImageRecord => {
+export function isDockerInspectImageRecord(maybeImage: unknown): maybeImage is DockerInspectImageRecord {
     const image = maybeImage as DockerInspectImageRecord;
 
     if (!image || typeof image !== 'object') {
@@ -80,4 +80,4 @@ export const isDockerInspectImageRecord = (maybeImage: unknown): maybeImage is D
     }
 
     return true;
-};
+}

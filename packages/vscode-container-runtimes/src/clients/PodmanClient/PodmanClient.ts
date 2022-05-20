@@ -22,7 +22,6 @@ import { isPodmanImageRecord } from './PodmanImageRecord';
 import { isPodmanVersionRecord } from './PodmanVersionRecord';
 import { isPodmanVolumeRecord } from './PodmanVolumeRecord';
 
-
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
 
@@ -32,8 +31,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
     readonly id = 'com.microsoft.visualstudio.containers.podman';
     readonly displayName = 'Podman';
     readonly description = 'Runs container commands using the Podman CLI';
-    commandName = 'podman';
-    listDateFormat = '';
+    readonly commandName = 'podman';
 
     //#region Version Command
 
@@ -53,7 +51,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
 
     //#region ListImages Command
 
-    protected async parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
+    protected override async parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
         const images = new Array<ListImagesItem>();
         try {
             const rawImages = JSON.parse(output);
@@ -95,7 +93,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
 
     //#region InspectContainers Command
 
-    protected getInspectContainersCommandArgs(options: InspectContainersCommandOptions): CommandLineArgs {
+    protected override getInspectContainersCommandArgs(options: InspectContainersCommandOptions): CommandLineArgs {
         return this.getInspectContainersCommandArgsCore(
             options,
             {
@@ -110,7 +108,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
 
     //#region ListVolumes Command
 
-    protected async parseListVolumesCommandOputput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
+    protected override async parseListVolumesCommandOputput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
         const volumes = new Array<ListVolumeItem>();
         try {
             const rawVolumes = JSON.parse(output);

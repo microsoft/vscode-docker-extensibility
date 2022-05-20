@@ -12,7 +12,7 @@ export type DockerListContainerRecord = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isDockerListContainerRecord = (maybeContainer: any): maybeContainer is DockerListContainerRecord => {
+export function isDockerListContainerRecord(maybeContainer: any): maybeContainer is DockerListContainerRecord {
     if (!maybeContainer || typeof maybeContainer !== 'object') {
         return false;
     }
@@ -38,4 +38,4 @@ export const isDockerListContainerRecord = (maybeContainer: any): maybeContainer
     }
 
     return true;
-};
+}

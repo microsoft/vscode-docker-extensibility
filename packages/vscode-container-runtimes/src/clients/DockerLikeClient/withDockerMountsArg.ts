@@ -6,7 +6,7 @@
 import { RunContainerMount } from "../../contracts/ContainerClient";
 import { withNamedArg } from "../../utils/commandLineBuilder";
 
-export const formatDockerMount = (mount: RunContainerMount): string => {
+export function formatDockerMount(mount: RunContainerMount): string {
     const mountParts = new Array<string>(
         `type=${mount.type}`,
         `source=${mount.source}`,
@@ -15,6 +15,8 @@ export const formatDockerMount = (mount: RunContainerMount): string => {
     );
 
     return mountParts.filter((part) => !!part).join(',');
-};
+}
 
-export const withDockerMountsArg = (mounts?: Array<RunContainerMount>) => withNamedArg('--mount', (mounts || []).map(formatDockerMount));
+export function withDockerMountsArg(mounts?: Array<RunContainerMount>) {
+    return withNamedArg('--mount', (mounts || []).map(formatDockerMount));
+}

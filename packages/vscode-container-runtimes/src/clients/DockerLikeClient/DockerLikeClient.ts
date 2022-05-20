@@ -67,8 +67,11 @@ import { withDockerPortsArg } from './withDockerPortsArg';
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
 
-export abstract class DockerLikeClient implements Omit<IContainersClient, keyof ClientIdentity> {
-    abstract commandName: string;
+export abstract class DockerLikeClient implements IContainersClient {
+    abstract readonly id: string;
+    abstract readonly displayName: string;
+    abstract readonly description: string;
+    abstract readonly commandName: string;
     listDateFormat: string = 'YYYY-MM-DD HH:mm:ss ZZ';
 
     //#region Version Command

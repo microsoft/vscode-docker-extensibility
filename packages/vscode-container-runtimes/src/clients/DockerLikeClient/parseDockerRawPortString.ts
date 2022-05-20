@@ -10,7 +10,7 @@ import { PortBinding } from "../../contracts/ContainerClient";
  * @param portString the raw port string to parse
  * @returns Parsed raw port string as a PortBinding record or undefined if invalid
  */
-export const parseDockerRawPortString = (portString: string): PortBinding | undefined => {
+export function parseDockerRawPortString(portString: string): PortBinding | undefined {
     const [hostInfo, rawContainerPort, protocol] = portString.split(/->|\//);
 
     if (protocol !== 'tcp' && protocol !== 'udp') {
@@ -37,4 +37,4 @@ export const parseDockerRawPortString = (portString: string): PortBinding | unde
         hostPort: hostPort,
         protocol,
     };
-};
+}

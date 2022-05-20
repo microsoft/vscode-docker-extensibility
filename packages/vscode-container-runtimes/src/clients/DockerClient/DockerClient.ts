@@ -10,5 +10,5 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
     readonly id = 'com.microsoft.visualstudio.containers.docker';
     readonly displayName = 'Docker';
     readonly description = 'Runs container commands using the Docker CLI';
-    commandName = 'docker';
+    readonly commandName = 'docker';
 }

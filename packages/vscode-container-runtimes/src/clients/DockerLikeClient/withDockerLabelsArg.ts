@@ -6,4 +6,9 @@
 import { Labels } from "../../contracts/ContainerClient";
 import { withNamedArg } from "../../utils/commandLineBuilder";
 
-export const withDockerLabelsArg = (labels?: Labels) => withNamedArg('--label', Object.entries(labels || {}).map(([label, value]) => `${label}=${value}`));
+export function withDockerLabelsArg(labels?: Labels) {
+    return withNamedArg(
+        '--label',
+        Object.entries(labels || {}).map(([label, value]) => `${label}=${value}`),
+    );
+}

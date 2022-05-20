@@ -59,6 +59,6 @@ export type DockerInspectContainerRecord = {
 };
 
 // TODO: Actually test properties
-export const isDockerInspectContainerRecord = (maybeContainer: unknown): maybeContainer is DockerInspectContainerRecord => {
+export function isDockerInspectContainerRecord(maybeContainer: unknown): maybeContainer is DockerInspectContainerRecord {
     return true;
-};
+}

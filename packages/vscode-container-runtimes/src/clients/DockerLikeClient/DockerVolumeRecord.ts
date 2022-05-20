@@ -11,7 +11,7 @@ export type DockerVolumeRecord = {
     Scope: string;
 };
 
-export const isDockerVolumeRecord = (maybeVolume: unknown): maybeVolume is DockerVolumeRecord => {
+export function isDockerVolumeRecord(maybeVolume: unknown): maybeVolume is DockerVolumeRecord {
     const volume = maybeVolume as DockerVolumeRecord;
 
     if (!volume || typeof volume !== 'object') {
@@ -39,4 +39,4 @@ export const isDockerVolumeRecord = (maybeVolume: unknown): maybeVolume is Docke
     }
 
     return true;
-};
+}

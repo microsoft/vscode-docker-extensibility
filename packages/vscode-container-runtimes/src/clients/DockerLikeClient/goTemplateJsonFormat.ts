@@ -11,9 +11,9 @@ export type GoTemplateJsonFormatOptions<T> = Record<Extract<keyof T, string>, st
  * @param expr Expression values from the templatized string
  * @returns A JSON formatted Go template property
  */
-export const goTemplateJsonProperty = (strings: TemplateStringsArray, ...expr: Array<string>): string => {
+export function goTemplateJsonProperty(strings: TemplateStringsArray, ...expr: Array<string>): string {
     return '{{json ' + expr.reduce<string>((accum, cur, index) => accum + strings[index] + expr, '') + strings.slice(-1) + '}}';
-};
+}
 
 /**
  * Normalize JSON output from a Go template to a JSON object matching a given type interface
@@ -21,7 +21,7 @@ export const goTemplateJsonProperty = (strings: TemplateStringsArray, ...expr: A
  * @param overrideMapping Optional overrides that can replace the mapping for a particular JSON object property
  * @returns A normalized JSON object matching the type constraint from template parameter T
  */
-export const goTemplateJsonFormat = <T>(formatMapping: GoTemplateJsonFormatOptions<T>, overrideMapping: Partial<GoTemplateJsonFormatOptions<T>> = {}): string => {
+export function goTemplateJsonFormat<T>(formatMapping: GoTemplateJsonFormatOptions<T>, overrideMapping: Partial<GoTemplateJsonFormatOptions<T>> = {}): string {
     const mappings = {
         ...formatMapping,
         ...overrideMapping || {},
@@ -31,4 +31,4 @@ export const goTemplateJsonFormat = <T>(formatMapping: GoTemplateJsonFormatOptio
         return `"${key}":${value}`;
     });
     return `{${keyMappings.join(',')}}`;
-};
+}
