@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from 'vscode-jsonrpc';
+import type { CancellationToken } from 'vscode-jsonrpc';
 
 import { CommandResponse } from '../contracts/ContainerClient';
 import { powershellQuote, spawnAsync } from '../utils/spawnAsync';
