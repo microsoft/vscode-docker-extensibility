@@ -1,10 +1,6 @@
 lib/test/**
-lib/**/*.map
 .eslint*
-.vscode
 src
 tsconfig.json
-.azure-pipelines
-.github
 *.tgz
 vscode.ts
