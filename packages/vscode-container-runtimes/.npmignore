@@ -7,3 +7,4 @@ tsconfig.json
 .azure-pipelines
 .github
 *.tgz
+vscode.ts
