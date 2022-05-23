@@ -15,8 +15,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "node",
-            "preLaunchTask": "tsc-watch: vscode-container-runtimes"
+            "type": "node"
         },
         {
             "name": "Docker registries tests",
