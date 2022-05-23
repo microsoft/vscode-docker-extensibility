@@ -9,7 +9,7 @@
         "url": "https://github.com/microsoft/vscode-docker-extensibility"
     },
     "bugs": {
-        "url": "https://github.com/microsoft/vscode-docker/issues"
+        "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
     "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/README.md",
     "private": true,

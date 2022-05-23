@@ -1,5 +1,5 @@
 {
-    "name": "vscode-docker-registries",
+    "name": "@microsoft/vscode-docker-registries",
     "author": "Microsoft Corporation",
     "version": "0.0.1-alpha",
     "description": "Extensibility model for contributing registry providers to the Docker extension for Visual Studio Code",
@@ -9,9 +9,9 @@
         "url": "https://github.com/microsoft/vscode-docker-extensibility"
     },
     "bugs": {
-        "url": "https://github.com/microsoft/vscode-docker/issues"
+        "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
-    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/README.md",
+    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-docker-registries/README.md",
     "keywords": [
         "vscode",
         "docker"
