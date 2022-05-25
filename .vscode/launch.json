@@ -5,32 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "name": "Container runtime tests",
             "request": "launch",
-            "name": "Mocha All",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": [
-                "--file",
-                "${workspaceFolder}/lib/test/global.test.js",
-                "--recursive",
-                "${workspaceFolder}/lib/test"
+            "runtimeArgs": [
+                "test",
+                "--workspace=packages/vscode-container-runtimes"
             ],
-            "preLaunchTask": "${defaultBuildTask}"
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
         },
         {
-            "type": "node",
+            "name": "Docker registries tests",
             "request": "launch",
-            "name": "Mocha Unit Tests",
-            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-            "args": [
-                "--file",
-                "${workspaceFolder}/lib/test/global.test.js",
-                "--grep",
-                "/unit/i",
-                "--recursive",
-                "${workspaceFolder}/lib/test"
+            "runtimeArgs": [
+                "test",
+                "--workspace=packages/vscode-docker-registries"
             ],
-            "preLaunchTask": "${defaultBuildTask}"
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
         }
     ]
 }

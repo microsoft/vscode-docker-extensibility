@@ -2,43 +2,43 @@ steps:
   - template: before-all.yml
 
   - task: Npm@1
-    displayName: 'Install'
+    displayName: "Install"
     inputs:
       command: ci
 
   - task: Npm@1
-    displayName: 'Lint'
+    displayName: "Lint"
     inputs:
       command: custom
       customCommand: run lint -ws
 
   - task: Npm@1
-    displayName: 'Test'
+    displayName: "Test"
     inputs:
       command: custom
       customCommand: test -ws
 
   - task: Npm@1
-    displayName: 'Pack'
+    displayName: "Pack"
     inputs:
       command: custom
       customCommand: pack -ws
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 
   - task: CopyFiles@2
-    displayName: 'Copy Package'
+    displayName: "Copy Package"
     inputs:
       Contents: |
-        vscode-docker-registries*.tgz
+        microsoft-vscode-docker-registries*.tgz
         microsoft-vscode-container-runtimes*.tgz
-      TargetFolder: '$(build.artifactstagingdirectory)'
+      TargetFolder: "$(build.artifactstagingdirectory)"
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 
   - task: PublishBuildArtifacts@1
-    displayName: 'Publish Package'
+    displayName: "Publish Package"
     inputs:
-      PathtoPublish: '$(build.artifactstagingdirectory)'
-      ArtifactName: 'vscode-docker-registries'
+      PathtoPublish: "$(build.artifactstagingdirectory)"
+      ArtifactName: "vscode-docker-extensibility"
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 
   - template: after-all.yml

@@ -3,7 +3,7 @@
     "tasks": [
         {
             "type": "typescript",
-            "tsconfig": "tsconfig.json",
+            "tsconfig": "packages/vscode-container-runtimes/tsconfig.json",
             "option": "watch",
             "problemMatcher": [
                 "$tsc-watch"
@@ -16,7 +16,23 @@
                 "reveal": "never"
             },
             "isBackground": true,
-            "label": "tsc: watch"
-        }
+            "label": "tsc-watch: vscode-container-runtimes"
+        },
+        {
+            "type": "typescript",
+            "tsconfig": "packages/vscode-docker-registries/tsconfig.json",
+            "option": "watch",
+            "problemMatcher": [
+                "$tsc-watch"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "presentation": {
+                "reveal": "never"
+            },
+            "isBackground": true,
+            "label": "tsc-watch: vscode-docker-registries"
+        },
     ]
 }
