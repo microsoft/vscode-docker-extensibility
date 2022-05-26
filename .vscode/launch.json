@@ -18,6 +18,18 @@
             "type": "node"
         },
         {
+            "name": "Container runtime extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-container-runtimes-extension"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/packages/vscode-container-runtimes-extension/dist/**/*.js"
+            ],
+            "preLaunchTask": "npm-watch: vscode-container-runtimes-extension"
+        },
+        {
             "name": "Docker registries tests",
             "request": "launch",
             "runtimeArgs": [
