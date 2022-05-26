@@ -31,7 +31,7 @@ export async function getDockerExtensionExport(): Promise<DockerExtensionExport>
     const dockerExtension = vscode.extensions.getExtension<DockerExtensionExport>(dockerExtensionId);
 
     if (!dockerExtension) {
-        throw new Error(`The extension '${dockerExtensionId}' is not installed.`);
+        throw new Error(`The extension '${dockerExtensionId}' is not installed or not enabled.`);
     }
 
     if (!dockerExtension.isActive) {
