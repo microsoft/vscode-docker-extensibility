@@ -1,5 +1,5 @@
 lib
+dist
 node_modules
 *.tgz
 *.vsix
-dist
