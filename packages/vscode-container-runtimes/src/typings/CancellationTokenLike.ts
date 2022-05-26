@@ -6,6 +6,7 @@
 import type * as vscode from 'vscode';
 import type * as jsonrpc from 'vscode-jsonrpc';
 
+// TODO: Should we redefine it or is this union OK?
 export type CancellationTokenLike = vscode.CancellationToken | jsonrpc.CancellationToken;
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
