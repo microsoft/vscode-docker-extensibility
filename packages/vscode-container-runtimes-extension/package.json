@@ -6,7 +6,7 @@
     "description": "Support for alternative container runtimes",
     "license": "SEE LICENSE IN LICENSE",
     "engines": {
-        "vscode": "^1.66.0"
+        "vscode": "^1.63.0"
     },
     "categories": [
         "Programming Languages"
@@ -53,6 +53,6 @@
         "webpack-cli": "^4.9.2"
     },
     "dependencies": {
-        "@microsoft/vscode-container-runtimes": "file:../vscode-container-runtimes/microsoft-vscode-container-runtimes-0.0.1-alpha.tgz"
+        "@microsoft/vscode-container-runtimes": "file:../../microsoft-vscode-container-runtimes-0.0.1-alpha.tgz"
     }
 }
