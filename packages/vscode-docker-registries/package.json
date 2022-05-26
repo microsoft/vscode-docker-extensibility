@@ -20,7 +20,7 @@
     "types": "lib/index.d.ts",
     "scripts": {
         "build": "tsc",
-        "lint": "eslint --max-warnings 0 **/*.ts",
+        "lint": "eslint --max-warnings 0 . --ext ts",
         "test": "mocha --file lib/test/global.test.js --recursive lib/test",
         "unittest": "npm test -- --grep /unit/i",
         "update-design": "npx embedme DESIGN.md",
