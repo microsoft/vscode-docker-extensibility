@@ -11,6 +11,9 @@ export type CancellationTokenLike = vscode.CancellationToken | jsonrpc.Cancellat
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace CancellationTokenLike {
+    /**
+     * An instance of {@link CancellationTokenLike} that will never actually cancel, but meets the interface
+     */
     export const None: CancellationTokenLike = {
         isCancellationRequested: false,
         onCancellationRequested: () => {
