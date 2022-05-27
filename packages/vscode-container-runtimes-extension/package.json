@@ -15,8 +15,7 @@
         "podman",
         "nerdctl",
         "rancher",
-        "container",
-        "multi-root ready"
+        "container"
     ],
     "repository": {
         "type": "git",
@@ -48,6 +47,9 @@
         "webpack-cli": "^4.9.2"
     },
     "dependencies": {
-        "@microsoft/vscode-container-runtimes": "^0.0.1-alpha"
-    }
+        "vscode-nls": "^5.0.1"
+    },
+    "extensionDependencies": [
+        "ms-azuretools.vscode-docker"
+    ]
 }
