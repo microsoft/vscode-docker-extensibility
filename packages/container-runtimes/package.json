@@ -1,5 +1,5 @@
 {
-    "name": "@microsoft/vscode-container-runtimes",
+    "name": "@microsoft/container-runtimes",
     "author": "Microsoft Corporation",
     "version": "0.0.1-alpha",
     "description": "Extensibility model for implementing container runtime providers (shared by VS and VS Code)",
@@ -11,7 +11,7 @@
     "bugs": {
         "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
-    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-container-runtimes/README.md",
+    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/container-runtimes/README.md",
     "main": "lib/index.js",
     "scripts": {
         "build": "tsc",

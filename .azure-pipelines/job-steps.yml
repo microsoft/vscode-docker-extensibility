@@ -30,7 +30,7 @@ steps:
     inputs:
       Contents: |
         microsoft-vscode-docker-registries*.tgz
-        microsoft-vscode-container-runtimes*.tgz
+        microsoft-container-runtimes*.tgz
       TargetFolder: "$(build.artifactstagingdirectory)"
     condition: and(eq(variables['Agent.OS'], 'Linux'), ne(variables['System.PullRequest.IsFork'], 'True'))
 

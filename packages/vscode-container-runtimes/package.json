@@ -1,5 +1,5 @@
 {
-    "name": "vscode-container-runtimes-extension",
+    "name": "vscode-container-runtimes",
     "version": "0.0.1",
     "publisher": "ms-azuretools",
     "displayName": "Alternate Container Runtime Support",
@@ -24,7 +24,7 @@
     "bugs": {
         "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
-    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-container-runtimes-extension/README.md",
+    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-container-runtimes/README.md",
     "activationEvents": [
         "onCommand:vscode-docker.activateRuntimeProviderExtensions"
     ],
@@ -47,7 +47,6 @@
         "webpack-cli": "^4.9.2"
     },
     "dependencies": {
-        "@microsoft/vscode-container-runtimes": "file:../../microsoft-vscode-container-runtimes-0.0.1-alpha.tgz",
         "vscode-nls": "^5.0.1"
     },
     "extensionDependencies": [
