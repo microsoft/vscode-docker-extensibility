@@ -2,6 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "tsc-watch: vscode-container-runtimes",
             "type": "typescript",
             "tsconfig": "packages/vscode-container-runtimes/tsconfig.json",
             "option": "watch",
@@ -15,10 +16,27 @@
             "presentation": {
                 "reveal": "never"
             },
-            "isBackground": true,
-            "label": "tsc-watch: vscode-container-runtimes"
+            "isBackground": true
         },
         {
+            "label": "npm-watch: vscode-container-runtimes-extension",
+            "type": "npm",
+            "script": "watch --workspace=packages/vscode-container-runtimes-extension",
+            "problemMatcher": [
+                "$ts-webpack-watch",
+                "$tslint-webpack-watch"
+            ],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "never",
+                "group": "watchers"
+            },
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "tsc-watch: vscode-docker-registries",
             "type": "typescript",
             "tsconfig": "packages/vscode-docker-registries/tsconfig.json",
             "option": "watch",
@@ -31,8 +49,7 @@
             "presentation": {
                 "reveal": "never"
             },
-            "isBackground": true,
-            "label": "tsc-watch: vscode-docker-registries"
+            "isBackground": true
         },
     ]
 }
