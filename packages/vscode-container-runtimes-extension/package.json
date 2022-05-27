@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "publisher": "ms-azuretools",
     "displayName": "Alternate Container Runtime Support",
-    "description": "Support for alternative container runtimes",
+    "description": "Support for alternative container runtimes in the VS Code Docker extension",
     "license": "SEE LICENSE IN LICENSE",
     "engines": {
         "vscode": "^1.63.0"
