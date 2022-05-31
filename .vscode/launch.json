@@ -9,7 +9,7 @@
             "request": "launch",
             "runtimeArgs": [
                 "test",
-                "--workspace=packages/vscode-container-runtimes"
+                "--workspace=packages/container-runtimes"
             ],
             "runtimeExecutable": "npm",
             "skipFiles": [
@@ -22,12 +22,12 @@
             "type": "extensionHost",
             "request": "launch",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-container-runtimes-extension"
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-container-runtimes"
             ],
             "outFiles": [
-                "${workspaceFolder}/packages/vscode-container-runtimes-extension/dist/**/*.js"
+                "${workspaceFolder}/packages/vscode-container-runtimes/dist/**/*.js"
             ],
-            "preLaunchTask": "npm-watch: vscode-container-runtimes-extension"
+            "preLaunchTask": "npm-watch: vscode-container-runtimes"
         },
         {
             "name": "Docker registries tests",
