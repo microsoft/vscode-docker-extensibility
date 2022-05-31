@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CommandResponse, CommandRunner } from '../contracts/CommandRunner';
+import { CommandResponseLike, CommandRunner, normalizeCommandResponseLike } from '../contracts/CommandRunner';
 import { bashQuote, spawnAsync } from '../utils/spawnAsync';
 import { ShellCommandRunnerOptions } from './shell';
 
@@ -12,7 +12,8 @@ export type WslShellCommandRunnerOptions = ShellCommandRunnerOptions & {
     distro?: string | null;
 };
 
-export const wslCommandRunnerAsync: CommandRunner = async <T>(commandResponse: CommandResponse<T>, options: WslShellCommandRunnerOptions): Promise<T> => {
+export const wslCommandRunnerAsync: CommandRunner = async <T>(commandResponseLike: CommandResponseLike<T>, options: WslShellCommandRunnerOptions): Promise<T> => {
+    const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
     const command = options.wslPath ?? 'wsl.exe';
     const args = [...(options.distro ? ['-d', options.distro] : []), '--', commandResponse.command, ...bashQuote(commandResponse.args)];
     return await commandResponse.parse(await spawnAsync(command, args, { ...options, shell: true }), options.strict || false);
