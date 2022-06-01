@@ -20,6 +20,7 @@ export type ClientIdentity = {
     readonly id: string;
     readonly displayName: string;
     readonly description: string;
+    readonly commandName: string;
 };
 
 // Version Command Types
