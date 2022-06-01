@@ -5,6 +5,8 @@
 
 import { CommandResponse } from "./CommandRunner";
 
+export type ContainerOS = "linux" | "windows";
+
 export type Labels = {
     [key: string]: string;
 };
@@ -395,7 +397,7 @@ export type InspectImagesItem = {
     /**
      * The image operating system
      */
-    operatingSystem?: "linux" | "windows";
+    operatingSystem?: ContainerOS;
     /**
      * The date the image was created
      */
@@ -862,7 +864,10 @@ export type InspectContainersItem = {
      * IP Address assigned to the container
      */
     ipAddress?: string;
-    operatingSystem?: "linux" | "windows";
+    /**
+     * The container operating system
+     */
+    operatingSystem?: ContainerOS;
     /**
      * Ports exposed for the container
      */

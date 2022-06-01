@@ -17,12 +17,12 @@ export type CommandResponse<T> = {
     parse: (output: string, strict: boolean) => Promise<T>;
 };
 
-export type CommandResponseLike<T> = CommandResponse<T> | (() => CommandResponse<T> | Promise<CommandResponse<T>>);
+export type CommandResponseLike<T> = CommandResponse<T> | Promise<CommandResponse<T>> | (() => CommandResponse<T> | Promise<CommandResponse<T>>);
 
 /**
  * A {@link CommandRunner} provides instructions on how to invoke a command
  */
-export type CommandRunner = <T>(commandResponse: CommandResponseLike<T>, options: never) => Promise<T>;
+export type CommandRunner = <T, O>(commandResponse: CommandResponseLike<T>, options: O) => Promise<T>;
 
 export function normalizeCommandResponseLike<T>(commandResponseLike: CommandResponseLike<T>): Promise<CommandResponse<T>> {
     if (typeof commandResponseLike === 'function') {
