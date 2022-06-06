@@ -4,7 +4,8 @@ steps:
   - task: Npm@1
     displayName: "Install"
     inputs:
-      command: ci
+      command: custom
+      customCommand: ci -ws
 
   - task: Npm@1
     displayName: "Lint"
