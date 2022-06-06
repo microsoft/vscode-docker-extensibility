@@ -12,7 +12,7 @@ export type WslShellCommandRunnerOptions = ShellCommandRunnerOptions & {
     distro?: string | null;
 };
 
-export const wslCommandRunnerAsync: CommandRunner = async <T>(commandResponseLike: CommandResponseLike<T>, options: WslShellCommandRunnerOptions): Promise<T> => {
+export const wslCommandRunnerAsync: CommandRunner<WslShellCommandRunnerOptions> = async <T>(commandResponseLike: CommandResponseLike<T>, options: WslShellCommandRunnerOptions): Promise<T> => {
     const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
     const command = options.wslPath ?? 'wsl.exe';
     const args = [...(options.distro ? ['-d', options.distro] : []), '--', commandResponse.command, ...bashQuote(commandResponse.args)];

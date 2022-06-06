@@ -15,7 +15,7 @@ export type ShellCommandRunnerOptions = {
     cancellationToken?: CancellationTokenLike;
 };
 
-export const shellCommandRunnerAsync: CommandRunner = async <T>(commandResponseLike: CommandResponseLike<T>, options: ShellCommandRunnerOptions): Promise<T> => {
+export const shellCommandRunnerAsync: CommandRunner<ShellCommandRunnerOptions> = async <T>(commandResponseLike: CommandResponseLike<T>, options: ShellCommandRunnerOptions): Promise<T> => {
     const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
     return await commandResponse.parse(await spawnAsync(commandResponse.command, powershellQuote(commandResponse.args), { ...options, shell: true }), options.strict || false);
 };

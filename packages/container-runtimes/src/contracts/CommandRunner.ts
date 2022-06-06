@@ -22,7 +22,7 @@ export type CommandResponseLike<T> = CommandResponse<T> | Promise<CommandRespons
 /**
  * A {@link CommandRunner} provides instructions on how to invoke a command
  */
-export type CommandRunner = <T, O>(commandResponse: CommandResponseLike<T>, options: O) => Promise<T>;
+export type CommandRunner<O> = <T>(commandResponse: CommandResponseLike<T>, options: O) => Promise<T>;
 
 export function normalizeCommandResponseLike<T>(commandResponseLike: CommandResponseLike<T>): Promise<CommandResponse<T>> {
     if (typeof commandResponseLike === 'function') {
