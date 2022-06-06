@@ -700,7 +700,7 @@ type RemoveContainersCommand = {
 // Prune Containers Command Types
 
 export type PruneContainersCommandOptions = {
-    // TODO
+    // Intentionally empty for now
 };
 
 /**
@@ -1035,7 +1035,7 @@ type RemoveVolumesCommand = {
  * Standardized options for prune volume commands
  */
 export type PruneVolumesCommandOptions = {
-    // TODO
+    // Intentionally empty for now
 };
 
 /**
@@ -1203,7 +1203,7 @@ type RemoveNetworksCommand = {
  * Standardized options for prune network commands
  */
 export type PruneNetworksCommandOptions = {
-    // TODO
+    // Intentionally empty for now
 };
 
 /**

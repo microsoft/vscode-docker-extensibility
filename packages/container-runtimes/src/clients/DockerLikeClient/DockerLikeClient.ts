@@ -296,11 +296,8 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<PruneImagesItem> {
-        // TODO
-        return Promise.resolve({
-            imagesDeleted: [],
-            spaceReclaimed: 0,
-        });
+        // TODO: support return of the optional prune information?
+        return Promise.resolve({});
     }
 
     async pruneImages(options: PruneImagesCommandOptions): Promise<CommandResponse<PruneImagesItem>> {
