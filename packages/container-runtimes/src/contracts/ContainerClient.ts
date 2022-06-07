@@ -1120,6 +1120,27 @@ type InspectVolumesCommand = {
 
 // #region Network commands
 
+// Create Network Command Types
+
+export type CreateNetworkCommandOptions = {
+    /**
+     * The name for the network
+     */
+    name: string;
+    /**
+     * Optional driver to use for the network
+     */
+    driver?: string;
+};
+
+type CreateNetworkCommand = {
+    /**
+     * Generate a CommandResponse for creating a network
+     * @param options Command options
+     */
+    createNetwork(options: CreateNetworkCommandOptions): Promise<CommandResponse<void>>;
+};
+
 // List Networks Command Types
 
 export type ListNetworksCommandOptions = {
@@ -1345,6 +1366,7 @@ export interface IContainersClient extends
     PruneVolumesCommand,
     InspectVolumesCommand,
     // Network Commands
+    CreateNetworkCommand,
     ListNetworksCommand,
     RemoveNetworksCommand,
     PruneNetworksCommand,
