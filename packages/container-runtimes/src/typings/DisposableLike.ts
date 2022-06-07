@@ -18,9 +18,9 @@ export namespace DisposableLike {
     /**
      * An instance of {@link DisposableLike} that does nothing when disposed, but meets the interface
      */
-    export const None: DisposableLike = {
+    export const None: DisposableLike = Object.freeze({
         dispose: () => {
             // Noop, not a real registration
         }
-    };
+    });
 }

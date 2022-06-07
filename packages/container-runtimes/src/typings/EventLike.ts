@@ -20,7 +20,7 @@ export namespace EventLike {
      * An instance of {@link EventLike} that will never fire, but meets the interface
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    export const None: EventLike<any> = () => {
+    export const None: EventLike<any> = Object.freeze(() => {
         return DisposableLike.None;
-    };
+    });
 }
