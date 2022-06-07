@@ -6,7 +6,7 @@
 import { CommandLineArgs } from '../utils/commandLineBuilder';
 
 /**
- * A CommandResponse record provides instructions on how to invoke a command
+ * A CommandResponse record provides instructions on how to invoke commands
  * and a parse callback that can be used to parse and normalize the standard
  * output from invoking the command. This is the standard type returned by all
  * commands defined by the IContainersClient interface.
