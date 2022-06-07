@@ -29,7 +29,7 @@ export type CommandRunner = <T>(commandResponse: CommandResponseLike<T>) => Prom
  * based for a specific configuration
  */
 export interface ICommandRunnerFactory {
-    getCommandRunner: () => CommandRunner;
+    getCommandRunner(): CommandRunner;
 }
 
 export function normalizeCommandResponseLike<T>(commandResponseLike: CommandResponseLike<T>): Promise<CommandResponse<T>> {
