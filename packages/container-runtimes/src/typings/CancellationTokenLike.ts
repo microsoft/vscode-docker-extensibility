@@ -28,4 +28,20 @@ export namespace CancellationTokenLike {
             };
         },
     };
+
+    /**
+     * An instance of {@link CancellationTokenLike} that is already cancelled and will instantly fire the event back
+     */
+    export const Cancelled: CancellationTokenLike = {
+        isCancellationRequested: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onCancellationRequested: (listener: (e: any) => any) => {
+            listener(undefined);
+            return {
+                dispose: () => {
+                    // Noop, not a real registration
+                }
+            };
+        }
+    };
 }

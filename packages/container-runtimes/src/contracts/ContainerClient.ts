@@ -1306,6 +1306,170 @@ type InspectNetworksCommand = {
 // #endregion
 
 // #region Context commands
+
+// Create Context Command Types
+
+export type CreateContextCommandOptions = {
+    /**
+     * The name for the context
+     */
+    name: string;
+    /**
+     * The description for the context
+     */
+    description?: string;
+    /**
+     * The type for the context (e.g. 'aci' or 'ecs')
+     */
+    type?: string;
+    /**
+     * The endpoint for the container daemon
+     */
+    containerEndpoint?: string;
+    /**
+     * The endpoint for the container orchestrator daemon
+     */
+    orchestratorEndpoint?: string;
+};
+
+type CreateContextCommand = {
+    /**
+     * Generate a CommandResponse for creating a context
+     * @param options Command options
+     */
+    createContext(options: CreateContextCommandOptions): Promise<CommandResponse<void>>;
+};
+
+// List Contexts Command Types
+
+export type ListContextsCommandOptions = {
+    // Intentionally empty for now
+};
+
+export type ListContextItem = {
+    /**
+     * The name of the context
+     */
+    name: string;
+    /**
+     * The description of the context
+     */
+    description?: string;
+    /**
+     * Whether or not the context is currently selected
+     */
+    current: boolean;
+    /**
+     * The endpoint used for the container daemon
+     */
+    containerEndpoint?: string;
+    /**
+     * The endpoint used for the container orchestrator daemon
+     */
+    orchestratorEndpoint?: string;
+    /**
+     * The context type
+     */
+    type?: string;
+};
+
+type ListContextsCommand = {
+    /**
+     * Generate a CommandResponse for listing contexts
+     * @param options Command options
+     */
+    listContexts(options: ListContextsCommandOptions): Promise<CommandResponse<Array<ListContextItem>>>;
+};
+
+// Remove Contexts Command Types
+
+export type RemoveContextsCommandOptions = {
+    /**
+     * Contexts to remove
+     */
+    contexts: Array<string>;
+};
+
+type RemoveContextsCommand = {
+    /**
+     * Generate a CommandResponse for removing contexts
+     * @param options Command options
+     */
+    removeContexts(options: RemoveContextsCommandOptions): Promise<CommandResponse<Array<string>>>;
+};
+
+// Use Context Command Types
+
+export type UseContextCommandOptions = {
+    /**
+     * Context to use
+     */
+    context: string;
+};
+
+type UseContextCommand = {
+    /**
+     * Generate a CommandResponse for using a context
+     * @param options Command options
+     */
+    useContext(options: UseContextCommandOptions): Promise<CommandResponse<void>>;
+};
+
+// Inspect Contexts Command Types
+
+/**
+ * Options for inspecting contexts
+ */
+export type InspectContextsCommandOptions = {
+    /**
+     * Contexts to inspect
+     */
+    contexts: Array<string>;
+};
+
+export type ContextEndpointConfig = {
+    docker: {
+        Host: string;
+        SkipTLSVerify: boolean;
+    };
+    kubernetes: unknown;
+};
+
+export type InspectContextsItem = {
+    /**
+     * The name of the context
+     */
+    name: string;
+    /**
+     * Context metadata configuration
+     */
+    metadata: unknown;
+    /**
+     * Context endpoint configuration
+     */
+    endpoints: ContextEndpointConfig;
+    /**
+     * Context TLS material configuration
+     */
+    tlsMaterial: unknown;
+    /**
+     * Context storage configuration
+     */
+    storage: unknown;
+    /**
+     * The raw JSON from the inspect record
+     */
+    raw: string;
+};
+
+type InspectContextsCommand = {
+    /**
+     * Generate a CommandResponse for inspecting contexts.
+     * @param options Command options
+     */
+    inspectContexts(options: InspectContextsCommandOptions): Promise<CommandResponse<Array<InspectContextsItem>>>;
+};
+
 // #endregion
 
 /**
@@ -1348,4 +1512,10 @@ export interface IContainersClient extends
     ListNetworksCommand,
     RemoveNetworksCommand,
     PruneNetworksCommand,
-    InspectNetworksCommand { }
+    InspectNetworksCommand,
+    // Context commands
+    CreateContextCommand,
+    ListContextsCommand,
+    RemoveContextsCommand,
+    UseContextCommand,
+    InspectContextsCommand { }
