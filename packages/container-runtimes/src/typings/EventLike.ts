@@ -5,6 +5,7 @@
 
 import type * as vscode from 'vscode';
 import type * as jsonrpc from 'vscode-jsonrpc';
+import { DisposableLike } from './DisposableLike';
 
 /**
  * Defined to reflect the fact that the events could be from either `vscode`
@@ -19,12 +20,7 @@ export namespace EventLike {
      * An instance of {@link EventLike} that will never fire, but meets the interface
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    export const None: EventLike<any> =
-        () => {
-            return {
-                dispose: () => {
-                    // Noop, not a real registration
-                }
-            };
-        };
+    export const None: EventLike<any> = () => {
+        return DisposableLike.None;
+    };
 }

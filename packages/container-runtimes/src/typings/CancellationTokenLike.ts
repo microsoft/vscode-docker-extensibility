@@ -5,6 +5,7 @@
 
 import type * as vscode from 'vscode';
 import type * as jsonrpc from 'vscode-jsonrpc';
+import { DisposableLike } from './DisposableLike';
 
 /**
  * Defined to reflect the fact that the cancellation tokens could be from either `vscode`
@@ -21,11 +22,7 @@ export namespace CancellationTokenLike {
     export const None: CancellationTokenLike = {
         isCancellationRequested: false,
         onCancellationRequested: () => {
-            return {
-                dispose: () => {
-                    // Noop, not a real registration
-                }
-            };
+            return DisposableLike.None;
         },
     };
 
@@ -37,11 +34,7 @@ export namespace CancellationTokenLike {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onCancellationRequested: (listener: (e: any) => any) => {
             listener(undefined);
-            return {
-                dispose: () => {
-                    // Noop, not a real registration
-                }
-            };
+            return DisposableLike.None;
         }
     };
 }

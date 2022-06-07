@@ -12,3 +12,15 @@ import type * as jsonrpc from 'vscode-jsonrpc';
  * workers in VS).
  */
 export type DisposableLike = vscode.Disposable | jsonrpc.Disposable;
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace DisposableLike {
+    /**
+     * An instance of {@link DisposableLike} that does nothing when disposed, but meets the interface
+     */
+    export const None: DisposableLike = {
+        dispose: () => {
+            // Noop, not a real registration
+        }
+    };
+}
