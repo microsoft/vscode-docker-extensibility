@@ -1307,6 +1307,11 @@ type InspectNetworksCommand = {
 
 // #region Context commands
 
+/**
+ * The type for a context. For local contexts it will be 'containerd'; for cloud contexts 'aci', 'ecs', etc.
+ */
+export type ContextType = 'aci' | 'containerd' | 'ecs' | string;
+
 // Create Context Command Types
 
 export type CreateContextCommandOptions = {
@@ -1321,11 +1326,11 @@ export type CreateContextCommandOptions = {
     /**
      * The type for the context (e.g. 'aci' or 'ecs')
      */
-    type?: string;
+    type?: ContextType;
     /**
      * The endpoint for the container daemon
      */
-    containerEndpoint?: string;
+    containerEndpoint: string;
     /**
      * The endpoint for the container orchestrator daemon
      */
@@ -1360,6 +1365,10 @@ export type ListContextItem = {
      */
     current: boolean;
     /**
+     * The context type
+     */
+    type?: ContextType;
+    /**
      * The endpoint used for the container daemon
      */
     containerEndpoint?: string;
@@ -1367,10 +1376,6 @@ export type ListContextItem = {
      * The endpoint used for the container orchestrator daemon
      */
     orchestratorEndpoint?: string;
-    /**
-     * The context type
-     */
-    type?: string;
 };
 
 type ListContextsCommand = {
@@ -1427,35 +1432,20 @@ export type InspectContextsCommandOptions = {
     contexts: Array<string>;
 };
 
-export type ContextEndpointConfig = {
-    docker: {
-        Host: string;
-        SkipTLSVerify: boolean;
-    };
-    kubernetes: unknown;
-};
-
 export type InspectContextsItem = {
     /**
      * The name of the context
      */
     name: string;
     /**
-     * Context metadata configuration
+     * The description of the context
      */
-    metadata: unknown;
+    description?: string;
     /**
-     * Context endpoint configuration
+     * The context type
      */
-    endpoints: ContextEndpointConfig;
-    /**
-     * Context TLS material configuration
-     */
-    tlsMaterial: unknown;
-    /**
-     * Context storage configuration
-     */
-    storage: unknown;
+    type?: ContextType;
+    // More properties exist but are highly dependent on container runtime
     /**
      * The raw JSON from the inspect record
      */
