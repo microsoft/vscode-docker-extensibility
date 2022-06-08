@@ -22,17 +22,4 @@ export namespace EventLike {
     export const None: EventLike<void> = Object.freeze(() => {
         return DisposableLike.None;
     });
-
-    /**
-     * An instance of {@link EventLike} that will immediately fire the listener
-     */
-    export const Backfire: EventLike<void> = Object.freeze((listener: () => unknown) => {
-        try {
-            listener();
-        } catch {
-            // Do nothing
-        }
-
-        return DisposableLike.None;
-    });
 }

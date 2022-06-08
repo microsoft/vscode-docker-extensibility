@@ -23,12 +23,4 @@ export namespace CancellationTokenLike {
         isCancellationRequested: false,
         onCancellationRequested: EventLike.None,
     });
-
-    /**
-     * An instance of {@link CancellationTokenLike} that is already cancelled and will instantly fire the event back
-     */
-    export const Cancelled: CancellationTokenLike = Object.freeze({
-        isCancellationRequested: true,
-        onCancellationRequested: EventLike.Backfire,
-    });
 }
