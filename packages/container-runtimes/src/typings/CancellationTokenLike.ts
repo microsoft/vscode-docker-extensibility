@@ -5,7 +5,6 @@
 
 import type * as vscode from 'vscode';
 import type * as jsonrpc from 'vscode-jsonrpc';
-import { DisposableLike } from './DisposableLike';
 import { EventLike } from './EventLike';
 
 /**
@@ -30,10 +29,6 @@ export namespace CancellationTokenLike {
      */
     export const Cancelled: CancellationTokenLike = Object.freeze({
         isCancellationRequested: true,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onCancellationRequested: (listener: (e: any) => any) => {
-            listener(undefined);
-            return DisposableLike.None;
-        }
+        onCancellationRequested: EventLike.Backfire,
     });
 }
