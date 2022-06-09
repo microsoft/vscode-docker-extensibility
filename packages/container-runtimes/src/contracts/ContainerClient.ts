@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as stream from "stream";
 import { CommandResponse } from "./CommandRunner";
 
 export type ContainerOS = "linux" | "windows";
@@ -1556,15 +1555,12 @@ export type ReadFileCommandOptions = {
      * The absolute path of the file in the container to read
      */
     path: string;
-    /**
-     * A writeable stream to which the file contents will be written
-     */
-    outStream: stream.Writable;
 };
 
 type ReadFileCommand = {
     /**
-     * Reads a file and writes its contents to the writeable stream given in the options
+     * Read a file inside the container. Start a process with the {@link CommandResponse}
+     * and read from its stdout stream.
      * @param options Command options
      */
     readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>>;
@@ -1577,15 +1573,12 @@ export type WriteFileCommandOptions = {
      * The absolute path of the file in the container to write
      */
     path: string;
-    /**
-     * A readable stream from which the file contents will be read
-     */
-    inStream: stream.Readable;
 };
 
 type WriteFileCommand = {
     /**
-     * Writes a file into the container from a readable stream given in the options
+     * Write a file inside the container. Start a process with the {@link CommandResponse}
+     * and write to its stdin stream.
      * @param options Command options
      */
     writeFile(options: WriteFileCommandOptions): Promise<CommandResponse<void>>;
