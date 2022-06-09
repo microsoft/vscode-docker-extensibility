@@ -1560,10 +1560,11 @@ export type ReadFileCommandOptions = {
 type ReadFileCommand = {
     /**
      * Read a file inside the container. Start a process with the {@link CommandResponse}
-     * and read from its stdout stream.
+     * and read from its stdout stream (or use {@link ShellCommandRunnerFactory} to accumulate
+     * the output into a string and return it from `parse`)
      * @param options Command options
      */
-    readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>>;
+    readFile(options: ReadFileCommandOptions): Promise<CommandResponse<string>>;
 };
 
 // Write file command types
@@ -1573,6 +1574,11 @@ export type WriteFileCommandOptions = {
      * The absolute path of the file in the container to write
      */
     path: string;
+    /**
+     * (Optional) The file on the host to copy into the container. If not given, it is necessary
+     * to write the file contents to stdin in the command runner.
+     */
+    inputFile?: string;
 };
 
 type WriteFileCommand = {
