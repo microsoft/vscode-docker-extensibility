@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as stream from "stream";
 import { CommandResponse } from "./CommandRunner";
 
 export type ContainerOS = "linux" | "windows";
@@ -1514,6 +1515,84 @@ type InspectContextsCommand = {
 
 // #endregion
 
+// #region Container filesystem commands
+
+// List files command types
+
+export type ListFilesCommandOptions = {
+    /**
+     * The path to list files/folders within
+     */
+    path: string;
+    /**
+     * The container operating system
+     */
+    operatingSystem?: ContainerOS;
+};
+
+export type ListFilesItem = {
+    /**
+     * The path of the file/folder, relative to the parent folder
+     */
+    path: string;
+    /**
+     * Whether the item is a file or directory
+     */
+    type: 'file' | 'directory';
+};
+
+type ListFilesCommand = {
+    /**
+     * Lists the files/folders that are in a given path in a container
+     * @param options Command options
+     */
+    listFiles(options: ListContainersCommandOptions): Promise<CommandResponse<Array<ListFilesItem>>>;
+};
+
+// Read file command types
+
+export type ReadFileCommandOptions = {
+    /**
+     * The absolute path of the file in the container to read
+     */
+    path: string;
+    /**
+     * A writeable stream to which the file contents will be written
+     */
+    outStream: stream.Writable;
+};
+
+type ReadFileCommand = {
+    /**
+     * Reads a file and writes its contents to the writeable stream given in the options
+     * @param options Command options
+     */
+    readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>>;
+};
+
+// Write file command types
+
+export type WriteFileCommandOptions = {
+    /**
+     * The absolute path of the file in the container to write
+     */
+    path: string;
+    /**
+     * A readable stream from which the file contents will be read
+     */
+    inStream: stream.Readable;
+};
+
+type WriteFileCommand = {
+    /**
+     * Writes a file into the container from a readable stream given in the options
+     * @param options Command options
+     */
+    writeFile(options: WriteFileCommandOptions): Promise<CommandResponse<void>>;
+};
+
+// #endregion
+
 /**
  * Standard interface for executing commands against container runtimes.
  * Individual runtimes implement this interface.
@@ -1562,4 +1641,8 @@ export interface IContainersClient extends
     ListContextsCommand,
     RemoveContextsCommand,
     UseContextCommand,
-    InspectContextsCommand { }
+    InspectContextsCommand,
+    // Filesystem commands
+    ListFilesCommand,
+    ReadFileCommand,
+    WriteFileCommand { }
