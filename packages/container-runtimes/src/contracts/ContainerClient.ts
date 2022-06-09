@@ -1524,7 +1524,7 @@ export type ListFilesCommandOptions = {
      */
     path: string;
     /**
-     * The container operating system
+     * The container operating system. If not supplied, 'linux' will be assumed.
      */
     operatingSystem?: ContainerOS;
 };
