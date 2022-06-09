@@ -1520,7 +1520,7 @@ type InspectContextsCommand = {
 
 export type ListFilesCommandOptions = {
     /**
-     * The path to list files/folders within
+     * The absolute path of a directory to list the files/folders within
      */
     path: string;
     /**
