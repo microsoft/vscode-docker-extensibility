@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as cp from 'child_process';
 import {
     CommandResponseLike,
     CommandRunner,
@@ -12,7 +13,7 @@ import {
 import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { powershellQuote, spawnAsync } from '../utils/spawnAsync';
 
-export type ShellCommandRunnerOptions = {
+export type ShellCommandRunnerOptions = cp.SpawnOptions & {
     strict?: boolean;
     onCommand?: (command: string) => void;
     onStdOut?: (data: string | Buffer) => void;
