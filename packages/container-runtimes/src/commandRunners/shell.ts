@@ -3,22 +3,16 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cp from 'child_process';
 import {
     CommandResponseLike,
     CommandRunner,
     ICommandRunnerFactory,
     normalizeCommandResponseLike,
 } from '../contracts/CommandRunner';
-import { CancellationTokenLike } from '../typings/CancellationTokenLike';
-import { powershellQuote, spawnAsync } from '../utils/spawnAsync';
+import { ExtendedSpawnOptions, powershellQuote, spawnAsync } from '../utils/spawnAsync';
 
-export type ShellCommandRunnerOptions = cp.SpawnOptions & {
+export type ShellCommandRunnerOptions = ExtendedSpawnOptions & {
     strict?: boolean;
-    onCommand?: (command: string) => void;
-    onStdOut?: (data: string | Buffer) => void;
-    onStdErr?: (data: string | Buffer) => void;
-    cancellationToken?: CancellationTokenLike;
 };
 
 export class ShellCommandRunnerFactory implements ICommandRunnerFactory {
