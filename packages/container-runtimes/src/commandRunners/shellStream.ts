@@ -14,11 +14,11 @@ import { powershellQuote, spawnStreamAsync, StreamSpawnOptions } from '../utils/
 export type ShellStreamCommandRunnerOptions = StreamSpawnOptions;
 
 export class ShellStreamCommandRunnerFactory implements ICommandRunnerFactory {
-    constructor(options: ShellStreamCommandRunnerOptions) {
+    public constructor(options: ShellStreamCommandRunnerOptions) {
         this.options = options;
     }
 
-    getCommandRunner(): VoidCommandRunner {
+    public getCommandRunner(): VoidCommandRunner {
         return async (commandResponseLike: CommandResponseLike<unknown>) => {
             const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
             await spawnStreamAsync(commandResponse.command, powershellQuote(commandResponse.args), { ...this.options, shell: true });
