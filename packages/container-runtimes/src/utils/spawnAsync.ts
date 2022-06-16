@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as stream from 'stream';
 import { spawn, SpawnOptions } from 'child_process';
 import { ShellQuoting } from 'vscode';
 
@@ -10,13 +11,23 @@ import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { CancellationError } from './CancellationError';
 import { ChildProcessError } from './ChildProcessError';
 import { CommandLineArgs } from './commandLineBuilder';
+import { MemoryStream } from './MemoryStream';
 
-export type ExtendedSpawnOptions = SpawnOptions & {
+type CommonExtendedSpawnOptions = SpawnOptions & {
     shell?: boolean;
     onCommand?: (command: string) => void;
+    cancellationToken?: CancellationTokenLike;
+};
+
+export type ExtendedSpawnOptions = CommonExtendedSpawnOptions & {
     onStdOut?: (data: string | Buffer) => void;
     onStdErr?: (data: string | Buffer) => void;
-    cancellationToken?: CancellationTokenLike;
+};
+
+export type StreamSpawnOptions = CommonExtendedSpawnOptions & {
+    stdinPipe?: stream.Readable;
+    stdoutPipe?: stream.Writable;
+    stderrPipe?: stream.Writable;
 };
 
 const isQuoted = (value: string): boolean => {
@@ -62,6 +73,77 @@ export const bashQuote = (args: CommandLineArgs): Array<string> => {
 };
 
 export async function spawnAsync(command: string, args: Array<string>, options: ExtendedSpawnOptions): Promise<string> {
+    const stdOutStream = new MemoryStream();
+    const stdErrStream = new MemoryStream();
+
+    if (options.onStdOut) {
+        stdOutStream.on('data', (chunk) => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            options.onStdOut!(chunk.toString());
+        });
+    }
+
+    if (options.onStdErr) {
+        stdErrStream.on('data', (chunk) => {
+            const data = chunk.toString();
+            if (data.includes('screen size is bogus')) {
+                return;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            options.onStdErr!(data);
+        });
+    }
+
+    // // Accumulate and report on stdout
+    // stdOutStream.on('data', (chunk) => {
+    //     const data = chunk.toString();
+    //     output += data;
+
+    //     if (options.onStdOut) {
+    //         options.onStdOut(data);
+    //     }
+    // });
+
+    // // Accumulate and report on stderr
+    // stdErrStream.on('data', (chunk) => {
+    //     const data = chunk.toString();
+    //     if (data.includes('screen size is bogus')) {
+    //         return;
+    //     }
+
+    //     error += data;
+
+    //     if (options.onStdErr) {
+    //         options.onStdErr(data);
+    //     }
+    // });
+
+    try {
+        const newOptions: StreamSpawnOptions & ExtendedSpawnOptions = {
+            ...options,
+            stdoutPipe: stdOutStream,
+            stderrPipe: stdErrStream,
+        };
+
+        delete newOptions.onStdOut;
+        delete newOptions.onStdErr;
+
+        await spawnStreamAsync(command, args, newOptions);
+
+        return stdOutStream.getString();
+    } catch (err) {
+        if (err instanceof ChildProcessError) {
+            // A new error will be thrown with the output from stderr instead of a generic message
+            throw new ChildProcessError(stdErrStream.getString(), err.code, err.signal);
+        } else {
+            // Otherwise rethrow
+            throw err;
+        }
+    }
+}
+
+export async function spawnStreamAsync(command: string, args: Array<string>, options: StreamSpawnOptions): Promise<void> {
     const cancellationToken = options.cancellationToken || CancellationTokenLike.None;
 
     if (cancellationToken.isCancellationRequested) {
@@ -74,38 +156,23 @@ export async function spawnAsync(command: string, args: Array<string>, options: 
 
     const childProcess = spawn(command, args, { shell: options.shell });
 
-    return new Promise<string>((resolve, reject) => {
-        let output: string = '';
-        let error: string = '';
+    if (options.stdinPipe) {
+        options.stdinPipe.pipe(childProcess.stdin);
+    }
 
+    if (options.stdoutPipe) {
+        childProcess.stdout.pipe(options.stdoutPipe);
+    }
+
+    if (options.stderrPipe) {
+        childProcess.stderr.pipe(options.stderrPipe);
+    }
+
+    return new Promise<void>((resolve, reject) => {
         const disposable = cancellationToken.onCancellationRequested(() => {
             childProcess.removeAllListeners();
             childProcess.kill();
             reject(new CancellationError('Command cancelled', cancellationToken));
-        });
-
-        // Accumulate and report on stdout
-        childProcess.stdout.on('data', (chunk) => {
-            const data = chunk.toString();
-            output += data;
-
-            if (options.onStdOut) {
-                options.onStdOut(data);
-            }
-        });
-
-        // Accumulate and report on stderr
-        childProcess.stderr.on('data', (chunk) => {
-            const data = chunk.toString();
-            if (data.includes('screen size is bogus')) {
-                return;
-            }
-
-            error += data;
-
-            if (options.onStdErr) {
-                options.onStdErr(data);
-            }
         });
 
         // Reject the promise on an error event
@@ -118,9 +185,9 @@ export async function spawnAsync(command: string, args: Array<string>, options: 
         childProcess.on('exit', (code, signal) => {
             disposable.dispose();
             if (code === 0) {
-                resolve(output);
+                resolve();
             } else {
-                reject(new ChildProcessError(error, code, signal));
+                reject(new ChildProcessError(`Process exited with code ${code}`, code, signal));
             }
         });
     });
