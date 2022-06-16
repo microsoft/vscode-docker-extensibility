@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as stream from 'stream';
 import { spawn, SpawnOptions } from 'child_process';
 import { ShellQuoting } from 'vscode';
 
@@ -25,9 +24,9 @@ export type ExtendedSpawnOptions = CommonExtendedSpawnOptions & {
 };
 
 export type StreamSpawnOptions = CommonExtendedSpawnOptions & {
-    stdinPipe?: stream.Readable;
-    stdoutPipe?: stream.Writable;
-    stderrPipe?: stream.Writable;
+    stdinPipe?: NodeJS.ReadableStream;
+    stdoutPipe?: NodeJS.WritableStream;
+    stderrPipe?: NodeJS.WritableStream;
 };
 
 const isQuoted = (value: string): boolean => {
