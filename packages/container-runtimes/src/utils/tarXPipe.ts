@@ -8,11 +8,12 @@ import * as tar from 'tar';
 /**
  * The `tar` package lacks a `pipe()` method, so this essentially implements that. This returns
  * a writeable stream, to which tarballed data must be written. In turn it will pipe the untarred
- * data to the target stream.
- * @param target The target stream to pipe untarred data to
+ * data to the destination stream.
+ * NOTE: At most one entry in source tarball data will be sent to the output
+ * @param destination The destination stream to pipe untarred data to
  * @returns A stream to write the tarballed data to
  */
-export function tarPipe(target: NodeJS.WritableStream): NodeJS.WritableStream {
+export function tarXPipe(destination: NodeJS.WritableStream): NodeJS.WritableStream {
     let entryCounter = 0;
     return new tar.Parse(
         {
@@ -21,7 +22,7 @@ export function tarPipe(target: NodeJS.WritableStream): NodeJS.WritableStream {
             },
             onentry: (entry: tar.ReadEntry) => {
                 entryCounter++;
-                entry.pipe(target);
+                entry.pipe(destination);
             },
         }
     );
