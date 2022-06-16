@@ -8,11 +8,24 @@ import * as stream from 'stream';
 export class MemoryStream extends stream.Writable {
     private readonly chunks: Buffer[] = [];
     private encoding: BufferEncoding | undefined;
+    private readonly options: stream.WritableOptions;
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    public override _write(chunk: Buffer, encoding: 'buffer' | BufferEncoding, callback: () => void): void {
+    public constructor(options?: stream.WritableOptions) {
+        super({
+            ...options,
+            write: (c, e, cb) => this.internalWrite(c, e, cb),
+        });
+
+        this.options = options || {};
+        this.options.defaultEncoding ||= 'utf-8';
+    }
+
+    public internalWrite(chunk: Buffer, encoding: BufferEncoding | 'buffer', callback: () => void): void {
         this.chunks.push(chunk);
-        this.encoding = encoding === 'buffer' ? 'utf-8' : encoding;
+
+        // Unhelpfully, the encoding is sometimes `buffer` which is not a real encoding
+        this.encoding = encoding === 'buffer' ? this.options.defaultEncoding : encoding;
+
         callback();
     }
 
