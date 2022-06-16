@@ -10,9 +10,9 @@ export class MemoryStream extends stream.Writable {
     private encoding: BufferEncoding | undefined;
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    public override _write(chunk: Buffer, encoding: BufferEncoding, callback: () => void): void {
+    public override _write(chunk: Buffer, encoding: 'buffer' | BufferEncoding, callback: () => void): void {
         this.chunks.push(chunk);
-        this.encoding = encoding;
+        this.encoding = encoding === 'buffer' ? 'utf-8' : encoding;
         callback();
     }
 
@@ -21,7 +21,6 @@ export class MemoryStream extends stream.Writable {
     }
 
     public getString(): string {
-        // TODO: the encoding being sent is "buffer" which is not helpful
-        return this.getBytes().toString('utf-8');
+        return this.getBytes().toString(this.encoding);
     }
 }
