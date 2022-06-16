@@ -94,30 +94,6 @@ export async function spawnAsync(command: string, args: Array<string>, options: 
         });
     }
 
-    // // Accumulate and report on stdout
-    // stdOutStream.on('data', (chunk) => {
-    //     const data = chunk.toString();
-    //     output += data;
-
-    //     if (options.onStdOut) {
-    //         options.onStdOut(data);
-    //     }
-    // });
-
-    // // Accumulate and report on stderr
-    // stdErrStream.on('data', (chunk) => {
-    //     const data = chunk.toString();
-    //     if (data.includes('screen size is bogus')) {
-    //         return;
-    //     }
-
-    //     error += data;
-
-    //     if (options.onStdErr) {
-    //         options.onStdErr(data);
-    //     }
-    // });
-
     try {
         const newOptions: StreamSpawnOptions & ExtendedSpawnOptions = {
             ...options,
@@ -129,7 +105,6 @@ export async function spawnAsync(command: string, args: Array<string>, options: 
         delete newOptions.onStdErr;
 
         await spawnStreamAsync(command, args, newOptions);
-
         return stdOutStream.getString();
     } catch (err) {
         if (err instanceof ChildProcessError) {
