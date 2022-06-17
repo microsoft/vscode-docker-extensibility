@@ -5,35 +5,26 @@
 
 import * as stream from 'stream';
 
-export class MemoryStream extends stream.Writable {
-    private readonly chunks: Buffer[] = [];
-    private encoding: BufferEncoding | undefined;
-    private readonly options: stream.WritableOptions;
+export class MemoryStream extends stream.PassThrough {
+    public async getBytes(): Promise<Buffer> {
+        return new Promise<Buffer>((resolve, reject) => {
+            const chunks: Buffer[] = [];
 
-    public constructor(options?: stream.WritableOptions) {
-        super({
-            ...options,
-            write: (c, e, cb) => this.internalWrite(c, e, cb),
+            this.on('data', (chunk: Buffer) => {
+                chunks.push(chunk);
+            });
+
+            this.on('end', () => {
+                resolve(Buffer.concat(chunks));
+            });
+
+            this.on('error', (err) => {
+                reject(err);
+            });
         });
-
-        this.options = options || {};
-        this.options.defaultEncoding ||= 'utf-8';
     }
 
-    public internalWrite(chunk: Buffer, encoding: BufferEncoding | 'buffer', callback: () => void): void {
-        this.chunks.push(chunk);
-
-        // Unhelpfully, the encoding is sometimes `buffer` which is not a real encoding
-        this.encoding = encoding === 'buffer' ? this.options.defaultEncoding : encoding;
-
-        callback();
-    }
-
-    public getBytes(): Buffer {
-        return Buffer.concat(this.chunks);
-    }
-
-    public getString(): string {
-        return this.getBytes().toString(this.encoding);
+    public async getString(encoding?: BufferEncoding): Promise<string> {
+        return (await this.getBytes()).toString(encoding);
     }
 }

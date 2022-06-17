@@ -117,7 +117,7 @@ export async function spawnAsync(command: string, args: Array<string>, options: 
     } catch (err) {
         if (err instanceof ChildProcessError) {
             // A new error will be thrown with the output from stderr instead of a generic message
-            throw new ChildProcessError(stdErrStream.getString(), err.code, err.signal);
+            throw new ChildProcessError(await stdErrStream.getString(), err.code, err.signal);
         } else {
             // Otherwise rethrow
             throw err;
