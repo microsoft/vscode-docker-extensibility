@@ -20,4 +20,3 @@ export * from './utils/ChildProcessError';
 export * from './utils/CommandNotSupportedError';
 export * from './utils/MemoryStream';
 export * from './utils/spawnAsync';
-export * from './utils/tarXPipe';
