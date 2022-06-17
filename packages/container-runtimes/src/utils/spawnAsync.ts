@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { spawn, SpawnOptions } from 'child_process';
+import { Readable } from 'stream';
 import { ShellQuoting } from 'vscode';
 
 import { CancellationTokenLike } from '../typings/CancellationTokenLike';
@@ -19,14 +20,15 @@ type CommonExtendedSpawnOptions = SpawnOptions & {
 };
 
 export type ExtendedSpawnOptions = CommonExtendedSpawnOptions & {
+    stdInContent?: string;
     onStdOut?: (data: string | Buffer) => void;
     onStdErr?: (data: string | Buffer) => void;
 };
 
 export type StreamSpawnOptions = CommonExtendedSpawnOptions & {
-    stdinPipe?: NodeJS.ReadableStream;
-    stdoutPipe?: NodeJS.WritableStream;
-    stderrPipe?: NodeJS.WritableStream;
+    stdInPipe?: NodeJS.ReadableStream;
+    stdOutPipe?: NodeJS.WritableStream;
+    stdErrPipe?: NodeJS.WritableStream;
 };
 
 const isQuoted = (value: string): boolean => {
@@ -72,8 +74,13 @@ export const bashQuote = (args: CommandLineArgs): Array<string> => {
 };
 
 export async function spawnAsync(command: string, args: Array<string>, options: ExtendedSpawnOptions): Promise<string> {
+    let stdInStream: NodeJS.ReadableStream | undefined;
     const stdOutStream = new MemoryStream();
     const stdErrStream = new MemoryStream();
+
+    if (options.stdInContent) {
+        stdInStream = Readable.from([options.stdInContent]);
+    }
 
     if (options.onStdOut) {
         stdOutStream.on('data', (chunk) => {
@@ -97,8 +104,9 @@ export async function spawnAsync(command: string, args: Array<string>, options: 
     try {
         const newOptions: StreamSpawnOptions & ExtendedSpawnOptions = {
             ...options,
-            stdoutPipe: stdOutStream,
-            stderrPipe: stdErrStream,
+            stdInPipe: stdInStream,
+            stdOutPipe: stdOutStream,
+            stdErrPipe: stdErrStream,
         };
 
         delete newOptions.onStdOut;
@@ -130,16 +138,16 @@ export async function spawnStreamAsync(command: string, args: Array<string>, opt
 
     const childProcess = spawn(command, args, { shell: options.shell });
 
-    if (options.stdinPipe) {
-        options.stdinPipe.pipe(childProcess.stdin);
+    if (options.stdInPipe) {
+        options.stdInPipe.pipe(childProcess.stdin);
     }
 
-    if (options.stdoutPipe) {
-        childProcess.stdout.pipe(options.stdoutPipe);
+    if (options.stdOutPipe) {
+        childProcess.stdout.pipe(options.stdOutPipe);
     }
 
-    if (options.stderrPipe) {
-        childProcess.stderr.pipe(options.stderrPipe);
+    if (options.stdErrPipe) {
+        childProcess.stderr.pipe(options.stdErrPipe);
     }
 
     return new Promise<void>((resolve, reject) => {
