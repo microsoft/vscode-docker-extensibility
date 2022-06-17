@@ -92,6 +92,9 @@ export async function spawnAsync(command: string, args: Array<string>, options: 
     if (options.onStdErr) {
         stdErrStream.on('data', (chunk) => {
             const data = chunk.toString();
+
+            // Silence some stderr noise, same as vscode does
+            // See https://github.com/microsoft/vscode/pull/104277
             if (data.includes('screen size is bogus')) {
                 return;
             }
