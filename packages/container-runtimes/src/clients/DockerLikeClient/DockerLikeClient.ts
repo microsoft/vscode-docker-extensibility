@@ -56,6 +56,7 @@ import { isDockerVolumeRecord } from './DockerVolumeRecord';
 import { goTemplateJsonFormat, GoTemplateJsonFormatOptions, goTemplateJsonProperty } from './goTemplateJsonFormat';
 import { parseDockerImageRepository } from "./parseDockerImageRepository";
 import { parseDockerRawPortString } from './parseDockerRawPortString';
+import { tryParseSize } from './tryParseSize';
 import { withDockerEnvArg } from './withDockerEnvArg';
 import { withDockerJsonFormatArg } from "./withDockerJsonFormatArg";
 import { withDockerLabelFilterArgs } from "./withDockerLabelFilterArgs";
@@ -242,13 +243,17 @@ export abstract class DockerLikeClient implements IContainersClient {
                     // Combine the image components into a standardized full name
                     const image = registry ? `${registry}/${imageName}:${rawImage.Tag}` : `${imageName}:${rawImage.Tag}`;
 
+                    const size = tryParseSize(rawImage.Size);
+
                     images.push({
                         id: rawImage.ID,
                         image,
                         registry,
                         name: imageName,
+                        labels: {}, // TODO
                         tag: rawImage.Tag,
                         createdAt,
+                        size,
                     });
                 } catch (err) {
                     if (strict) {
@@ -628,11 +633,11 @@ export abstract class DockerLikeClient implements IContainersClient {
         options: ExecContainerCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<void> {
-        return Promise.resolve();
+    ): Promise<string> {
+        return Promise.resolve(output);
     }
 
-    async execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<void>> {
+    async execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<string>> {
         return {
             command: this.commandName,
             args: this.getExecContainerCommandArgs(options),
@@ -712,6 +717,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                     containers.push({
                         id: rawContainer.Id,
                         name,
+                        labels: {}, // TODO
                         image: rawContainer.Image,
                         ports,
                         createdAt,
@@ -1146,12 +1152,20 @@ export abstract class DockerLikeClient implements IContainersClient {
                         return labels;
                     }, {} as Labels);
 
+                    const createdAt = rawVolume.CreatedAt
+                        ? dayjs.utc(rawVolume.CreatedAt)
+                        : undefined;
+
+                    const size = tryParseSize(rawVolume.Size);
+
                     volumes.push({
                         name: rawVolume.Name,
                         driver: rawVolume.Driver,
                         labels,
                         mountpoint: rawVolume.Mountpoint,
                         scope: rawVolume.Scope,
+                        createdAt: createdAt?.toDate(),
+                        size
                     });
                 } catch (err) {
                     if (strict) {

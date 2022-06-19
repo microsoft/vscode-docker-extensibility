@@ -87,9 +87,15 @@ export type LoginCommandOptions = {
     username: string;
 
     /**
-     * The password to log in with
+     * The password will be piped to the process' stdin
      */
-    password: string;
+    passwordStdIn?: boolean;
+
+    /**
+     * The password to log in with
+     * @deprecated It is highly recommended to use the 'passwordStdIn' flag instead
+     */
+    password?: string;
 
     /**
      * (Optional) The registry to log in to
@@ -215,6 +221,10 @@ export type ListImagesItem = {
      */
     name?: string;
     /**
+     * Labels on the image
+     */
+    labels: Labels;
+    /**
      * The tag of the image (unless this is an anonymous base image)
      */
     tag?: string;
@@ -230,6 +240,10 @@ export type ListImagesItem = {
      * The registry the image belongs to
      */
     registry?: string;
+    /**
+     * The size (in bytes) of the image
+     */
+    size?: number;
 };
 
 type ListImagesCommand = {
@@ -593,7 +607,7 @@ type ExecContainerCommand = {
      * Generate a CommandResponse for executing a command in a running container.
      * @param options Command options
      */
-    execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<void>>;
+    execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<string>>;
 };
 
 // List Containers Command Types
@@ -630,6 +644,10 @@ export type ListContainersItem = {
      * The name of the container
      */
     name: string;
+    /**
+     * Labels on the container
+     */
+    labels: Labels;
     /**
      * The image used to run the container
      */
@@ -1029,6 +1047,14 @@ export type ListVolumeItem = {
      * The scope for the volume
      */
     scope: string;
+    /**
+     * The date the volume was created at
+     */
+    createdAt?: Date;
+    /**
+     * The size (in bytes) of the volume
+     */
+    size?: number;
 };
 
 type ListVolumesCommand = {
