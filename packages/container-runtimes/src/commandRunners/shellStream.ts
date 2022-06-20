@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as stream from 'stream';
+import * as streamPromise from 'stream/promises';
 import {
     CommandResponse,
     CommandResponseLike,
@@ -11,7 +12,8 @@ import {
     ICommandRunnerFactory,
     normalizeCommandResponseLike,
 } from '../contracts/CommandRunner';
-import { powershellQuote, spawnStreamAsync, StreamSpawnOptions } from '../utils/spawnAsync';
+import { AccumulatorStream } from '../utils/AccumulatorStream';
+import { powershellQuote, spawnStreamAsync, StreamSpawnOptions } from '../utils/spawnStreamAsync';
 
 export type ShellStreamCommandRunnerOptions = StreamSpawnOptions & {
     strict?: boolean;
@@ -22,36 +24,39 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
     }
 
     public getCommandRunner(): CommandRunner {
-        const mainOutputStream = new stream.PassThrough();
-        let parseOutputStream = mainOutputStream;
-        if (this.options.stdOutPipe) {
-            // If the client also wants output, `mainOutputStream` will become a splitter that sends
-            // one copy to the client's desired stream, and another to a stream for `parse` to consume
-            mainOutputStream.pipe(this.options.stdOutPipe);
-            mainOutputStream.pipe(parseOutputStream = new stream.PassThrough());
-        }
-
-        const mainErrorStream = new stream.PassThrough();
-        let parseErrorStream = mainErrorStream;
-        if (this.options.stdErrPipe) {
-            // If the client also wants output, `mainErrorStream` will become a splitter that sends
-            // one copy to the client's desired stream, and another to a stream for `parse` to consume
-            mainErrorStream.pipe(this.options.stdErrPipe);
-            mainErrorStream.pipe(parseErrorStream = new stream.PassThrough());
-        }
-
         return async <T>(commandResponseLike: CommandResponseLike<T>) => {
             const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
             const { command, args } = this.getCommandAndArgs(commandResponse);
+            let result: T | undefined;
+
+            const splitterStream = new stream.PassThrough;
+            const pipelinePromises: Promise<void>[] = [];
+
+            let accumulator: AccumulatorStream | undefined;
+            if (commandResponse.parse) {
+                accumulator = new AccumulatorStream();
+                pipelinePromises.push(
+                    streamPromise.pipeline(splitterStream, accumulator)
+                );
+            }
+
+            if (this.options.stdOutPipe) {
+                pipelinePromises.push(
+                    streamPromise.pipeline(splitterStream, this.options.stdOutPipe)
+                );
+            }
 
             // Don't wait, `parse` will (usually) await the output stream later
             // Waiting would put backpressure on the output stream
-            void spawnStreamAsync(command, args, { ...this.options, shell: true });
+            void spawnStreamAsync(command, args, { ...this.options, stdOutPipe: splitterStream, shell: true });
 
-            const result = await commandResponse.parse(parseOutputStream, parseErrorStream, !!this.options.strict);
+            if (accumulator && commandResponse.parse) {
+                const output = await accumulator.output;
+                accumulator.destroy();
+                result = await commandResponse.parse(output, !!this.options.strict);
+            }
 
-            parseOutputStream.destroy();
-            parseErrorStream.destroy();
+            await Promise.all(pipelinePromises);
 
             return result;
         };

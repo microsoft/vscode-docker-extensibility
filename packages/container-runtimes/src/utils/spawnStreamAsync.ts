@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { spawn, SpawnOptions } from 'child_process';
+import * as stream from 'stream';
 import { ShellQuoting } from 'vscode';
 
 import { CancellationTokenLike } from '../typings/CancellationTokenLike';
@@ -15,9 +16,9 @@ export type StreamSpawnOptions = SpawnOptions & {
     onCommand?: (command: string) => void;
     cancellationToken?: CancellationTokenLike;
 
-    stdInPipe?: NodeJS.ReadableStream;
-    stdOutPipe?: NodeJS.WritableStream;
-    stdErrPipe?: NodeJS.WritableStream;
+    stdInPipe?: stream.Readable;
+    stdOutPipe?: stream.Writable;
+    stdErrPipe?: stream.Writable;
 };
 
 const isQuoted = (value: string): boolean => {
@@ -62,7 +63,6 @@ export const bashQuote = (args: CommandLineArgs): Array<string> => {
     });
 };
 
-
 export async function spawnStreamAsync(command: string, args: Array<string>, options: StreamSpawnOptions): Promise<void> {
     const cancellationToken = options.cancellationToken || CancellationTokenLike.None;
 
@@ -74,19 +74,18 @@ export async function spawnStreamAsync(command: string, args: Array<string>, opt
         options.onCommand([command, ...args].join(' '));
     }
 
-    const childProcess = spawn(command, args, { shell: options.shell });
-
-    if (options.stdInPipe) {
-        options.stdInPipe.pipe(childProcess.stdin);
-    }
-
-    if (options.stdOutPipe) {
-        childProcess.stdout.pipe(options.stdOutPipe);
-    }
-
-    if (options.stdErrPipe) {
-        childProcess.stderr.pipe(options.stdErrPipe);
-    }
+    const childProcess = spawn(
+        command,
+        args,
+        {
+            shell: options.shell,
+            stdio: [
+                options.stdInPipe || 'ignore',
+                options.stdOutPipe || 'ignore',
+                options.stdErrPipe || 'ignore',
+            ]
+        }
+    );
 
     return new Promise<void>((resolve, reject) => {
         const disposable = cancellationToken.onCancellationRequested(() => {
