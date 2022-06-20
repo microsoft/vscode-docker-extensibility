@@ -15,8 +15,6 @@ import { powershellQuote, spawnStreamAsync, StreamSpawnOptions } from '../utils/
 
 export type ShellStreamCommandRunnerOptions = StreamSpawnOptions & {
     strict?: boolean;
-    stdOutPipe?: NodeJS.ReadWriteStream; // Overridden to be a duplex stream, so `parse` can read back from it
-    stdErrPipe?: NodeJS.ReadWriteStream; // Overridden to be a duplex stream, so `parse` can read back from it
 };
 
 export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommandRunnerOptions> implements ICommandRunnerFactory {
@@ -24,16 +22,38 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
     }
 
     public getCommandRunner(): CommandRunner {
-        this.options.stdOutPipe ||= new stream.PassThrough();
-        this.options.stdErrPipe ||= new stream.PassThrough();
+        const mainOutputStream = new stream.PassThrough();
+        let parseOutputStream = mainOutputStream;
+        if (this.options.stdOutPipe) {
+            // If the client also wants output, `mainOutputStream` will become a splitter that sends
+            // one copy to the client's desired stream, and another to a stream for `parse` to consume
+            mainOutputStream.pipe(this.options.stdOutPipe);
+            mainOutputStream.pipe(parseOutputStream = new stream.PassThrough());
+        }
+
+        const mainErrorStream = new stream.PassThrough();
+        let parseErrorStream = mainErrorStream;
+        if (this.options.stdErrPipe) {
+            // If the client also wants output, `mainErrorStream` will become a splitter that sends
+            // one copy to the client's desired stream, and another to a stream for `parse` to consume
+            mainErrorStream.pipe(this.options.stdErrPipe);
+            mainErrorStream.pipe(parseErrorStream = new stream.PassThrough());
+        }
 
         return async <T>(commandResponseLike: CommandResponseLike<T>) => {
             const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
             const { command, args } = this.getCommandAndArgs(commandResponse);
 
-            await spawnStreamAsync(command, args, { ...this.options, shell: true });
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            return await commandResponse.parse(this.options.stdOutPipe!, this.options.stdErrPipe!, !!this.options.strict);
+            // Don't wait, `parse` will (usually) await the output stream later
+            // Waiting would put backpressure on the output stream
+            void spawnStreamAsync(command, args, { ...this.options, shell: true });
+
+            const result = await commandResponse.parse(parseOutputStream, parseErrorStream, !!this.options.strict);
+
+            parseOutputStream.destroy();
+            parseErrorStream.destroy();
+
+            return result;
         };
     }
 
