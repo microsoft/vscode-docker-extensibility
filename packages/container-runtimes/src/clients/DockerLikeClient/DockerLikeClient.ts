@@ -46,6 +46,7 @@ import {
     withFlagArg,
     withNamedArg,
 } from "../../utils/commandLineBuilder";
+import { getString } from '../../utils/streamUtils';
 import { toArray } from '../../utils/toArray';
 import { DockerInspectContainerRecord, isDockerInspectContainerRecord } from './DockerInspectContainerRecord';
 import { DockerInspectImageRecord, isDockerInspectImageRecord } from './DockerInspectImageRecord';
@@ -91,11 +92,17 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     /**
      * Parse/normalize the output from running a Docker-like client version command
-     * @param output The standard out from invoking the version command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Use strict parsing to validate the command?
      * @returns
      */
-    protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
+    protected async parseVersionCommandOutput(
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
+        strict: boolean
+    ): Promise<VersionItem> {
+        const output = await getString(stdOut);
         const version = JSON.parse(output);
         if (!isDockerVersionRecord(version)) {
             throw new Error('Invalid version JSON');
@@ -153,13 +160,15 @@ export abstract class DockerLikeClient implements IContainersClient {
     /**
      * Parse the build image command standard out
      * @param options Build image command options
-     * @param output Standard output from the build image command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should the output be strictly parsed?
      * @returns An empty promise
      */
     protected parseBuildImageCommandOutput(
         options: BuildImageCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<void> {
         return Promise.resolve();
@@ -174,7 +183,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getBuildImageCommandArgs(options),
-            parse: (output, strict) => this.parseBuildImageCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseBuildImageCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -206,15 +215,18 @@ export abstract class DockerLikeClient implements IContainersClient {
     /**
      * Parse and normalize the standard out from a Docker-like list images command
      * @param options List images command options
-     * @param output The standard out from the list images command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should the output be strictly parsed?
      * @returns A normalized array of ListImagesItem records
      */
     protected async parseListImagesCommandOutput(
         options: ListImagesCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<Array<ListImagesItem>> {
+        const output = await getString(stdOut);
         const images = new Array<ListImagesItem>();
         try {
             // Docker returns JSON per-line output, so we need to split each line
@@ -275,7 +287,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getListImagesCommandArgs(options),
-            parse: (output, strict) => this.parseListImagesCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseListImagesCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -293,7 +305,8 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected parsePruneImagesCommandOutput(
         options: PruneImagesCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<PruneImagesItem> {
         // TODO: support return of the optional prune information?
@@ -304,7 +317,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getPruneImagesCommandArgs(options),
-            parse: (output, strict) => this.parsePruneImagesCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parsePruneImagesCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -333,7 +346,8 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected parsePullImageCommandOutput(
         options: PullImageCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<void> {
         return Promise.resolve();
@@ -343,7 +357,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getPullImageCommandArgs(options),
-            parse: (output, strict) => this.parsePullImageCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parsePullImageCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -360,7 +374,8 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected parseTagImageCommandOutput(
         options: TagImageCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<void> {
         return Promise.resolve();
@@ -370,7 +385,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getTagImageCommandArgs(options),
-            parse: (output, strict) => this.parseTagImageCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseTagImageCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -418,15 +433,18 @@ export abstract class DockerLikeClient implements IContainersClient {
      * Parse the standard output from a Docker-like inspect images command and
      * normalize the result
      * @param options Inspect images command options
-     * @param output The standard out from a Docker-like runtime inspect images command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should strict parsing be enforced?
      * @returns Normalized array of InspectImagesItem records
      */
     protected async parseInspectImagesCommandOutput(
         options: InspectImagesCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<Array<InspectImagesItem>> {
+        const output = await getString(stdOut);
         try {
             return output.split('\n').reduce<Array<InspectImagesItem>>((images, inspectString) => {
                 if (!inspectString) {
@@ -544,7 +562,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getInspectImagesCommandArgs(options),
-            parse: (output, strict) => this.parseInspectImagesCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseInspectImagesCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -583,15 +601,18 @@ export abstract class DockerLikeClient implements IContainersClient {
     /**
      * Parse standard output for a run container command
      * @param options The standard run container command options
-     * @param output Standard output for a run container command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should strict parsing be enforced
      * @returns The container ID if running detached or standard out if running attached
      */
     protected async parseRunContainerCommandOutput(
         options: RunContainerCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<string | undefined> {
+        const output = await getString(stdOut);
         return options.detached ? output.split('\n', 1)[0] : output;
     }
 
@@ -604,7 +625,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getRunContainerCommandArgs(options),
-            parse: (output, strict) => this.parseRunContainerCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseRunContainerCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -626,17 +647,18 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected parseExecContainerCommandOutput(
         options: ExecContainerCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
-    ): Promise<void> {
-        return Promise.resolve();
+    ): Promise<NodeJS.ReadableStream> {
+        return Promise.resolve(stdOut);
     }
 
-    async execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<void>> {
+    async execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<NodeJS.ReadableStream>> {
         return {
             command: this.commandName,
             args: this.getExecContainerCommandArgs(options),
-            parse: (output, strict) => this.parseExecContainerCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseExecContainerCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -674,9 +696,11 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected async parseListContainersCommandOutput(
         options: ListContainersCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<Array<ListContainersItem>> {
+        const output = await getString(stdOut);
         const containers = new Array<ListContainersItem>();
         try {
             output.split('\n').forEach((containerJson) => {
@@ -735,7 +759,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getListContainersCommandArgs(options),
-            parse: (output, strict) => this.parseListContainersCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseListContainersCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -759,15 +783,18 @@ export abstract class DockerLikeClient implements IContainersClient {
     /**
      * Parse the standard output from running a stop container command on a Docker-like runtime
      * @param options Stop container command options
-     * @param output The standard out from the stop containers command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should strict parsing be enforced
      * @returns A list of IDs for containers that were stopped
      */
     protected async parseStopContainersCommandOutput(
         options: StopContainersCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<Array<string>> {
+        const output = await getString(stdOut);
         return output.split('\n').filter((id) => id);
     }
 
@@ -775,7 +802,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getStopContainersCommandArgs(options),
-            parse: (output, strict) => this.parseStopContainersCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseStopContainersCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -793,9 +820,11 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected async parseRemoveContainersCommandOutput(
         options: RemoveContainersCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<Array<string>> {
+        const output = await getString(stdOut);
         return output.split('\n').filter((id) => id);
     }
 
@@ -803,7 +832,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getRemoveContainersCommandArgs(options),
-            parse: (output, strict) => this.parseRemoveContainersCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseRemoveContainersCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -833,16 +862,18 @@ export abstract class DockerLikeClient implements IContainersClient {
      * Parse the standard out from running a log container command on a
      * Docker-like client
      * @param options Options for the log container command
-     * @param output The standard output from running the command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should strict parsing be used?
      * @returns An empty promise
      */
     protected parseLogsForContainerCommandOutput(
         options: LogsForContainerCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
-    ): Promise<void> {
-        return Promise.resolve();
+    ): Promise<NodeJS.ReadableStream> {
+        return Promise.resolve(stdOut);
     }
 
     /**
@@ -850,11 +881,11 @@ export abstract class DockerLikeClient implements IContainersClient {
      * @param options Options for the log container command
      * @returns The CommandResponse object for the log container command
      */
-    async logsForContainer(options: LogsForContainerCommandOptions): Promise<CommandResponse<void>> {
+    async logsForContainer(options: LogsForContainerCommandOptions): Promise<CommandResponse<NodeJS.ReadableStream>> {
         return {
             command: this.commandName,
             args: this.getLogsForContainerCommandArgs(options),
-            parse: (output, strict) => this.parseLogsForContainerCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseLogsForContainerCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -916,15 +947,18 @@ export abstract class DockerLikeClient implements IContainersClient {
     /**
      * Parse the output from running an inspect containers command on a Docker-like client
      * @param options Inspect containers command options
-     * @param output Standard out from running a Docker-like inspect containers command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should strict parsing be used to parse the output?
      * @returns An array of InspectContainersItem records
      */
     protected async parseInspectContainersCommandOutput(
         options: InspectContainersCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<Array<InspectContainersItem>> {
+        const output = await getString(stdOut);
         try {
             return output.split('\n').reduce<Array<InspectContainersItem>>((containers, inspectString) => {
                 if (!inspectString) {
@@ -1061,7 +1095,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getInspectContainersCommandArgs(options),
-            parse: (output, strict) => this.parseInspectContainersCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseInspectContainersCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -1084,7 +1118,8 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected parseCreateVolumeCommandOutput(
         options: CreateVolumeCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<void> {
         return Promise.resolve();
@@ -1094,7 +1129,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getCreateVolumeCommandArgs(options),
-            parse: (output, strict) => this.parseCreateVolumeCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseCreateVolumeCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -1122,9 +1157,11 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     protected async parseListVolumesCommandOputput(
         options: ListVolumesCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<ListVolumeItem[]> {
+        const output = await getString(stdOut);
         const volumes = new Array<ListVolumeItem>();
         try {
             output.split("\n").forEach((volumeJson) => {
@@ -1172,7 +1209,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getListVolumesCommandArgs(options),
-            parse: (output, strict) => this.parseListVolumesCommandOputput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseListVolumesCommandOputput(options, stdOut, stdErr, strict),
         };
     }
 
@@ -1197,15 +1234,18 @@ export abstract class DockerLikeClient implements IContainersClient {
     /**
      * Parse the output from running a Docker-like remove volumes command
      * @param options Options for the remove volumes command
-     * @param output Standard out from running the remove volumes command
+     * @param stdOut The {@link NodeJS.ReadableStream} for the output from the command
+     * @param stdErr The {@link NodeJS.ReadableStream} for the error output from the command
      * @param strict Should strict parsing be enforced?
      * @returns A list of IDs for the volumes removed
      */
     protected async parseRemoveVolumesCommandOutput(
         options: RemoveVolumesCommandOptions,
-        output: string,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
         strict: boolean,
     ): Promise<string[]> {
+        const output = await getString(stdOut);
         return output.split('\n').filter(id => id);
     }
 
@@ -1219,7 +1259,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getRemoveVolumesCommandArgs(options),
-            parse: (output, strict) => this.parseRemoveVolumesCommandOutput(options, output, strict),
+            parse: (stdOut, stdErr, strict) => this.parseRemoveVolumesCommandOutput(options, stdOut, stdErr, strict),
         };
     }
 

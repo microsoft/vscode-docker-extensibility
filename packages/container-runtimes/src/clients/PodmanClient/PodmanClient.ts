@@ -16,6 +16,7 @@ import {
     VersionItem
 } from '../../contracts/ContainerClient';
 import { CommandLineArgs } from '../../utils/commandLineBuilder';
+import { getString } from '../../utils/streamUtils';
 import { DockerLikeClient } from '../DockerLikeClient/DockerLikeClient';
 import { parseDockerImageRepository } from '../DockerLikeClient/parseDockerImageRepository';
 import { isPodmanImageRecord } from './PodmanImageRecord';
@@ -36,7 +37,12 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
 
     //#region Version Command
 
-    protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
+    protected async parseVersionCommandOutput(
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
+        strict: boolean
+    ): Promise<VersionItem> {
+        const output = await getString(stdOut);
         const version = JSON.parse(output);
         if (!isPodmanVersionRecord(version)) {
             throw new Error('Invalid version JSON');
@@ -52,7 +58,13 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
 
     //#region ListImages Command
 
-    protected override async parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
+    protected override async parseListImagesCommandOutput(
+        options: ListImagesCommandOptions,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
+        strict: boolean
+    ): Promise<ListImagesItem[]> {
+        const output = await getString(stdOut);
         const images = new Array<ListImagesItem>();
         try {
             const rawImages = JSON.parse(output);
@@ -111,7 +123,13 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
 
     //#region ListVolumes Command
 
-    protected override async parseListVolumesCommandOputput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
+    protected override async parseListVolumesCommandOputput(
+        options: ListVolumesCommandOptions,
+        stdOut: NodeJS.ReadableStream,
+        stdErr: NodeJS.ReadableStream,
+        strict: boolean
+    ): Promise<ListVolumeItem[]> {
+        const output = await getString(stdOut);
         const volumes = new Array<ListVolumeItem>();
         try {
             const rawVolumes = JSON.parse(output);

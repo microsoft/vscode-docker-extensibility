@@ -593,7 +593,7 @@ type ExecContainerCommand = {
      * Generate a CommandResponse for executing a command in a running container.
      * @param options Command options
      */
-    execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<void>>;
+    execContainer(options: ExecContainerCommandOptions): Promise<CommandResponse<NodeJS.ReadableStream>>;
 };
 
 // List Containers Command Types
@@ -788,7 +788,7 @@ type LogsForContainerCommand = {
      * Generate a CommandResponse for retrieving container logs
      * @param options Command options
      */
-    logsForContainer(options: LogsForContainerCommandOptions): Promise<CommandResponse<void>>;
+    logsForContainer(options: LogsForContainerCommandOptions): Promise<CommandResponse<NodeJS.ReadableStream>>;
 };
 
 // Inspect Container Command Types
@@ -1565,12 +1565,12 @@ export type ReadFileCommandOptions = {
 type ReadFileCommand = {
     /**
      * Read a file inside the container. Start a process with the {@link CommandResponse}
-     * and read from its stdout stream (or use {@link ShellCommandRunnerFactory} to accumulate
-     * the output into a string and return it from `parse`).
+     * and read from its stdout stream.
      * NOTE: the output stream is in tarball format.
      * @param options Command options
+     * @returns The stdout stream from the file
      */
-    readFile(options: ReadFileCommandOptions): Promise<CommandResponse<string>>;
+    readFile(options: ReadFileCommandOptions): Promise<CommandResponse<NodeJS.ReadableStream>>;
 };
 
 // Write file command types

@@ -14,7 +14,7 @@ import { CommandLineArgs } from '../utils/commandLineBuilder';
 export type CommandResponse<T> = {
     command: string;
     args: CommandLineArgs;
-    parse: (output: string, strict: boolean) => Promise<T>;
+    parse: (stdOut: NodeJS.ReadableStream, stdErr: NodeJS.ReadableStream, strict: boolean) => Promise<T>;
 };
 
 export type CommandResponseLike<T> = CommandResponse<T> | Promise<CommandResponse<T>> | (() => CommandResponse<T> | Promise<CommandResponse<T>>);
@@ -25,16 +25,11 @@ export type CommandResponseLike<T> = CommandResponse<T> | Promise<CommandRespons
 export type CommandRunner = <T>(commandResponse: CommandResponseLike<T>) => Promise<T>;
 
 /**
- * A {@link VoidCommandRunner} provides instructions on how to invoke a command
- */
-export type VoidCommandRunner = (commandResponse: CommandResponseLike<unknown>) => Promise<void>;
-
-/**
  * A {@link CommandRunnerFactory} is used to build a CommandRunner instance
  * based for a specific configuration
  */
 export interface ICommandRunnerFactory {
-    getCommandRunner(): CommandRunner | VoidCommandRunner;
+    getCommandRunner(): CommandRunner;
 }
 
 export function normalizeCommandResponseLike<T>(commandResponseLike: CommandResponseLike<T>): Promise<CommandResponse<T>> {
