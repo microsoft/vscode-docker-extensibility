@@ -35,3 +35,25 @@ export async function getBytes(stream: NodeJS.ReadableStream): Promise<Buffer> {
 export async function getString(stream: NodeJS.ReadableStream, encoding?: BufferEncoding): Promise<string> {
     return (await getBytes(stream)).toString(encoding);
 }
+
+/**
+ * Drains a stream, ignoring all its output. More importantly, this only resolves once
+ * the stream has closed. For example, when stdout closes because the process is
+ * finished.
+ * @param stream The stream to drain
+ */
+export async function drain(stream: NodeJS.ReadableStream): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        stream.on('data', () => {
+            // Ignore
+        });
+
+        stream.on('end', () => {
+            resolve(resolve());
+        });
+
+        stream.on('error', (err) => {
+            reject(err);
+        });
+    });
+}
