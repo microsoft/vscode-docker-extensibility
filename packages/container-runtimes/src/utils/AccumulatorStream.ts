@@ -9,26 +9,35 @@ import * as stream from 'stream';
 type AccumulatorOptions = Omit<stream.WritableOptions, 'write' | 'writev'>;
 
 export class AccumulatorStream extends stream.Writable {
-    private accumulatedOutput: string = '';
-    public readonly output: Promise<string>;
+    private readonly chunks: Buffer[] = [];
+    private readonly streamEndPromise: Promise<void>;
 
     public constructor(options?: AccumulatorOptions) {
         super({
             ...options,
-            write: (chunk, encoding, callback) => {
-                this.accumulatedOutput += chunk.toString();
+            write: (chunk: Buffer, encoding: never, callback: (err?: Error) => void) => {
+                this.chunks.push(chunk);
                 callback();
             },
         });
 
-        this.output = new Promise<string>((resolve, reject) => {
+        this.streamEndPromise = new Promise<void>((resolve, reject) => {
             this.on('close', () => {
-                resolve(this.accumulatedOutput);
+                resolve();
             });
 
             this.on('error', (err) => {
                 reject(err);
             });
         });
+    }
+
+    public async getBytes(): Promise<Buffer> {
+        await this.streamEndPromise;
+        return Buffer.concat(this.chunks);
+    }
+
+    public async getString(encoding: BufferEncoding = 'utf-8'): Promise<string> {
+        return (await this.getBytes()).toString(encoding);
     }
 }
