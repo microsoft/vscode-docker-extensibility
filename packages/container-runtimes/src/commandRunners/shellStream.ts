@@ -51,7 +51,7 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
                 );
             }
 
-            // Don't wait, `parse` will (usually) await the output stream later
+            // Don't wait, the output stream will be awaited later
             // Waiting would put backpressure on the output stream
             void spawnStreamAsync(command, args, { ...this.options, stdOutPipe: splitterStream, shell: true });
 
