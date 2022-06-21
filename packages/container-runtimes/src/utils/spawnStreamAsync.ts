@@ -12,6 +12,12 @@ import { CancellationError } from './CancellationError';
 import { ChildProcessError } from './ChildProcessError';
 import { CommandLineArgs } from './commandLineBuilder';
 
+/**
+ * A {@link ShellQuote} method applies quoting rules for a specific shell.
+ * Quoth the cmd.exe 'nevermore'.
+ */
+export type ShellQuote = (args: CommandLineArgs) => Array<string>;
+
 export type StreamSpawnOptions = SpawnOptions & {
     onCommand?: (command: string) => void;
     cancellationToken?: CancellationTokenLike;
@@ -29,7 +35,12 @@ const isQuoted = (value: string): boolean => {
     return false;
 };
 
-export const powershellQuote = (args: CommandLineArgs): Array<string> => {
+/**
+ * Applies quoting rules for PowerShell to {@link CommandLineArgs} arguments
+ * @param args An array of {@link ShellQuotedString} with associated quoting rules
+ * @returns An array of string arguments quoted for PowerShell
+ */
+export const powershellQuote: ShellQuote = (args: CommandLineArgs): Array<string> => {
     return args.map((quotedArg) => {
         if (isQuoted(quotedArg.value)) {
             return quotedArg.value;
@@ -46,7 +57,12 @@ export const powershellQuote = (args: CommandLineArgs): Array<string> => {
     });
 };
 
-export const bashQuote = (args: CommandLineArgs): Array<string> => {
+/**
+ * Applies quoting rules for bash/zsh to {@link CommandLineArgs} arguments
+ * @param args An array of {@link ShellQuotedString} with associated quoting rules
+ * @returns An array of string arguments quoted for PowerShell
+ */
+export const bashQuote: ShellQuote = (args: CommandLineArgs): Array<string> => {
     return args.map((quotedArg) => {
         if (isQuoted(quotedArg.value)) {
             return quotedArg.value;
@@ -63,7 +79,11 @@ export const bashQuote = (args: CommandLineArgs): Array<string> => {
     });
 };
 
-export async function spawnStreamAsync(command: string, args: Array<string>, options: StreamSpawnOptions): Promise<void> {
+export async function spawnStreamAsync(
+    command: string,
+    args: Array<string>,
+    options: StreamSpawnOptions,
+): Promise<void> {
     const cancellationToken = options.cancellationToken || CancellationTokenLike.None;
 
     if (cancellationToken.isCancellationRequested) {
@@ -74,19 +94,19 @@ export async function spawnStreamAsync(command: string, args: Array<string>, opt
         options.onCommand([command, ...args].join(' '));
     }
 
-    const childProcess = spawn(command, args, { shell: options.shell });
-
-    if (options.stdInPipe) {
-        options.stdInPipe.pipe(childProcess.stdin);
-    }
-
-    if (options.stdOutPipe) {
-        childProcess.stdout.pipe(options.stdOutPipe);
-    }
-
-    if (options.stdErrPipe) {
-        childProcess.stderr.pipe(options.stdErrPipe);
-    }
+    const childProcess = spawn(
+        command,
+        args,
+        {
+            shell: options.shell,
+            // Ignore stdio streams if not needed to avoid backpressure issues
+            stdio: [
+                options.stdInPipe ?? 'ignore',
+                options.stdOutPipe ?? 'ignore',
+                options.stdErrPipe ?? 'ignore',
+            ],
+        },
+    );
 
     return new Promise<void>((resolve, reject) => {
         const disposable = cancellationToken.onCancellationRequested(() => {
