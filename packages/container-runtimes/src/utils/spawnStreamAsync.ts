@@ -79,13 +79,18 @@ export async function spawnStreamAsync(command: string, args: Array<string>, opt
         args,
         {
             shell: options.shell,
-            stdio: [
-                options.stdInPipe || 'ignore',
-                options.stdOutPipe || 'ignore',
-                options.stdErrPipe || 'ignore',
-            ]
         }
     );
+
+    options.stdInPipe?.pipe(childProcess.stdin);
+
+    if (options.stdOutPipe) {
+        childProcess.stdout.pipe(options.stdOutPipe);
+    }
+
+    if (options.stdErrPipe) {
+        childProcess.stderr.pipe(options.stdErrPipe);
+    }
 
     return new Promise<void>((resolve, reject) => {
         const disposable = cancellationToken.onCancellationRequested(() => {

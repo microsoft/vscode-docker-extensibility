@@ -5,21 +5,21 @@
 
 import * as stream from 'stream';
 
-export class AccumulatorStream extends stream.PassThrough {
+export class AccumulatorStream extends stream.Writable {
     private accumulatedOutput: string = '';
     public readonly output: Promise<string>;
 
-    public constructor(options?: Omit<stream.TransformOptions, 'transform'>) {
+    public constructor(options?: Omit<stream.WritableOptions, 'write'>) {
         super({
             ...options,
-            transform: (chunk, encoding, callback) => {
+            write: (chunk, encoding, callback) => {
                 this.accumulatedOutput += chunk.toString();
-                callback(chunk);
+                callback();
             },
         });
 
         this.output = new Promise<string>((resolve, reject) => {
-            this.on('end', () => {
+            this.on('close', () => {
                 resolve(this.accumulatedOutput);
             });
 
