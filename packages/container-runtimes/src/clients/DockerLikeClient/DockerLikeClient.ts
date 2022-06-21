@@ -501,7 +501,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                             : undefined;
 
                     // Determine if the image has been pushed to a remote repo
-                    // (no repo digests or only localhost/ repo digetss)
+                    // (no repo digests or only localhost/ repo digests)
                     const isLocalImage = !(inspect.RepoDigests || []).some((digest) => !digest.toLowerCase().startsWith('localhost/'));
 
                     // Return a normalized InspectImagesItem record
@@ -511,6 +511,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                         tag: tagName,
                         registry: registry,
                         image: fullImage,
+                        repoDigests: inspect.RepoDigests,
                         isLocalImage,
                         environmentVariables,
                         ports,
@@ -668,7 +669,9 @@ export abstract class DockerLikeClient implements IContainersClient {
                     Names: goTemplateJsonProperty`.Names`,
                     Image: goTemplateJsonProperty`.Image`,
                     Ports: goTemplateJsonProperty`.Ports`,
-                    CreatedAt: goTemplateJsonProperty`.CreatedAt`
+                    CreatedAt: goTemplateJsonProperty`.CreatedAt`,
+                    State: goTemplateJsonProperty`.State`,
+                    Status: goTemplateJsonProperty`.Status`,
                 }, formatOverrides)),
         )();
     }
@@ -721,6 +724,8 @@ export abstract class DockerLikeClient implements IContainersClient {
                         image: rawContainer.Image,
                         ports,
                         createdAt,
+                        state: rawContainer.State,
+                        status: rawContainer.Status,
                     });
                 } catch (err) {
                     if (strict) {

@@ -388,21 +388,25 @@ export type InspectImagesItem = {
      */
     id: string;
     /**
-     * The image name
+     * The image name, e.g. 'alpine'
      */
     name?: string;
     /**
-     * The image tag
+     * The image tag, e.g. 'latest'
      */
     tag?: string;
     /**
-     * The registry the image belongs to
+     * The registry the image belongs to, e.g. 'docker.io/library'
      */
     registry?: string;
     /**
-     * The full name of the image (registry/name:tag)
+     * The full name of the image (registry/name:tag), e.g. 'docker.io/library/alpine:latest'
      */
     image?: string;
+    /**
+     * Repo digest values
+     */
+    repoDigests: string[];
     /**
      * Is the image local only?
      */
@@ -649,7 +653,7 @@ export type ListContainersItem = {
      */
     labels: Labels;
     /**
-     * The image used to run the container
+     * The image name used to run the container (e.g. 'alpine')
      */
     image: string;
     /**
@@ -660,6 +664,14 @@ export type ListContainersItem = {
      * The date the container was created
      */
     createdAt: Date;
+    /**
+     * The container state (e.g. 'running', 'stopped', 'paused', etc.)
+     */
+    state: string;
+    /**
+     * The container status (e.g. 'Up 5 minutes', 'Exited (0) 1 minute ago', etc.)
+     */
+    status?: string;
 };
 
 type ListContainersCommand = {
