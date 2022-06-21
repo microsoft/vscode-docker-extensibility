@@ -76,7 +76,6 @@ export async function spawnStreamAsync(command: string, args: Array<string>, opt
 
     const childProcess = spawn(command, args, { shell: options.shell });
 
-
     if (options.stdInPipe) {
         options.stdInPipe.pipe(childProcess.stdin);
     }
