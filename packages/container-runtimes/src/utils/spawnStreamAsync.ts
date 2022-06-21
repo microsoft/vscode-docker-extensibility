@@ -74,15 +74,12 @@ export async function spawnStreamAsync(command: string, args: Array<string>, opt
         options.onCommand([command, ...args].join(' '));
     }
 
-    const childProcess = spawn(
-        command,
-        args,
-        {
-            shell: options.shell,
-        }
-    );
+    const childProcess = spawn(command, args, { shell: options.shell });
 
-    options.stdInPipe?.pipe(childProcess.stdin);
+
+    if (options.stdInPipe) {
+        options.stdInPipe.pipe(childProcess.stdin);
+    }
 
     if (options.stdOutPipe) {
         childProcess.stdout.pipe(options.stdOutPipe);
