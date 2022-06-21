@@ -12,7 +12,9 @@ import {
     ICommandRunnerFactory,
     normalizeCommandResponseLike,
 } from '../contracts/CommandRunner';
+import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { AccumulatorStream } from '../utils/AccumulatorStream';
+import { CancellationError } from '../utils/CancellationError';
 import { powershellQuote, spawnStreamAsync, StreamSpawnOptions } from '../utils/spawnStreamAsync';
 
 export type ShellStreamCommandRunnerOptions = StreamSpawnOptions & {
@@ -27,6 +29,9 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
         return async <T>(commandResponseLike: CommandResponseLike<T>) => {
             const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
             const { command, args } = this.getCommandAndArgs(commandResponse);
+
+            throwIfCancellationRequested(this.options.cancellationToken);
+
             let result: T | undefined;
 
             const splitterStream = new stream.PassThrough;
@@ -50,11 +55,18 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
             // Waiting would put backpressure on the output stream
             void spawnStreamAsync(command, args, { ...this.options, stdOutPipe: splitterStream, shell: true });
 
+            throwIfCancellationRequested(this.options.cancellationToken);
+
             if (accumulator && commandResponse.parse) {
                 const output = await accumulator.output;
+
+                throwIfCancellationRequested(this.options.cancellationToken);
+
                 accumulator.destroy();
                 result = await commandResponse.parse(output, !!this.options.strict);
             }
+
+            throwIfCancellationRequested(this.options.cancellationToken);
 
             await Promise.all(pipelinePromises);
 
@@ -67,5 +79,11 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
             command: commandResponse.command,
             args: powershellQuote(commandResponse.args)
         };
+    }
+}
+
+function throwIfCancellationRequested(token?: CancellationTokenLike): void {
+    if (token?.isCancellationRequested) {
+        throw new CancellationError('Command cancelled', token);
     }
 }

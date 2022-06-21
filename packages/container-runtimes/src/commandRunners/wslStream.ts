@@ -7,7 +7,7 @@ import {
     CommandResponse,
     ICommandRunnerFactory,
 } from '../contracts/CommandRunner';
-import { bashQuote } from '../utils/spawnAsync';
+import { bashQuote } from '../utils/spawnStreamAsync';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from './shellStream';
 
 export type WslShellCommandRunnerOptions = ShellStreamCommandRunnerOptions & {
