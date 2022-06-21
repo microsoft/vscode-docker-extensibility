@@ -38,39 +38,41 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
             const pipelinePromises: Promise<void>[] = [];
 
             let accumulator: AccumulatorStream | undefined;
-            if (commandResponse.parse) {
-                accumulator = new AccumulatorStream();
-                pipelinePromises.push(
-                    streamPromise.pipeline(splitterStream, accumulator)
-                );
-            }
 
-            if (this.options.stdOutPipe) {
-                pipelinePromises.push(
-                    streamPromise.pipeline(splitterStream, this.options.stdOutPipe)
-                );
-            }
+            try {
+                if (commandResponse.parse) {
+                    accumulator = new AccumulatorStream();
+                    pipelinePromises.push(
+                        streamPromise.pipeline(splitterStream, accumulator)
+                    );
+                }
 
-            // Don't wait, the output stream will be awaited later
-            // Waiting would put backpressure on the output stream
-            void spawnStreamAsync(command, args, { ...this.options, stdOutPipe: splitterStream, shell: true });
+                if (this.options.stdOutPipe) {
+                    pipelinePromises.push(
+                        streamPromise.pipeline(splitterStream, this.options.stdOutPipe)
+                    );
+                }
 
-            throwIfCancellationRequested(this.options.cancellationToken);
-
-            if (accumulator && commandResponse.parse) {
-                const output = await accumulator.output;
+                // Don't wait, the output stream will be awaited later
+                // Waiting would put backpressure on the output stream
+                void spawnStreamAsync(command, args, { ...this.options, stdOutPipe: splitterStream, shell: true });
 
                 throwIfCancellationRequested(this.options.cancellationToken);
 
-                accumulator.destroy();
-                result = await commandResponse.parse(output, !!this.options.strict);
+                if (accumulator && commandResponse.parse) {
+                    const output = await accumulator.output;
+                    throwIfCancellationRequested(this.options.cancellationToken);
+                    result = await commandResponse.parse(output, !!this.options.strict);
+                }
+
+                throwIfCancellationRequested(this.options.cancellationToken);
+
+                await Promise.all(pipelinePromises);
+
+                return result;
+            } finally {
+                accumulator?.destroy();
             }
-
-            throwIfCancellationRequested(this.options.cancellationToken);
-
-            await Promise.all(pipelinePromises);
-
-            return result;
         };
     }
 
