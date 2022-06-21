@@ -661,6 +661,10 @@ export type ListContainersItem = {
      */
     ports: Array<PortBinding>;
     /**
+     * The list of connected networks for the container
+     */
+    networks: string[];
+    /**
      * The date the container was created
      */
     createdAt: Date;
@@ -1608,7 +1612,7 @@ type ReadFileCommand = {
      * NOTE: the output stream is in tarball format.
      * @param options Command options
      */
-    readFile(options: ReadFileCommandOptions): Promise<CommandResponse<string>>;
+    readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>>;
 };
 
 // Write file command types

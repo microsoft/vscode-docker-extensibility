@@ -669,6 +669,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                     Names: goTemplateJsonProperty`.Names`,
                     Image: goTemplateJsonProperty`.Image`,
                     Ports: goTemplateJsonProperty`.Ports`,
+                    Networks: goTemplateJsonProperty`.Networks`,
                     CreatedAt: goTemplateJsonProperty`.CreatedAt`,
                     State: goTemplateJsonProperty`.State`,
                     Status: goTemplateJsonProperty`.Status`,
@@ -714,6 +715,9 @@ export abstract class DockerLikeClient implements IContainersClient {
                             }
                         }, []);
 
+                    const networks = rawContainer.Networks
+                        .split(',');
+
                     const name = rawContainer.Names.split(',')[0].trim();
                     const createdAt = dayjs.utc(rawContainer.CreatedAt, this.listDateFormat).toDate();
 
@@ -723,6 +727,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                         labels: {}, // TODO
                         image: rawContainer.Image,
                         ports,
+                        networks,
                         createdAt,
                         state: rawContainer.State,
                         status: rawContainer.Status,

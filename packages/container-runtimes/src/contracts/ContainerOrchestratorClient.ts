@@ -12,7 +12,15 @@ export type CommonOrchestratorCommandOptions = {
     /**
      * Orchestrator files, e.g. compose files
      */
-    files: string[];
+    files?: string[];
+    /**
+     * Environment variable file
+     */
+    environmentFile?: string;
+    /**
+     * Project name
+     */
+    projectName?: string;
 };
 
 // Up command types

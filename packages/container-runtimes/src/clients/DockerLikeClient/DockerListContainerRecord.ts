@@ -8,6 +8,7 @@ export type DockerListContainerRecord = {
     Names: string;
     Image: string;
     Ports: string;
+    Networks: string;
     CreatedAt: string;
     State: string;
     Status: string;
@@ -32,6 +33,10 @@ export function isDockerListContainerRecord(maybeContainer: any): maybeContainer
     }
 
     if (typeof maybeContainer.Ports !== 'string') {
+        return false;
+    }
+
+    if (typeof maybeContainer.Networks !== 'string') {
         return false;
     }
 
