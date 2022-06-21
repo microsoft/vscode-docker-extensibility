@@ -5,11 +5,14 @@
 
 import * as stream from 'stream';
 
+// Caller can pass any writable options except 'write' and 'writev'
+type AccumulatorOptions = Omit<stream.WritableOptions, 'write' | 'writev'>;
+
 export class AccumulatorStream extends stream.Writable {
     private accumulatedOutput: string = '';
     public readonly output: Promise<string>;
 
-    public constructor(options?: Omit<stream.WritableOptions, 'write'>) {
+    public constructor(options?: AccumulatorOptions) {
         super({
             ...options,
             write: (chunk, encoding, callback) => {
