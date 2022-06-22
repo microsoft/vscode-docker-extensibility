@@ -520,7 +520,6 @@ export type RunContainerVolumeMount = {
     source: string;
     destination: string;
     readOnly: boolean;
-    relable?: boolean; // TODO: not possible with mount syntax
 };
 
 export type RunContainerMount =
