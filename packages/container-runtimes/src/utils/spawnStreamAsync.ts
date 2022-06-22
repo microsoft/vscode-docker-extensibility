@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { spawn, SpawnOptions } from 'child_process';
+import * as os from 'os';
 import * as stream from 'stream';
 import { ShellQuoting } from 'vscode';
 
@@ -85,6 +86,11 @@ export async function spawnStreamAsync(
     options: StreamSpawnOptions,
 ): Promise<void> {
     const cancellationToken = options.cancellationToken || CancellationTokenLike.None;
+    // Force PowerShell as the default on Windows, but use the system default on
+    // *nix
+    const shell = typeof options.shell !== 'string' && options.shell !== false && os.platform() === 'win32'
+        ? 'powershell.exe'
+        : options.shell;
 
     if (cancellationToken.isCancellationRequested) {
         throw new CancellationError('Command cancelled', cancellationToken);
@@ -98,15 +104,27 @@ export async function spawnStreamAsync(
         command,
         args,
         {
-            shell: options.shell,
+            shell,
             // Ignore stdio streams if not needed to avoid backpressure issues
             stdio: [
-                options.stdInPipe ?? 'ignore',
-                options.stdOutPipe ?? 'ignore',
-                options.stdErrPipe ?? 'ignore',
+                options.stdInPipe ? 'pipe' : 'ignore',
+                options.stdOutPipe ? 'pipe' : 'ignore',
+                options.stdErrPipe ? 'pipe' : 'ignore',
             ],
         },
     );
+
+    if (options.stdInPipe && childProcess.stdin) {
+        options.stdInPipe.pipe(childProcess.stdin);
+    }
+
+    if (options.stdOutPipe && childProcess.stdout) {
+        childProcess.stdout.pipe(options.stdOutPipe);
+    }
+
+    if (options.stdErrPipe && childProcess.stderr) {
+        childProcess.stderr.pipe(options.stdErrPipe);
+    }
 
     return new Promise<void>((resolve, reject) => {
         const disposable = cancellationToken.onCancellationRequested(() => {

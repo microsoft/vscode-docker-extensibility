@@ -32,7 +32,8 @@ export class WslShellCommandRunnerFactory extends ShellStreamCommandRunnerFactor
             ...(this.options.distro ? ['-d', this.options.distro] : []),
             '--',
             commandResponse.command,
-            ...this.options.shellQuote(commandResponse.args),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            ...this.options.shellQuote!(commandResponse.args),
         ];
 
         return { command, args };

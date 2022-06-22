@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from 'os';
 import * as stream from 'stream';
 import * as streamPromise from 'stream/promises';
 import {
@@ -16,13 +17,15 @@ import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { AccumulatorStream } from '../utils/AccumulatorStream';
 import { CancellationError } from '../utils/CancellationError';
 import {
+    bashQuote,
+    powershellQuote,
     ShellQuote,
     spawnStreamAsync,
     StreamSpawnOptions,
 } from '../utils/spawnStreamAsync';
 
 export type ShellStreamCommandRunnerOptions = StreamSpawnOptions & {
-    shellQuote: ShellQuote;
+    shellQuote?: ShellQuote;
     strict?: boolean;
 };
 
@@ -32,6 +35,7 @@ export type ShellStreamCommandRunnerOptions = StreamSpawnOptions & {
  */
 export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommandRunnerOptions> implements ICommandRunnerFactory {
     public constructor(protected readonly options: TOptions) {
+        this.options.shellQuote ??= os.platform() === 'win32' ? powershellQuote : bashQuote;
     }
 
     public getCommandRunner(): CommandRunner {
@@ -88,7 +92,8 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
     protected getCommandAndArgs(commandResponse: CommandResponse<unknown>): { command: string, args: string[] } {
         return {
             command: commandResponse.command,
-            args: this.options.shellQuote(commandResponse.args),
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            args: this.options.shellQuote!(commandResponse.args),
         };
     }
 }
