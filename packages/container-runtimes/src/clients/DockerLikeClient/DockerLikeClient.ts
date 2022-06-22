@@ -57,6 +57,7 @@ import { goTemplateJsonFormat, GoTemplateJsonFormatOptions, goTemplateJsonProper
 import { parseDockerImageRepository } from "./parseDockerImageRepository";
 import { parseDockerRawPortString } from './parseDockerRawPortString';
 import { tryParseSize } from './tryParseSize';
+import { withDockerAddHostArg } from './withDockerAddHostArg';
 import { withDockerEnvArg } from './withDockerEnvArg';
 import { withDockerJsonFormatArg } from "./withDockerJsonFormatArg";
 import { withDockerLabelFilterArgs } from "./withDockerLabelFilterArgs";
@@ -413,6 +414,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                     Architecture: goTemplateJsonProperty`.Architecture`,
                     OperatingSystem: goTemplateJsonProperty`.Os`,
                     CreatedAt: goTemplateJsonProperty`.Created`,
+                    User: goTemplateJsonProperty`.Config.User`,
                     Raw: goTemplateJsonProperty`.`,
                 }, formatOverrides)),
             withArg(...options.images),
@@ -523,6 +525,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                         architecture,
                         operatingSystem: os,
                         createdAt: dayjs.utc(inspect.CreatedAt).toDate(),
+                        user: inspect.User,
                         raw: JSON.stringify(inspect.Raw),
                     };
 
@@ -572,14 +575,19 @@ export abstract class DockerLikeClient implements IContainersClient {
         return composeArgs(
             withArg('container', 'run'),
             withFlagArg('--detach', options.detached),
-            withFlagArg('--tty', options.detached),
+            withFlagArg('--interactive', options.interactive),
+            withFlagArg('--tty', options.detached || options.interactive),
             withFlagArg('--rm', options.removeOnExit),
             withNamedArg('--name', options.name),
             withDockerPortsArg(options.ports),
             withFlagArg('--publish-all', options.publishAllPorts),
+            withNamedArg('--network', options.network),
+            withNamedArg('--network-alias', options.networkAlias),
+            withDockerAddHostArg(options.addHost),
             withDockerMountsArg(options.mounts),
             withDockerLabelsArg(options.labels),
             withDockerEnvArg(options.environmentVariables),
+            withNamedArg('--env-file', options.environmentFiles),
             withNamedArg('--entrypoint', options.entrypoint),
             withArg(options.image),
             withArg(...(toArray(options.command || []))),

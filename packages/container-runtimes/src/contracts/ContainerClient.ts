@@ -452,6 +452,10 @@ export type InspectImagesItem = {
      */
     createdAt: Date;
     /**
+     * The default user in the container
+     */
+    user?: string;
+    /**
      * The RAW inspect output
      */
     raw: string;
@@ -512,11 +516,17 @@ export type RunContainerVolumeMount = {
     source: string;
     destination: string;
     readOnly: boolean;
+    relable?: boolean; // TODO: not possible with mount syntax
 };
 
 export type RunContainerMount =
     | RunContainerBindMount
     | RunContainerVolumeMount;
+
+export type RunContainerExtraHost = {
+    hostname: string;
+    ip: string;
+};
 
 export type RunContainerCommandOptions = {
     /**
@@ -531,6 +541,10 @@ export type RunContainerCommandOptions = {
      * Should the container be run detached?
      */
     detached?: boolean;
+    /**
+     * Should the container be run interactive?
+     */
+    interactive?: boolean;
     /**
      * Should the container be removed when it exits?
      */
@@ -548,6 +562,18 @@ export type RunContainerCommandOptions = {
      */
     publishAllPorts?: boolean;
     /**
+     * A network to connect to the container
+     */
+    network?: string;
+    /**
+     * A network-scoped alias for the container
+     */
+    networkAlias?: string;
+    /**
+     * Extra host-to-IP mappings
+     */
+    addHost?: Array<RunContainerExtraHost>;
+    /**
      * Mounts to attach to the container
      */
     mounts?: Array<RunContainerMount>;
@@ -555,6 +581,10 @@ export type RunContainerCommandOptions = {
      * Environment variables to set for the container
      */
     environmentVariables?: Record<string, string>;
+    /**
+     * Environment files for the container
+     */
+    environmentFiles?: string[];
     /**
      * Rule for pulling base images
      */
