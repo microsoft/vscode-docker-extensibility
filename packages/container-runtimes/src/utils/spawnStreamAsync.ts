@@ -60,7 +60,7 @@ export const powershellQuote: ShellQuote = (args: CommandLineArgs): Array<string
 /**
  * Applies quoting rules for bash/zsh to {@link CommandLineArgs} arguments
  * @param args An array of {@link ShellQuotedString} with associated quoting rules
- * @returns An array of string arguments quoted for PowerShell
+ * @returns An array of string arguments quoted for bash/zsh
  */
 export const bashQuote: ShellQuote = (args: CommandLineArgs): Array<string> => {
     return args.map((quotedArg) => {
