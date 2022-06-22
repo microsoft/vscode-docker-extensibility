@@ -53,6 +53,10 @@ export type UpCommandOptions = CommonOrchestratorCommandOptions & {
      * Override specific service scaling
      */
     scale?: Record<string, number>;
+    /**
+     * Additional custom options to pass
+     */
+    customOptions?: string;
 };
 
 type UpCommand = {

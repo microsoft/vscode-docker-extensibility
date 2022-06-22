@@ -177,6 +177,10 @@ export type BuildImageCommandOptions = {
      * Optional file to write the ID of the built image to
      */
     imageIdFile?: string;
+    /**
+     * Additional custom options to pass
+     */
+    customOptions?: string;
 };
 
 type BuildImageCommand = {
@@ -597,6 +601,10 @@ export type RunContainerCommandOptions = {
      * Optional command to use in starting the container
      */
     command?: Array<string> | string;
+    /**
+     * Additional custom options to pass
+     */
+    customOptions?: string;
 };
 
 type RunContainerCommand = {

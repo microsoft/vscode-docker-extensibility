@@ -148,6 +148,7 @@ export abstract class DockerLikeClient implements IContainersClient {
             withDockerLabelsArg(options.labels),
             withNamedArg('--iidfile', options.imageIdFile),
             withNamedArg('--build-arg', options.args),
+            withArg(options.customOptions),
             withArg(quoted(options.path)),
         )();
     }
@@ -589,6 +590,7 @@ export abstract class DockerLikeClient implements IContainersClient {
             withDockerEnvArg(options.environmentVariables),
             withNamedArg('--env-file', options.environmentFiles),
             withNamedArg('--entrypoint', options.entrypoint),
+            withArg(options.customOptions),
             withArg(options.image),
             withArg(...(toArray(options.command || []))),
         )();
