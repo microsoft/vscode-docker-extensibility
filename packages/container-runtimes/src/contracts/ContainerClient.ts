@@ -82,21 +82,9 @@ type InfoCommand = {
  */
 export type LoginCommandOptions = {
     /**
-     * The username to log in with
+     * The username to log in with. Note, the password *must* be piped over stdin. The `--password-stdin` flag will be used.
      */
     username: string;
-
-    /**
-     * The password will be piped to the process' stdin
-     */
-    passwordStdIn?: boolean;
-
-    /**
-     * The password to log in with
-     * @deprecated It is highly recommended to use the 'passwordStdIn' flag instead
-     */
-    password?: string;
-
     /**
      * (Optional) The registry to log in to
      */
