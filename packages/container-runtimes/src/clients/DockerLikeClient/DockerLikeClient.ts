@@ -1948,7 +1948,7 @@ export abstract class DockerLikeClient implements IContainersClient {
 
     //#region ReadFile Command
 
-    async readFile(options: ReadFileCommandOptions): Promise<CommandResponse<string>> {
+    async readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>> {
         throw new Error('Method not implemented.');
     }
 
