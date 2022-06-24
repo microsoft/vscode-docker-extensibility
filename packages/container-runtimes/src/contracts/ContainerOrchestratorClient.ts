@@ -76,7 +76,7 @@ export type DownCommandOptions = CommonOrchestratorCommandOptions & {
     /**
     * Whether to remove images
     */
-    removeImages?: boolean;
+    removeImages?: 'all' | 'local';
     /**
      * A timeout in seconds
      */
