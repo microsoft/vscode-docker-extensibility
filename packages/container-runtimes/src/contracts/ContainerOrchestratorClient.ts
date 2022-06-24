@@ -81,6 +81,10 @@ export type DownCommandOptions = CommonOrchestratorCommandOptions & {
      * A timeout in seconds
      */
     timeoutSeconds?: number;
+    /**
+     * Additional custom options to pass
+     */
+    customOptions?: string;
 };
 
 type DownCommand = {
