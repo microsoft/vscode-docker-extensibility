@@ -1544,7 +1544,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                     Scope: goTemplateJsonProperty`.Scope`,
                     Labels: goTemplateJsonProperty`.Labels`,
                     Options: goTemplateJsonProperty`.Options`,
-                    CreatedAt: goTemplateJsonProperty`.Created`,
+                    CreatedAt: goTemplateJsonProperty`.CreatedAt`,
                     Raw: goTemplateJsonProperty`.`,
                 }, formatOverrides),
             ),
