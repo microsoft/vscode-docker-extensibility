@@ -1070,7 +1070,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     }
 
     async statsContainers(options: ContainersStatsCommandOptions): Promise<CommandResponse<string>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('statsContainers is not supported for this runtime');
     }
 
     //#endregion
