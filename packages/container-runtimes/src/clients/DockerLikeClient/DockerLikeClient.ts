@@ -1513,6 +1513,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<PruneVolumesItem> {
+        // TODO: Parse output for prune info
         return {};
     }
 
