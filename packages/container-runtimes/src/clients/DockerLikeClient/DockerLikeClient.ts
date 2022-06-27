@@ -1521,7 +1521,8 @@ export abstract class DockerLikeClient implements IContainersClient {
         return {
             command: this.commandName,
             args: this.getPruneVolumesCommandArgs(options),
-            parse: (output, strict) => this.parsePruneContainersCommandOutput(options, output, strict),
+            parse: (output, strict) => this.parsePruneVolumesCommandOutput(options, output, strict),
+
         };
     }
 
