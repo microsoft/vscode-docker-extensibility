@@ -1688,7 +1688,8 @@ export abstract class DockerLikeClient implements IContainersClient {
                         throw new Error('Invalid volume JSON');
                     }
 
-                    // Parse the labels assigned tot he volumes and normalize to key value pairs
+                    // Parse the labels assigned to the volumes and normalize to key value pairs
+
                     const labels = rawNetwork.Labels.split(',').reduce((labels, labelPair) => {
                         const index = labelPair.indexOf('=');
                         labels[labelPair.substring(0, index)] = labelPair.substring(index + 1);
