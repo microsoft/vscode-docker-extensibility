@@ -80,6 +80,7 @@ import {
     withFlagArg,
     withNamedArg,
 } from "../../utils/commandLineBuilder";
+import { CommandNotSupportedError } from '../../utils/CommandNotSupportedError';
 import { toArray } from '../../utils/toArray';
 import { DockerInfoRecord, isDockerInfoRecord } from './DockerInfoRecord';
 import { DockerInspectContainerRecord, isDockerInspectContainerRecord } from './DockerInspectContainerRecord';
@@ -1897,7 +1898,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region CreateContext Command
 
     async createContext(options: CreateContextCommandOptions): Promise<CommandResponse<void>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('createContext is not supported for this runtime');
     }
 
     //#endregion
@@ -1905,7 +1906,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region ListContexts Command
 
     async listContexts(options: ListContextsCommandOptions): Promise<CommandResponse<ListContextItem[]>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('listContexts is not supported for this runtime');
     }
 
     //#endregion
@@ -1913,7 +1914,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region RemoveContexts Command
 
     async removeContexts(options: RemoveContextsCommandOptions): Promise<CommandResponse<string[]>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('removeContexts is not supported for this runtime');
     }
 
     //#endregion
@@ -1921,7 +1922,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region UseContext Command
 
     async useContext(options: UseContextCommandOptions): Promise<CommandResponse<void>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('useContext is not supported for this runtime');
     }
 
     //#endregion
@@ -1929,7 +1930,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region InspectContexts Command
 
     async inspectContexts(options: InspectContextsCommandOptions): Promise<CommandResponse<InspectContextsItem[]>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('inspectContexts is not supported for this runtime');
     }
 
     //#endregion
@@ -1941,7 +1942,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region ListFiles Command
 
     async listFiles(options: ListContainersCommandOptions): Promise<CommandResponse<ListFilesItem[]>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('listFiles is not supported for this runtime');
     }
 
     //#endregion
@@ -1949,7 +1950,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region ReadFile Command
 
     async readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('readFile is not supported for this runtime');
     }
 
     //#endregion
@@ -1957,7 +1958,7 @@ export abstract class DockerLikeClient implements IContainersClient {
     //#region WriteFile Command
 
     async writeFile(options: WriteFileCommandOptions): Promise<CommandResponse<void>> {
-        throw new Error('Method not implemented.');
+        throw new CommandNotSupportedError('writeFile is not supported for this runtime');
     }
 
     //#endregion
