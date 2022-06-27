@@ -9,7 +9,7 @@ export type DockerInspectVolumeRecord = {
     Mountpoint: string;
     Scope: string;
     Labels: Record<string, string>;
-    Options: Record<string, string>;
+    Options: Record<string, unknown>;
     CreatedAt: string;
     Raw: string;
 };
