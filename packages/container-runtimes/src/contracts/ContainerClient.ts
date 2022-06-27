@@ -663,6 +663,18 @@ export type ListContainersCommandOptions = {
      * Only list containers with matching names
      */
     names?: Array<string>;
+    /**
+     * Only list containers with matching image full IDs as ancestors
+     */
+    imageAncestors?: Array<string>;
+    /**
+     * Only list containers using matching volumes
+     */
+    volumes?: Array<string>;
+    /**
+     * Only list containers using matching networks
+     */
+    networks?: Array<string>;
 };
 
 export type ListContainersItem = {
