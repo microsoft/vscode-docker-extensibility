@@ -6,11 +6,10 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 
-import {
-    DockerComposeClient,
-} from '../clients/DockerComposeClient/DockerComposeClient';
+import { DockerComposeClient } from '../clients/DockerComposeClient/DockerComposeClient';
 import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
 import {
+    CommonOrchestratorCommandOptions,
     ConfigCommandOptions,
     DownCommandOptions,
     LogsCommandOptions,
@@ -20,6 +19,10 @@ import {
     UpCommandOptions
 } from '../contracts/ContainerOrchestratorClient';
 import { AccumulatorStream } from '../utils/AccumulatorStream';
+
+const commonOptions: CommonOrchestratorCommandOptions = {
+    files: ['docker-compose.yml'],
+};
 
 xdescribe('DockerComposeClient', () => {
     const client = new DockerComposeClient();
@@ -31,7 +34,7 @@ xdescribe('DockerComposeClient', () => {
 
     it('Should support up command', async () => {
         const options: UpCommandOptions = {
-            files: ['docker-compose.yml'],
+            ...commonOptions,
             detached: true,
             build: true,
         };
@@ -41,7 +44,7 @@ xdescribe('DockerComposeClient', () => {
 
     it('Should support down command', async () => {
         const options: DownCommandOptions = {
-            files: ['docker-compose.yml'],
+            ...commonOptions,
         };
 
         await runner(client.down(options));
@@ -49,7 +52,7 @@ xdescribe('DockerComposeClient', () => {
 
     it('Should support start command', async () => {
         const options: StartCommandOptions = {
-            files: ['docker-compose.yml'],
+            ...commonOptions,
         };
 
         await runner(client.start(options));
@@ -57,7 +60,7 @@ xdescribe('DockerComposeClient', () => {
 
     it('Should support stop command', async () => {
         const options: StopCommandOptions = {
-            files: ['docker-compose.yml'],
+            ...commonOptions,
         };
 
         await runner(client.stop(options));
@@ -65,7 +68,7 @@ xdescribe('DockerComposeClient', () => {
 
     it('Should support restart command', async () => {
         const options: RestartCommandOptions = {
-            files: ['docker-compose.yml'],
+            ...commonOptions,
         };
 
         await runner(client.restart(options));
@@ -73,7 +76,7 @@ xdescribe('DockerComposeClient', () => {
 
     it('Should support logs command', async () => {
         const options: LogsCommandOptions = {
-            files: ['docker-compose.yml'],
+            ...commonOptions,
         };
 
         const accumulator = new AccumulatorStream();
@@ -88,6 +91,7 @@ xdescribe('DockerComposeClient', () => {
 
     it('Should support config command', async () => {
         const options: ConfigCommandOptions = {
+            ...commonOptions,
             configType: 'services',
         };
 
