@@ -29,7 +29,6 @@ import {
     InspectNetworksItem,
     InspectVolumesCommandOptions,
     InspectVolumesItem,
-    Labels,
     ListContainersCommandOptions,
     ListContainersItem,
     ListContextItem,
