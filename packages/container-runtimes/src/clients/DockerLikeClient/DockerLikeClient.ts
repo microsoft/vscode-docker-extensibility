@@ -72,6 +72,7 @@ import {
     VersionItem,
     WriteFileCommandOptions
 } from "../../contracts/ContainerClient";
+import { asIds } from '../../utils/asId';
 import {
     CommandLineArgs,
     composeArgs,
@@ -94,6 +95,7 @@ import { isDockerVersionRecord } from "./DockerVersionRecord";
 import { isDockerVolumeRecord } from './DockerVolumeRecord';
 import { goTemplateJsonFormat, GoTemplateJsonFormatOptions, goTemplateJsonProperty } from './goTemplateJsonFormat';
 import { parseDockerImageRepository } from "./parseDockerImageRepository";
+import { parseDockerLikeLabels } from './parseDockerLikeLabels';
 import { parseDockerRawPortString } from './parseDockerRawPortString';
 import { tryParseSize } from './tryParseSize';
 import { withDockerAddHostArg } from './withDockerAddHostArg';
@@ -107,8 +109,6 @@ import { withDockerPortsArg } from './withDockerPortsArg';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
-
-
 
 export abstract class DockerLikeClient implements IContainersClient {
     abstract readonly id: string;
@@ -320,7 +320,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         try {
             // Docker returns JSON per-line output, so we need to split each line
             // and parse as independent JSON objects
-            output.split("\n").forEach((imageJson) => {
+            output.split('\n').forEach((imageJson) => {
                 try {
                     // Ignore empty lines when parsing
                     if (!imageJson) {
@@ -401,7 +401,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<Array<string>> {
-        return output.split('\n').filter((id) => id);
+        return asIds(output);
     }
 
     async removeImages(options: RemoveImagesCommandOptions): Promise<CommandResponse<string[]>> {
@@ -943,7 +943,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<Array<string>> {
-        return output.split('\n').filter((id) => id);
+        return asIds(output);
     }
 
     async restartContainers(options: RestartContainersCommandOptions): Promise<CommandResponse<Array<string>>> {
@@ -983,7 +983,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<Array<string>> {
-        return output.split('\n').filter((id) => id);
+        return asIds(output);
     }
 
     async stopContainers(options: StopContainersCommandOptions): Promise<CommandResponse<Array<string>>> {
@@ -1011,7 +1011,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<Array<string>> {
-        return output.split('\n').filter((id) => id);
+        return asIds(output);
     }
 
     async removeContainers(options: RemoveContainersCommandOptions): Promise<CommandResponse<Array<string>>> {
@@ -1406,11 +1406,7 @@ export abstract class DockerLikeClient implements IContainersClient {
                     }
 
                     // Parse the labels assigned tot he volumes and normalize to key value pairs
-                    const labels = rawVolume.Labels.split(',').reduce((labels, labelPair) => {
-                        const index = labelPair.indexOf('=');
-                        labels[labelPair.substring(0, index)] = labelPair.substring(index + 1);
-                        return labels;
-                    }, {} as Labels);
+                    const labels = parseDockerLikeLabels(rawVolume.Labels);
 
                     const createdAt = rawVolume.CreatedAt
                         ? dayjs.utc(rawVolume.CreatedAt)
@@ -1480,7 +1476,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<string[]> {
-        return output.split('\n').filter(id => id);
+        return asIds(output);
     }
 
     /**
@@ -1690,11 +1686,7 @@ export abstract class DockerLikeClient implements IContainersClient {
 
                     // Parse the labels assigned to the volumes and normalize to key value pairs
 
-                    const labels = rawNetwork.Labels.split(',').reduce((labels, labelPair) => {
-                        const index = labelPair.indexOf('=');
-                        labels[labelPair.substring(0, index)] = labelPair.substring(index + 1);
-                        return labels;
-                    }, {} as Labels);
+                    const labels = parseDockerLikeLabels(rawNetwork.Labels);
 
                     const createdAt = dayjs.utc(rawNetwork.CreatedAt).toDate();
 
