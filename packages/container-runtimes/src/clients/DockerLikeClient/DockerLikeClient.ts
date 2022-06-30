@@ -71,7 +71,7 @@ import {
     VersionItem,
     WriteFileCommandOptions
 } from "../../contracts/ContainerClient";
-import { asIds } from '../../utils/asId';
+import { asIds } from '../../utils/asIds';
 import {
     CommandLineArgs,
     composeArgs,
