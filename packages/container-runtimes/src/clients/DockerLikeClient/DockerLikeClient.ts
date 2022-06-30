@@ -916,7 +916,7 @@ export abstract class DockerLikeClient implements IContainersClient {
         output: string,
         strict: boolean,
     ): Promise<Array<string>> {
-        return output.split('\n').map((id) => id);
+        return asIds(output);
     }
 
     async startContainers(options: StartContainersCommandOptions): Promise<CommandResponse<Array<string>>> {
