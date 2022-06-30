@@ -42,12 +42,12 @@ describe('DockerComposeClient', () => {
         await runner(client.up(options));
     });
 
-    it('Should support down command', async () => {
-        const options: DownCommandOptions = {
+    it('Should support stop command', async () => {
+        const options: StopCommandOptions = {
             ...commonOptions,
         };
 
-        await runner(client.down(options));
+        await runner(client.stop(options));
     });
 
     it('Should support start command', async () => {
@@ -56,14 +56,6 @@ describe('DockerComposeClient', () => {
         };
 
         await runner(client.start(options));
-    });
-
-    it('Should support stop command', async () => {
-        const options: StopCommandOptions = {
-            ...commonOptions,
-        };
-
-        await runner(client.stop(options));
     });
 
     it('Should support restart command', async () => {
@@ -87,7 +79,16 @@ describe('DockerComposeClient', () => {
         });
 
         await logsCRF.getCommandRunner()(client.logs(options));
-        expect(await accumulator.getString()).to.be.ok;
+        const logs = await accumulator.getString();
+        expect(logs).to.be.ok;
+    });
+
+    it('Should support down command', async () => {
+        const options: DownCommandOptions = {
+            ...commonOptions,
+        };
+
+        await runner(client.down(options));
     });
 
     it('Should support config command', async () => {
