@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from 'chai';
-import { describe, it } from 'mocha';
 
 import { DockerComposeClient } from '../clients/DockerComposeClient/DockerComposeClient';
 import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
@@ -24,11 +23,12 @@ const commonOptions: CommonOrchestratorCommandOptions = {
     files: ['docker-compose.yml'],
 };
 
-xdescribe('DockerComposeClient', () => {
+describe('DockerComposeClient', () => {
     const client = new DockerComposeClient();
     const cwd = 'TODO';
     const runnerFactory = new ShellStreamCommandRunnerFactory({
         cwd: cwd,
+        onCommand: (command: string) => { console.log(`Executing ${command}`); },
     });
     const runner = runnerFactory.getCommandRunner();
 
@@ -83,6 +83,7 @@ xdescribe('DockerComposeClient', () => {
         const logsCRF = new ShellStreamCommandRunnerFactory({
             cwd: cwd,
             stdOutPipe: accumulator,
+            onCommand: (command: string) => { console.log(`Executing ${command}`); },
         });
 
         await logsCRF.getCommandRunner()(client.logs(options));
