@@ -23,7 +23,7 @@ const commonOptions: CommonOrchestratorCommandOptions = {
     files: ['docker-compose.yml'],
 };
 
-describe('DockerComposeClient', () => {
+xdescribe('DockerComposeClient', () => {
     const client = new DockerComposeClient();
     const cwd = 'TODO';
     const runnerFactory = new ShellStreamCommandRunnerFactory({
