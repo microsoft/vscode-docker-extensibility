@@ -47,6 +47,7 @@ import {
     withNamedArg,
 } from "../../utils/commandLineBuilder";
 import { toArray } from '../../utils/toArray';
+import { ConfigurableClient } from '../ConfigurableClient';
 import { DockerInspectContainerRecord, isDockerInspectContainerRecord } from './DockerInspectContainerRecord';
 import { DockerInspectImageRecord, isDockerInspectImageRecord } from './DockerInspectImageRecord';
 import { DockerListContainerRecord, isDockerListContainerRecord } from './DockerListContainerRecord';
@@ -71,11 +72,7 @@ dayjs.extend(customParseFormat);
 dayjs.extend(utc);
 
 // @ts-expect-error TODO: It doesn't fully implement the interface right now
-export abstract class DockerLikeClient implements IContainersClient {
-    abstract readonly id: string;
-    abstract readonly displayName: string;
-    abstract readonly description: string;
-    abstract readonly commandName: string;
+export abstract class DockerLikeClient extends ConfigurableClient implements IContainersClient {
     listDateFormat: string = 'YYYY-MM-DD HH:mm:ss ZZ';
 
     //#region Version Command

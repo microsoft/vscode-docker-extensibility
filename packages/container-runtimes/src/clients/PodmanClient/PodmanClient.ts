@@ -29,10 +29,28 @@ const ROOTLESS_NETWORK_MODE = 'slirp4netns';
 
 // @ts-expect-error TODO: It doesn't fully implement the interface right now
 export class PodmanClient extends DockerLikeClient implements IContainersClient {
-    readonly id = 'com.microsoft.visualstudio.containers.podman';
-    readonly displayName = 'Podman';
-    readonly description = 'Runs container commands using the Podman CLI';
-    readonly commandName = 'podman';
+    /**
+     * Constructs a new {@link PodmanClient}
+     * @param commandName (Optional, default `podman`) The command that will be run
+     * as the base command. If quoting is necessary, it is the responsibility of the
+     * caller to add.
+     * @param displayName (Optional, default 'Podman') The human-friendly display
+     * name of the client
+     * @param description (Optional, with default) The human-friendly description of
+     * the client
+     */
+    public constructor(
+        commandName: string = 'podman',
+        displayName: string = 'Podman',
+        description: string = 'Runs container commands using the Podman CLI'
+    ) {
+        super(
+            'com.microsoft.visualstudio.containers.podman',
+            commandName,
+            displayName,
+            description
+        );
+    }
 
     //#region Version Command
 
