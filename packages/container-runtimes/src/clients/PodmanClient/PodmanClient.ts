@@ -29,6 +29,11 @@ const ROOTLESS_NETWORK_MODE = 'slirp4netns';
 
 export class PodmanClient extends DockerLikeClient implements IContainersClient {
     /**
+     * The ID of the Podman client
+     */
+    public static ClientId = 'com.microsoft.visualstudio.containers.podman';
+
+    /**
      * Constructs a new {@link PodmanClient}
      * @param commandName (Optional, default `podman`) The command that will be run
      * as the base command. If quoting is necessary, it is the responsibility of the
@@ -44,7 +49,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
         description: string = 'Runs container commands using the Podman CLI'
     ) {
         super(
-            'com.microsoft.visualstudio.containers.podman',
+            PodmanClient.ClientId,
             commandName,
             displayName,
             description

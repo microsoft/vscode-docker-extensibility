@@ -42,6 +42,11 @@ function withComposeArg(composeV2: boolean): CommandLineCurryFn {
 
 export class DockerComposeClient extends ConfigurableClient implements IContainerOrchestratorClient {
     /**
+     * The ID of the Docker Compose client
+     */
+    public static ClientId = 'com.microsoft.visualstudio.orchestrators.dockercompose';
+
+    /**
      * Constructs a new {@link DockerComposeClient}
      * @param commandName (Optional, default `docker`) The command that will be run
      * as the base command. If quoting is necessary, it is the responsibility of the
@@ -60,7 +65,7 @@ export class DockerComposeClient extends ConfigurableClient implements IContaine
         composeV2: boolean = true
     ) {
         super(
-            'com.microsoft.visualstudio.orchestrators.dockercompose',
+            DockerComposeClient.ClientId,
             commandName || composeV2 ? 'docker' : 'docker-compose',
             displayName,
             description

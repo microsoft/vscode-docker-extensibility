@@ -8,6 +8,11 @@ import { DockerLikeClient } from "../DockerLikeClient/DockerLikeClient";
 
 export class DockerClient extends DockerLikeClient implements IContainersClient {
     /**
+     * The ID of the Docker client
+     */
+    public static ClientId = 'com.microsoft.visualstudio.containers.docker';
+
+    /**
      * Constructs a new {@link DockerClient}
      * @param commandName (Optional, default `docker`) The command that will be run
      * as the base command. If quoting is necessary, it is the responsibility of the
@@ -23,7 +28,7 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
         description: string = 'Runs container commands using the Docker CLI'
     ) {
         super(
-            'com.microsoft.visualstudio.containers.docker',
+            DockerClient.ClientId,
             commandName,
             displayName,
             description
