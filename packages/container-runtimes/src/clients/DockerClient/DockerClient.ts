@@ -100,7 +100,7 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
         return contexts;
     }
 
-    async listContexts(options: ListContextsCommandOptions): Promise<CommandResponse<ListContextItem[]>> {
+    override async listContexts(options: ListContextsCommandOptions): Promise<CommandResponse<ListContextItem[]>> {
         return {
             command: this.commandName,
             args: this.getListContextsCommandArgs(options),
@@ -127,7 +127,7 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
         return asIds(output);
     }
 
-    async removeContexts(options: RemoveContextsCommandOptions): Promise<CommandResponse<string[]>> {
+    override async removeContexts(options: RemoveContextsCommandOptions): Promise<CommandResponse<string[]>> {
         return {
             command: this.commandName,
             args: this.getRemoveContextsCommandArgs(options),
@@ -146,7 +146,7 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
         )();
     }
 
-    async useContext(options: UseContextCommandOptions): Promise<CommandResponse<void>> {
+    override async useContext(options: UseContextCommandOptions): Promise<CommandResponse<void>> {
         return {
             command: this.commandName,
             args: this.getUseContextCommandArgs(options),
@@ -218,7 +218,7 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
         return new Array<InspectContextsItem>();
     }
 
-    async inspectContexts(options: InspectContextsCommandOptions): Promise<CommandResponse<InspectContextsItem[]>> {
+    override async inspectContexts(options: InspectContextsCommandOptions): Promise<CommandResponse<InspectContextsItem[]>> {
         return {
             command: this.commandName,
             args: this.getInspectContextsCommandArgs(options),
