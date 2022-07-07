@@ -83,7 +83,6 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
                         type: normalizeDockerContextType(rawContext.ContextType),
                         description: rawContext.Description,
                         containerEndpoint: rawContext.DockerEndpoint,
-                        orchestratorEndpoint: rawContext.KubernetesEndpoint,
                     });
                 } catch (err) {
                     if (strict) {
@@ -166,8 +165,6 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
                     Name: goTemplateJsonProperty`.Name`,
                     ContextType: goTemplateJsonProperty`.Metadata.Type`,
                     Description: goTemplateJsonProperty`.Metadata.Description`,
-                    DockerEndpoint: goTemplateJsonProperty`.Endpoints.docker.Host`,
-                    KubernetesEndpoint: goTemplateJsonProperty`.Endpoints.kubernetes.Host`,
                     Raw: goTemplateJsonProperty`.`,
                 }),
             ),

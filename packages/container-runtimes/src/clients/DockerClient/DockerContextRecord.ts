@@ -11,7 +11,6 @@ export type DockerContextRecord = {
     ContextType: DockerContextType;
     Description?: string;
     DockerEndpoint?: string;
-    KubernetesEndpoint?: string;
 };
 
 export function isDockerContextRecord(maybeContext: unknown): maybeContext is DockerContextRecord {

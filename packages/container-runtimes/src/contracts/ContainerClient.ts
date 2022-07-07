@@ -1487,10 +1487,6 @@ export type ListContextItem = {
      * The endpoint used for the container daemon
      */
     containerEndpoint?: string;
-    /**
-     * The endpoint used for the container orchestrator daemon
-     */
-    orchestratorEndpoint?: string;
 };
 
 type ListContextsCommand = {

@@ -3,9 +3,12 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DockerContextRecord } from "./DockerContextRecord";
+import { DockerContextType } from "./DockerContextType";
 
-export type DockerInspectContextRecord = Omit<DockerContextRecord, 'Current'> & {
+export type DockerInspectContextRecord = {
+    Name: string;
+    ContextType: DockerContextType;
+    Description?: string;
     Raw: string;
 };
 
