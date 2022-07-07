@@ -7,9 +7,10 @@ import { DockerContextType } from "./DockerContextType";
 
 export type DockerInspectContextRecord = {
     Name: string;
-    ContextType: DockerContextType;
-    Description?: string;
-    Raw: string;
+    Metadata?: {
+        Description?: string;
+        Type?: DockerContextType;
+    }
 };
 
 // TODO: Actually test properties

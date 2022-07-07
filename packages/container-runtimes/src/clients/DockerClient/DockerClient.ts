@@ -6,13 +6,12 @@
 import { CommandResponse } from "../../contracts/CommandRunner";
 import { IContainersClient, InspectContextsCommandOptions, InspectContextsItem, ListContextItem, ListContextsCommandOptions, RemoveContextsCommandOptions, UseContextCommandOptions } from "../../contracts/ContainerClient";
 import { asIds } from "../../utils/asIds";
-import { CommandLineArgs, composeArgs, withArg, withNamedArg } from "../../utils/commandLineBuilder";
+import { CommandLineArgs, composeArgs, withArg } from "../../utils/commandLineBuilder";
 import { DockerLikeClient } from "../DockerLikeClient/DockerLikeClient";
-import { goTemplateJsonFormat, goTemplateJsonProperty } from "../DockerLikeClient/goTemplateJsonFormat";
 import { withDockerJsonFormatArg } from "../DockerLikeClient/withDockerJsonFormatArg";
 import { isDockerContextRecord } from "./DockerContextRecord";
 import { normalizeDockerContextType } from "./DockerContextType";
-import { DockerInspectContextRecord, isDockerInspectContextRecord } from "./DockerInspectContextRecord";
+import { isDockerInspectContextRecord } from "./DockerInspectContextRecord";
 
 export class DockerClient extends DockerLikeClient implements IContainersClient {
     /**
@@ -159,15 +158,7 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
     private getInspectContextsCommandArgs(options: InspectContextsCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('context', 'inspect'),
-            withNamedArg(
-                '--format',
-                goTemplateJsonFormat<DockerInspectContextRecord>({
-                    Name: goTemplateJsonProperty`.Name`,
-                    ContextType: goTemplateJsonProperty`.Metadata.Type`,
-                    Description: goTemplateJsonProperty`.Metadata.Description`,
-                    Raw: goTemplateJsonProperty`.`,
-                }),
-            ),
+            withDockerJsonFormatArg,
             withArg(...options.contexts),
         )();
     }
@@ -192,9 +183,9 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
                     // Return the normalized InspectVolumesItem record
                     const volume: InspectContextsItem = {
                         name: inspect.Name,
-                        type: normalizeDockerContextType(inspect.ContextType),
-                        description: inspect.Description,
-                        raw: JSON.stringify(inspect.Raw),
+                        type: normalizeDockerContextType(inspect.Metadata?.Type),
+                        description: inspect.Metadata?.Description,
+                        raw: inspectString,
                     };
 
                     return [...volumes, volume];
