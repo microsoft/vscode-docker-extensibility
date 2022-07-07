@@ -3,8 +3,16 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IContainersClient } from "../../contracts/ContainerClient";
+import { CommandResponse } from "../../contracts/CommandRunner";
+import { IContainersClient, InspectContextsCommandOptions, InspectContextsItem, ListContextItem, ListContextsCommandOptions, RemoveContextsCommandOptions, UseContextCommandOptions } from "../../contracts/ContainerClient";
+import { asIds } from "../../utils/asIds";
+import { CommandLineArgs, composeArgs, withArg, withNamedArg } from "../../utils/commandLineBuilder";
 import { DockerLikeClient } from "../DockerLikeClient/DockerLikeClient";
+import { goTemplateJsonFormat, goTemplateJsonProperty } from "../DockerLikeClient/goTemplateJsonFormat";
+import { withDockerJsonFormatArg } from "../DockerLikeClient/withDockerJsonFormatArg";
+import { isDockerContextRecord } from "./DockerContextRecord";
+import { normalizeDockerContextType } from "./DockerContextType";
+import { DockerInspectContextRecord, isDockerInspectContextRecord } from "./DockerInspectContextRecord";
 
 export class DockerClient extends DockerLikeClient implements IContainersClient {
     /**
@@ -34,4 +42,191 @@ export class DockerClient extends DockerLikeClient implements IContainersClient 
             description
         );
     }
+
+    //#region Context Commands
+
+    //#region ListContexts Command
+
+    private getListContextsCommandArgs(options: ListContextsCommandOptions): CommandLineArgs {
+        return composeArgs(
+            withArg('context', 'ls'),
+            withDockerJsonFormatArg,
+        )();
+    }
+
+    private async parseListContextsCommandOutput(
+        output: string,
+        strict: boolean,
+    ): Promise<ListContextItem[]> {
+        const contexts = new Array<ListContextItem>();
+        try {
+            // Docker returns JSON per-line output, so we need to split each line
+            // and parse as independent JSON objects
+            output.split('\n').forEach((contextJson) => {
+                try {
+                    // Ignore empty lines when parsing
+                    if (!contextJson) {
+                        return;
+                    }
+
+                    const rawContext = JSON.parse(contextJson);
+
+                    // Validate that the image object matches the expected output
+                    // for the list contexts command
+                    if (!isDockerContextRecord(rawContext)) {
+                        throw new Error('Invalid context JSON');
+                    }
+
+                    contexts.push({
+                        name: rawContext.Name,
+                        current: rawContext.Current,
+                        type: normalizeDockerContextType(rawContext.ContextType),
+                        description: rawContext.Description,
+                        containerEndpoint: rawContext.DockerEndpoint,
+                        orchestratorEndpoint: rawContext.KubernetesEndpoint,
+                    });
+                } catch (err) {
+                    if (strict) {
+                        throw err;
+                    }
+                }
+            });
+        } catch (err) {
+            if (strict) {
+                throw err;
+            }
+        }
+
+        return contexts;
+    }
+
+    async listContexts(options: ListContextsCommandOptions): Promise<CommandResponse<ListContextItem[]>> {
+        return {
+            command: this.commandName,
+            args: this.getListContextsCommandArgs(options),
+            parse: this.parseListContextsCommandOutput,
+        };
+    }
+
+    //#endregion
+
+    //#region RemoveContexts Command
+
+    private getRemoveContextsCommandArgs(options: RemoveContextsCommandOptions): CommandLineArgs {
+        return composeArgs(
+            withArg('context', 'rm'),
+            withArg(...options.contexts),
+            withArg('--force'),
+        )();
+    }
+
+    private async parseRemoveContextsCommandOutput(
+        output: string,
+        strict: boolean,
+    ): Promise<string[]> {
+        return asIds(output);
+    }
+
+    async removeContexts(options: RemoveContextsCommandOptions): Promise<CommandResponse<string[]>> {
+        return {
+            command: this.commandName,
+            args: this.getRemoveContextsCommandArgs(options),
+            parse: this.parseRemoveContextsCommandOutput,
+        };
+    }
+
+    //#endregion
+
+    //#region UseContext Command
+
+    private getUseContextCommandArgs(options: UseContextCommandOptions): CommandLineArgs {
+        return composeArgs(
+            withArg('context', 'use'),
+            withArg(options.context),
+        )();
+    }
+
+    async useContext(options: UseContextCommandOptions): Promise<CommandResponse<void>> {
+        return {
+            command: this.commandName,
+            args: this.getUseContextCommandArgs(options),
+        };
+    }
+
+    //#endregion
+
+    //#region InspectContexts Command
+
+    private getInspectContextsCommandArgs(options: InspectContextsCommandOptions): CommandLineArgs {
+        return composeArgs(
+            withArg('context', 'inspect'),
+            withNamedArg(
+                '--format',
+                goTemplateJsonFormat<DockerInspectContextRecord>({
+                    Name: goTemplateJsonProperty`.Name`,
+                    ContextType: goTemplateJsonProperty`.Metadata.Type`,
+                    Description: goTemplateJsonProperty`.Metadata.Description`,
+                    DockerEndpoint: goTemplateJsonProperty`.Endpoints.docker.Host`,
+                    KubernetesEndpoint: goTemplateJsonProperty`.Endpoints.kubernetes.Host`,
+                    Raw: goTemplateJsonProperty`.`,
+                }),
+            ),
+            withArg(...options.contexts),
+        )();
+    }
+
+    private async parseInspectContextsCommandOutput(
+        output: string,
+        strict: boolean,
+    ): Promise<InspectContextsItem[]> {
+        try {
+            return output.split('\n').reduce<Array<InspectContextsItem>>((volumes, inspectString) => {
+                if (!inspectString) {
+                    return volumes;
+                }
+
+                try {
+                    const inspect = JSON.parse(inspectString);
+
+                    if (!isDockerInspectContextRecord(inspect)) {
+                        throw new Error('Invalid context inspect json');
+                    }
+
+                    // Return the normalized InspectVolumesItem record
+                    const volume: InspectContextsItem = {
+                        name: inspect.Name,
+                        type: normalizeDockerContextType(inspect.ContextType),
+                        description: inspect.Description,
+                        raw: JSON.stringify(inspect.Raw),
+                    };
+
+                    return [...volumes, volume];
+                } catch (err) {
+                    if (strict) {
+                        throw err;
+                    }
+                }
+
+                return volumes;
+            }, new Array<InspectContextsItem>());
+        } catch (err) {
+            if (strict) {
+                throw err;
+            }
+        }
+
+        return new Array<InspectContextsItem>();
+    }
+
+    async inspectContexts(options: InspectContextsCommandOptions): Promise<CommandResponse<InspectContextsItem[]>> {
+        return {
+            command: this.commandName,
+            args: this.getInspectContextsCommandArgs(options),
+            parse: this.parseInspectContextsCommandOutput,
+        };
+    }
+
+    //#endregion
+
+    //#endregion
 }
