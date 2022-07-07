@@ -1614,7 +1614,13 @@ type InspectContextsCommand = {
 
 // List files command types
 
+export type FileItemType = 'file' | 'directory';
+
 export type ListFilesCommandOptions = {
+    /**
+    * The container to execute a command in
+    */
+    container: string;
     /**
      * The absolute path of a directory to list the files/folders within
      */
@@ -1627,13 +1633,17 @@ export type ListFilesCommandOptions = {
 
 export type ListFilesItem = {
     /**
-     * The path of the file/folder, relative to the parent folder
+     * The name of the file/folder
+     */
+    name: string;
+    /**
+     * The absolute path of the file/folder
      */
     path: string;
     /**
      * Whether the item is a file or directory
      */
-    type: 'file' | 'directory';
+    type: FileItemType;
 };
 
 type ListFilesCommand = {
@@ -1641,12 +1651,16 @@ type ListFilesCommand = {
      * Lists the files/folders that are in a given path in a container
      * @param options Command options
      */
-    listFiles(options: ListContainersCommandOptions): Promise<CommandResponse<Array<ListFilesItem>>>;
+    listFiles(options: ListFilesCommandOptions): Promise<CommandResponse<Array<ListFilesItem>>>;
 };
 
 // Read file command types
 
 export type ReadFileCommandOptions = {
+    /**
+    * The container to execute a command in
+    */
+    container: string;
     /**
      * The absolute path of the file in the container to read
      */
@@ -1672,6 +1686,10 @@ type ReadFileCommand = {
 // Write file command types
 
 export type WriteFileCommandOptions = {
+    /**
+    * The container to execute a command in
+    */
+    container: string;
     /**
      * The absolute path of the file in the container to write
      */
