@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ShellQuotedString } from "vscode";
+import type { ShellQuotedString } from 'vscode';
 import { CommandResponse } from "./CommandRunner";
 
 export type ContainerOS = "linux" | "windows";
@@ -1586,7 +1586,7 @@ export type ListFilesCommandOptions = {
     */
     container: string;
     /**
-     * The absolute path of a directory to list the files/folders within
+     * The absolute path of a directory in the container to list the contents of
      */
     path: string;
     /**
@@ -1597,11 +1597,11 @@ export type ListFilesCommandOptions = {
 
 export type ListFilesItem = {
     /**
-     * The name of the file/folder
+     * The name of the file/directory
      */
     name: string;
     /**
-     * The absolute path of the file/folder
+     * The absolute path of the file/directory within the container
      */
     path: string;
     /**
@@ -1612,7 +1612,7 @@ export type ListFilesItem = {
 
 type ListFilesCommand = {
     /**
-     * Lists the files/folders that are in a given path in a container
+     * Lists the contents of a given path in a container
      * @param options Command options
      */
     listFiles(options: ListFilesCommandOptions): Promise<CommandResponse<Array<ListFilesItem>>>;
