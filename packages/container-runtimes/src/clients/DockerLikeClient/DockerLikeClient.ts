@@ -6,6 +6,7 @@
 import * as dayjs from 'dayjs';
 import * as customParseFormat from 'dayjs/plugin/customParseFormat';
 import * as utc from 'dayjs/plugin/utc';
+import { ShellQuotedString, ShellQuoting } from 'vscode';
 import { CommandResponse } from '../../contracts/CommandRunner';
 import {
     BuildImageCommandOptions,
@@ -1931,18 +1932,18 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
     //#region ListFiles Command
 
     protected getListFilesCommandArgs(options: ListFilesCommandOptions): CommandLineArgs {
-        let command: string[];
+        let command: (string | ShellQuotedString)[];
         if (options.operatingSystem === 'windows') {
             command = [
                 'cmd',
                 '/C',
-                `dir /A-S /-C /T w "${options.path}"`
+                { value: `dir /A-S /-C /T w "${options.path}"`, quoting: ShellQuoting.Strong }
             ];
         } else {
             command = [
                 '/bin/sh',
                 '-c',
-                `ls -lA "${options.path}"`
+                { value: `ls -lA "${options.path}"`, quoting: ShellQuoting.Strong }
             ];
         }
 
@@ -1950,7 +1951,6 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             {
                 container: options.container,
                 interactive: true,
-                tty: true,
                 command,
             }
         );

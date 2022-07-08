@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ShellQuotedString } from "vscode";
 import { CommandResponse } from "./CommandRunner";
 
 export type ContainerOS = "linux" | "windows";
@@ -645,7 +646,7 @@ export type ExecContainerCommandOptions = {
     /**
      * The command to run in the container
      */
-    command: Array<string> | string;
+    command: Array<string | ShellQuotedString> | string | ShellQuotedString;
 };
 
 type ExecContainerCommand = {
