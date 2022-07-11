@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ShellQuotedString } from 'vscode';
+import type { FileType, ShellQuotedString } from 'vscode';
 import { CommandResponse } from "./CommandRunner";
 
 export type ContainerOS = "linux" | "windows";
@@ -1578,8 +1578,6 @@ type InspectContextsCommand = {
 
 // List files command types
 
-export type FileItemType = 'file' | 'directory';
-
 export type ListFilesCommandOptions = {
     /**
     * The container to execute a command in
@@ -1605,9 +1603,21 @@ export type ListFilesItem = {
      */
     path: string;
     /**
-     * Whether the item is a file or directory
+     * The creation time of the file/directory, in milliseconds since Unix epoch
      */
-    type: FileItemType;
+    ctime: number;
+    /**
+     * The modification time of the file/directory, in milliseconds since Unix epoch
+     */
+    mtime: number;
+    /**
+     * The size of the file (0 if a directory), in bytes
+     */
+    size: number;
+    /**
+     * The type of the file item (file/directory)
+     */
+    type: FileType;
 };
 
 type ListFilesCommand = {
