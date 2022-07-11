@@ -1634,6 +1634,10 @@ export type ReadFileCommandOptions = {
      * necessary to handle contents from stdout in the command runner.
      */
     outputFile?: string;
+    /**
+     * The container operating system. If not supplied, 'linux' will be assumed.
+     */
+    operatingSystem?: ContainerOS;
 };
 
 type ReadFileCommand = {
@@ -1641,7 +1645,7 @@ type ReadFileCommand = {
      * Read a file inside the container. Start a process with the {@link CommandResponse}
      * and read from its stdout stream (or use {@link ShellCommandRunnerFactory} to accumulate
      * the output into a string and return it from `parse`).
-     * NOTE: the output stream is in tarball format.
+     * NOTE: the output stream is in tarball format with Linux containers, and cleartext with Windows containers.
      * @param options Command options
      */
     readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>>;
@@ -1663,6 +1667,10 @@ export type WriteFileCommandOptions = {
      * to write the file contents to stdin in the command runner.
      */
     inputFile?: string;
+    /**
+     * The container operating system. If not supplied, 'linux' will be assumed.
+     */
+    operatingSystem?: ContainerOS;
 };
 
 type WriteFileCommand = {
@@ -1670,6 +1678,7 @@ type WriteFileCommand = {
      * Write a file inside the container. Start a process with the {@link CommandResponse}
      * and write to its stdin stream.
      * NOTE: the input stream must be in tarball format.
+     * NOTE: this command is not supported on Windows containers.
      * @param options Command options
      */
     writeFile(options: WriteFileCommandOptions): Promise<CommandResponse<void>>;

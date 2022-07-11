@@ -1981,11 +1981,27 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
     //#region ReadFile Command
 
     protected getReadFileCommandArgs(options: ReadFileCommandOptions): CommandLineArgs {
-        return composeArgs(
-            withArg('cp'),
-            withContainerPathArg(options),
-            withArg(options.outputFile || '-'),
-        )();
+        if (options.operatingSystem === 'windows') {
+            const command = [
+                'cmd',
+                '/C',
+                { value: `type "${options.path}"`, quoting: ShellQuoting.Strong }
+            ];
+
+            return this.getExecContainerCommandArgs(
+                {
+                    container: options.container,
+                    interactive: true,
+                    command,
+                }
+            );
+        } else {
+            return composeArgs(
+                withArg('cp'),
+                withContainerPathArg(options),
+                withArg(options.outputFile || '-'),
+            )();
+        }
     }
 
     async readFile(options: ReadFileCommandOptions): Promise<CommandResponse<void>> {
@@ -2008,6 +2024,10 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
     }
 
     async writeFile(options: WriteFileCommandOptions): Promise<CommandResponse<void>> {
+        if (options.operatingSystem === 'windows') {
+            throw new CommandNotSupportedError('Writing files is not supported on Windows containers.');
+        }
+
         return {
             command: this.commandName,
             args: this.getWriteFileCommandArgs(options),
