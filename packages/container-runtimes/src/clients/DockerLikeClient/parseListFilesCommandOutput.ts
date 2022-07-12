@@ -103,7 +103,7 @@ function parseLinuxType(type: string): vscode.FileType {
     }
 }
 
-function parseWindowsType(type: string): vscode.FileType {
+function parseWindowsType(type: string | undefined): vscode.FileType {
     switch (type?.toUpperCase()) {
         case '<DIR>':
             return vscode.FileType.Directory;
