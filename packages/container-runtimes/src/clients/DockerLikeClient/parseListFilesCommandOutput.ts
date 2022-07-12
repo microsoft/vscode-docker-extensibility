@@ -71,7 +71,7 @@ function parseListFilesOutput(
         }
 
         // Ignore everything other than directories and plain files
-        if (type === vscode.FileType.Unknown) {
+        if (type !== vscode.FileType.Directory && type !== vscode.FileType.File) {
             continue;
         }
 
@@ -96,17 +96,25 @@ function parseLinuxType(type: string): vscode.FileType {
             return vscode.FileType.Directory;
         case '-':
             return vscode.FileType.File;
+        case 'l':
+            return vscode.FileType.SymbolicLink;
         default:
             return vscode.FileType.Unknown;
     }
 }
 
 function parseWindowsType(type: string): vscode.FileType {
-    if (type?.toUpperCase() === '<DIR>') {
-        return vscode.FileType.Directory;
-    } else if (type?.toUpperCase() === '') {
-        return vscode.FileType.File;
-    } else {
-        return vscode.FileType.Unknown;
+    switch (type?.toUpperCase()) {
+        case '<DIR>':
+            return vscode.FileType.Directory;
+        case '':
+        case undefined:
+            // Blank or undefined type is a file
+            return vscode.FileType.File;
+        case '<SYMLINKD>':
+        case '<SYMLINK>':
+            return vscode.FileType.SymbolicLink;
+        default:
+            return vscode.FileType.Unknown;
     }
 }

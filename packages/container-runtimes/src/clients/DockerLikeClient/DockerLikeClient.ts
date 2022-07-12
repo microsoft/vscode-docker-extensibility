@@ -1937,7 +1937,9 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             command = [
                 'cmd',
                 '/C',
-                { value: `dir /A-S /-C /T w "${options.path}"`, quoting: ShellQuoting.Strong }
+                // Path is intentionally *not* quoted--no good quoting options work, but
+                // `cd` doesn't seem to care, so cd to the path and then do dir
+                { value: `cd ${options.path} & dir /A-S /-C`, quoting: ShellQuoting.Strong }
             ];
         } else {
             command = [
