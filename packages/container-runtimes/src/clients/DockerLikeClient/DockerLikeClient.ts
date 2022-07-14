@@ -1796,7 +1796,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withNamedArg(
                 '--format',
                 goTemplateJsonFormat<DockerInspectNetworkRecord>({
-                    Id: goTemplateJsonProperty`.ID`,
+                    Id: goTemplateJsonProperty`.Id`,
                     Name: goTemplateJsonProperty`.Name`,
                     Driver: goTemplateJsonProperty`.Driver`,
                     Scope: goTemplateJsonProperty`.Scope`,
