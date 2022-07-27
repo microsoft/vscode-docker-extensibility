@@ -16,7 +16,7 @@ export function tryParseSize(value: string | number | undefined | null): number 
         if (value.toLowerCase() === 'n/a') {
             return undefined;
         } else {
-            // Parses values like "1234", "1234b", "1234kb", "1234 MB", etc. into size (the numerical part)
+            // Parses values like "1234", "1234b", "1234kb", "1234 MB", "12.34 GB" etc. into size (the numerical part)
             // and sizeUnit (the kb/mb/gb, if present)
             const result = /(?<size>\d+(\.\d+)?)\s*(?<sizeUnit>[kmg]?b)?/i.exec(value);
 
