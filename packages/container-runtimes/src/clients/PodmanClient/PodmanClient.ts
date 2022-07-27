@@ -100,7 +100,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
                         image,
                         registry,
                         name: imageName,
-                        labels: rawImage.Labels,
+                        labels: rawImage.Labels || {},
                         tag,
                         createdAt,
                     });
@@ -124,7 +124,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
     //#region ListContainers Command
 
     protected override async parseListContainersCommandOutput(options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
-        const images = new Array<ListContainersItem>();
+        const containers = new Array<ListContainersItem>();
         try {
             const rawContainers = JSON.parse(output);
             rawContainers.forEach((rawContainer: unknown) => {
@@ -144,14 +144,14 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
                         };
                     });
 
-                    images.push({
+                    containers.push({
                         id: rawContainer.Id,
                         image: rawContainer.Image,
                         name,
-                        labels: rawContainer.Labels,
+                        labels: rawContainer.Labels || {},
                         createdAt,
                         ports,
-                        networks: rawContainer.Networks,
+                        networks: rawContainer.Networks || [],
                         state: rawContainer.State,
                         status: rawContainer.Status,
                     });
@@ -167,7 +167,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
             }
         }
 
-        return images;
+        return containers;
     }
 
     //#endregion

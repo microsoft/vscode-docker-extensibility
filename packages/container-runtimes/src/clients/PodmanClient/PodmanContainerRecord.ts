@@ -8,8 +8,8 @@ export type PodmanContainerRecord = {
     Names: Array<string>;
     Image: string;
     Ports?: Array<PodmanPortBinding>;
-    Networks: string[];
-    Labels: Record<string, string>;
+    Networks?: string[];
+    Labels?: Record<string, string>;
     Created: number;
     State: string;
     Status: string;
@@ -39,14 +39,6 @@ export function isPodmanContainerRecord(maybeContainer: any): maybeContainer is 
     }
 
     if (typeof maybeContainer.Image !== 'string') {
-        return false;
-    }
-
-    if (!!maybeContainer.Networks && !Array.isArray(maybeContainer.Networks)) {
-        return false;
-    }
-
-    if (!maybeContainer.Labels || typeof maybeContainer.Labels !== 'object') {
         return false;
     }
 

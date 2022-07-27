@@ -6,7 +6,7 @@
 export type PodmanImageRecord = {
     Id: string;
     Names?: Array<string>;
-    Labels: Record<string, string>;
+    Labels?: Record<string, string>;
     Created: number;
 };
 
@@ -22,10 +22,6 @@ export function isPodmanImageRecord(maybeImage: unknown): maybeImage is PodmanIm
     }
 
     if (!!image.Names && !Array.isArray(image.Names)) {
-        return false;
-    }
-
-    if (!image.Labels || typeof image.Labels !== 'object') {
         return false;
     }
 
