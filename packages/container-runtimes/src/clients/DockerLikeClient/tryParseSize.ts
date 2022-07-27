@@ -6,6 +6,7 @@
 /**
  * Tries to parse a size (in many forms) into a value in bytes
  * @param value The value to try to parse into a size
+ * @returns An integer value in bytes, if the input can be parsed, otherwise undefined
  */
 export function tryParseSize(value: string | number | undefined | null): number | undefined {
     if (value === undefined || value === null) {
