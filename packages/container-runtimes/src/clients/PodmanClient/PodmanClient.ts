@@ -9,15 +9,19 @@ import * as utc from 'dayjs/plugin/utc';
 import {
     IContainersClient,
     InspectContainersCommandOptions,
+    ListContainersCommandOptions,
+    ListContainersItem,
     ListImagesCommandOptions,
     ListImagesItem,
     ListVolumeItem,
     ListVolumesCommandOptions,
+    PortBinding,
     VersionItem
 } from '../../contracts/ContainerClient';
 import { CommandLineArgs } from '../../utils/commandLineBuilder';
 import { DockerLikeClient } from '../DockerLikeClient/DockerLikeClient';
 import { parseDockerImageRepository } from '../DockerLikeClient/parseDockerImageRepository';
+import { isPodmanContainerRecord } from './PodmanContainerRecord';
 import { isPodmanImageRecord } from './PodmanImageRecord';
 import { isPodmanVersionRecord } from './PodmanVersionRecord';
 import { isPodmanVolumeRecord } from './PodmanVolumeRecord';
@@ -96,9 +100,60 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
                         image,
                         registry,
                         name: imageName,
-                        labels: {}, // TODO
+                        labels: rawImage.Labels,
                         tag,
                         createdAt,
+                    });
+                } catch (err) {
+                    if (strict) {
+                        throw err;
+                    }
+                }
+            });
+        } catch (err) {
+            if (strict) {
+                throw err;
+            }
+        }
+
+        return images;
+    }
+
+    //#endregion
+
+    //#region ListContainers Command
+
+    protected override async parseListContainersCommandOutput(options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
+        const images = new Array<ListContainersItem>();
+        try {
+            const rawContainers = JSON.parse(output);
+            rawContainers.forEach((rawContainer: unknown) => {
+                try {
+                    if (!isPodmanContainerRecord(rawContainer)) {
+                        throw new Error('Invalid image JSON');
+                    }
+
+                    const name = rawContainer.Names?.[0].trim();
+                    const createdAt = dayjs.unix(rawContainer.Created).toDate();
+                    const ports: PortBinding[] = (rawContainer.Ports || []).map(p => {
+                        return {
+                            containerPort: p.container_port,
+                            hostIp: p.host_ip,
+                            hostPort: p.host_port,
+                            protocol: p.protocol,
+                        };
+                    });
+
+                    images.push({
+                        id: rawContainer.Id,
+                        image: rawContainer.Image,
+                        name,
+                        labels: rawContainer.Labels,
+                        createdAt,
+                        ports,
+                        networks: rawContainer.Networks,
+                        state: rawContainer.State,
+                        status: rawContainer.Status,
                     });
                 } catch (err) {
                     if (strict) {
@@ -149,7 +204,6 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
                     if (!isPodmanVolumeRecord(rawVolume)) {
                         throw new Error('Invalid volume JSON');
                     }
-
 
                     volumes.push({
                         name: rawVolume.Name,
