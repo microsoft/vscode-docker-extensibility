@@ -336,8 +336,6 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
                         throw new Error('Invalid image JSON');
                     }
 
-                    const labels = parseDockerLikeLabels(rawImage.Labels);
-
                     // Parse the docker image to normalize registry, image name,
                     // and image tag information
                     const [registry, imageName] = parseDockerImageRepository(rawImage.Repository);
@@ -353,7 +351,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
                         image,
                         registry,
                         name: imageName,
-                        labels,
+                        labels: {}, // TODO: image labels are conspicuously absent from Docker image listing output
                         tag: rawImage.Tag,
                         createdAt,
                         size,
