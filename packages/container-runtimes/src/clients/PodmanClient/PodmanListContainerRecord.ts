@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export type PodmanContainerRecord = {
+export type PodmanListContainerRecord = {
     Id: string;
     Names: Array<string>;
     Image: string;
@@ -25,7 +25,7 @@ type PodmanPortBinding = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isPodmanContainerRecord(maybeContainer: any): maybeContainer is PodmanContainerRecord {
+export function isPodmanListContainerRecord(maybeContainer: any): maybeContainer is PodmanListContainerRecord {
     if (!maybeContainer || typeof maybeContainer !== 'object') {
         return false;
     }

@@ -21,7 +21,7 @@ import {
 import { CommandLineArgs } from '../../utils/commandLineBuilder';
 import { DockerLikeClient } from '../DockerLikeClient/DockerLikeClient';
 import { parseDockerImageRepository } from '../DockerLikeClient/parseDockerImageRepository';
-import { isPodmanContainerRecord } from './PodmanContainerRecord';
+import { isPodmanListContainerRecord } from './PodmanListContainerRecord';
 import { isPodmanImageRecord } from './PodmanImageRecord';
 import { isPodmanVersionRecord } from './PodmanVersionRecord';
 import { isPodmanVolumeRecord } from './PodmanVolumeRecord';
@@ -129,7 +129,7 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
             const rawContainers = JSON.parse(output);
             rawContainers.forEach((rawContainer: unknown) => {
                 try {
-                    if (!isPodmanContainerRecord(rawContainer)) {
+                    if (!isPodmanListContainerRecord(rawContainer)) {
                         throw new Error('Invalid image JSON');
                     }
 
