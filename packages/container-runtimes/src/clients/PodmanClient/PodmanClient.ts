@@ -20,7 +20,7 @@ import {
 } from '../../contracts/ContainerClient';
 import { CommandLineArgs } from '../../utils/commandLineBuilder';
 import { DockerLikeClient } from '../DockerLikeClient/DockerLikeClient';
-import { parseDockerImageRepository } from '../DockerLikeClient/parseDockerImageRepository';
+import { EmptyImageName, parseDockerImageRepository } from '../DockerLikeClient/parseDockerImageRepository';
 import { isPodmanListContainerRecord } from './PodmanListContainerRecord';
 import { isPodmanImageRecord } from './PodmanImageRecord';
 import { isPodmanVersionRecord } from './PodmanVersionRecord';
@@ -88,20 +88,20 @@ export class PodmanClient extends DockerLikeClient implements IContainersClient 
                         throw new Error('Invalid image JSON');
                     }
 
-                    const [registry, imageName, tag] = rawImage.Names?.length
+                    const { registry, imageName, tagName } = rawImage.Names?.length
                         ? parseDockerImageRepository(rawImage.Names[0])
-                        : [undefined, undefined, undefined];
+                        : EmptyImageName;
                     const createdAt = dayjs.unix(rawImage.Created).toDate();
 
-                    const image = registry ? `${registry}/${imageName}:${tag}` : `${imageName}:${tag}`;
+                    const image = registry ? `${registry}/${imageName}:${tagName}` : `${imageName}:${tagName}`;
 
                     images.push({
                         id: rawImage.Id,
                         image,
                         registry,
                         name: imageName,
-                        // labels: rawImage.Labels || {},
-                        tag,
+                        // labels: rawImage.Labels || {}, // Docker does not include labels in image listing, so we can't include it here
+                        tag: tagName,
                         createdAt,
                     });
                 } catch (err) {

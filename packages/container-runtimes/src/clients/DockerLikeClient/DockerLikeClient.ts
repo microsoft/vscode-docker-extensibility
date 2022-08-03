@@ -96,7 +96,7 @@ import { DockerNetworkRecord, isDockerNetworkRecord } from './DockerNetworkRecor
 import { isDockerVersionRecord } from "./DockerVersionRecord";
 import { isDockerVolumeRecord } from './DockerVolumeRecord';
 import { goTemplateJsonFormat, GoTemplateJsonFormatOptions, goTemplateJsonProperty } from './goTemplateJsonFormat';
-import { parseDockerImageRepository } from "./parseDockerImageRepository";
+import { EmptyImageName, ImageNameParts, parseDockerImageRepository } from "./parseDockerImageRepository";
 import { parseDockerLikeLabels } from './parseDockerLikeLabels';
 import { parseDockerRawPortString } from './parseDockerRawPortString';
 import { parseListFilesCommandLinuxOutput, parseListFilesCommandWindowsOutput } from './parseListFilesCommandOutput';
@@ -338,7 +338,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
 
                     // Parse the docker image to normalize registry, image name,
                     // and image tag information
-                    const [registry, imageName] = parseDockerImageRepository(rawImage.Repository);
+                    const { registry, imageName } = parseDockerImageRepository(rawImage.Repository);
                     const createdAt = dayjs.utc(rawImage.CreatedAt).toDate();
 
                     // Combine the image components into a standardized full name
@@ -588,11 +588,11 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
                     // in RepoTags, the first one will be parsed and returned as the tag name for the image. Otherwise
                     // if there are no entries in RepoTags, undefined will be returned for the registry, imageName, and
                     // tagName components and the image can be treated as an intermediate/anonymous image layer.
-                    const [registry, imageName, tagName] = inspect.RepoTags
+                    const { registry, imageName, tagName } = inspect.RepoTags
                         .slice(0, 1)
-                        .reduce<[string | undefined, string | undefined, string | undefined]>((unused, repoTag) => {
+                        .reduce<ImageNameParts>((unused, repoTag) => {
                             return parseDockerImageRepository(repoTag);
-                        }, [undefined, undefined, undefined]);
+                        }, EmptyImageName);
 
                     const fullImage = imageName ? registry ? `${registry}/${imageName}:${tagName}` : `${imageName}:${tagName}` : undefined;
 
