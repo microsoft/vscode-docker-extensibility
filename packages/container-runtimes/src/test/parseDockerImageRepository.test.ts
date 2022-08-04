@@ -40,8 +40,8 @@ describe('parseDockerImageRepository', () => {
                 expected: { registry: undefined, imageName: 'library/alpine', tagName: 'latest' }
             },
             {
-                original: '[ab::0]:1234/foo',
-                expected: { registry: '[ab::0]:1234', imageName: 'foo', tagName: undefined }
+                original: 'notavalidurlforimagenames/foo',
+                expected: { registry: undefined, imageName: 'notavalidurlforimagenames/foo', tagName: undefined }
             },
             {
                 original: 'mcr.microsoft.com/dotnet/aspnet:5.0',
@@ -68,14 +68,10 @@ describe('parseDockerImageRepository', () => {
 
     it('Should throw on invalid formats', () => {
         const invalidImageNames: string[] = [
-            '_bad',
-            'bad_',
-            'bad_url:1234/bad',
-            '<none',
-            'BaD',
-            'bad:BaD',
-            'bad:_bad',
-            'bad:bad_',
+            '[ab::0]:1234/foo',
+            'imagewith&symbols',
+            'imagewith\\backslash',
+            '',
         ];
 
         for (const invalidImageName of invalidImageNames) {

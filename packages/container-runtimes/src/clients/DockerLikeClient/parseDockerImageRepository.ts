@@ -5,7 +5,21 @@
 
 const NONE = '<none>';
 
-const imageRegex = /^((?<registry>[a-z0-9-.:[\]]+)\/)??((?<imageName>((([a-z0-9]([a-z0-9-_.]*[a-z0-9])?)\/?){1,2})|(<none>)))(:(?<tagName>([a-z0-9]([a-z0-9-_.]*[a-z0-9])?)|(<none>)))?$/;
+/**
+ * A regex for parsing image names. Because this is only used to parse CLI output, we can assume
+ * the image names are valid.
+ *
+ * Registry: Everything before the first slash--must be either exactly "localhost", contain a DNS
+ * separator ".", or a port separator ":". If it does not meet these rules, it is not the
+ * registry but instead part of the image name. See
+ * https://stackoverflow.com/questions/37861791/how-are-docker-image-names-parsed.
+ *
+ * Image name: Everything after the registry (if the registry is valid) until the tag. Otherwise,
+ * everything until the tag.
+ *
+ * Tag: Everything after the ":", if it is present.
+ */
+const imageRegex = /^((?<registry>(localhost)|([\w-]+:\d+)|(([\w-]+\.)+[\w-]+(:\d+)?))\/)?(?<imageName>[\w-./<>]+)(:(?<tagName>[\w-.<>]+))?$/;
 
 export type ImageNameParts = {
     registry: string | undefined;
