@@ -41,7 +41,7 @@ export const EmptyImageName: ImageNameParts = {
 export function parseDockerImageRepository(original: string): ImageNameParts {
     const match = imageRegex.exec(original);
 
-    if (!match?.groups) {
+    if (!original || !match?.groups) {
         throw new Error(`Invalid image name: ${original}`);
     }
 

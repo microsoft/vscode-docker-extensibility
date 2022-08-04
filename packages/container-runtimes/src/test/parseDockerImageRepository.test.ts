@@ -72,6 +72,8 @@ describe('parseDockerImageRepository', () => {
             'imagewith&symbols',
             'imagewith\\backslash',
             '',
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            undefined!,
         ];
 
         for (const invalidImageName of invalidImageNames) {
