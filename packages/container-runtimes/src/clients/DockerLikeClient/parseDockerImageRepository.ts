@@ -59,3 +59,24 @@ export function parseDockerImageRepository(original: string): ImageNameParts {
 
     return { registry, imageName, tagName };
 }
+
+export function recombineImageParts(parts: ImageNameParts): string {
+    let result: string = '';
+    if (parts.registry) {
+        result += parts.registry;
+        result += '/';
+    }
+
+    if (parts.imageName) {
+        result += parts.imageName;
+    } else {
+        result = '<none>'; // Intentionally overwrites registry that may have been appended before
+    }
+
+    if (parts.tagName) {
+        result += ':';
+        result += parts.tagName;
+    }
+
+    return result;
+}
