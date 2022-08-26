@@ -4,13 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-//import { PodmanClient, getDockerExtensionExport } from '@microsoft/container-runtimes';
 import { localize } from './localize';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     try {
-        // const dockerExtension = await getDockerExtensionExport();
-        // context.subscriptions.push(dockerExtension.registerContainerRuntimeClient(new PodmanClient()));
+        // TODO
     } catch (error) {
         const outputChannel = vscode.window.createOutputChannel(
             localize('container-runtimes.outputChannel', 'Container Runtimes Provider')
