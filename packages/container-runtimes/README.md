@@ -30,10 +30,5 @@ if (result) {
 }
 ```
 
-## Contributing
-To add support for a container runtime, implement the `IContainersClient` interface. It is not strictly required that the implementation be in this package, but we do recommend it. Not all runtimes support all of the same concepts--in these cases, you can throw a `CommandNotSupportedError`.
-
-See also [CONTRIBUTING.md](../../CONTRIBUTING.md).
-
 ## License
 [MIT](LICENSE)
