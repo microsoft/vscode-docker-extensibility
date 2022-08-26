@@ -19,23 +19,6 @@
             "isBackground": true
         },
         {
-            "label": "npm-watch: vscode-container-runtimes",
-            "type": "npm",
-            "script": "watch --workspace=packages/vscode-container-runtimes",
-            "problemMatcher": [
-                "$ts-webpack-watch",
-                "$tslint-webpack-watch"
-            ],
-            "isBackground": true,
-            "presentation": {
-                "reveal": "never",
-                "group": "watchers"
-            },
-            "group": {
-                "kind": "build"
-            }
-        },
-        {
             "label": "tsc-watch: vscode-docker-registries",
             "type": "typescript",
             "tsconfig": "packages/vscode-docker-registries/tsconfig.json",
