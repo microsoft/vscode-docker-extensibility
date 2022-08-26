@@ -20,6 +20,7 @@ pr:
   branches:
     include:
       - main
+      - free
 
 schedules:
   - cron: "0 0 * * *"
@@ -27,4 +28,5 @@ schedules:
     branches:
       include:
         - main
+        - free
     always: false
