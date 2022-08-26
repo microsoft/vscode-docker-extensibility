@@ -5,7 +5,7 @@
 
 import { spawn, SpawnOptions } from 'child_process';
 import * as os from 'os';
-import { ShellQuoting } from 'vscode';
+import { ShellQuotedString, ShellQuoting } from 'vscode';
 
 import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { CancellationError } from './CancellationError';
@@ -13,10 +13,91 @@ import { ChildProcessError } from './ChildProcessError';
 import { CommandLineArgs } from './commandLineBuilder';
 
 /**
- * A {@link ShellQuote} method applies quoting rules for a specific shell.
+ * A {@link Shell} class applies quoting rules for a specific shell.
  * Quoth the cmd.exe 'nevermore'.
  */
-export type ShellQuote = (args: CommandLineArgs) => Array<string>;
+export abstract class Shell {
+    public static getShellOrDefault(shell: Shell | null | undefined) {
+        if (shell) {
+            return shell;
+        }
+
+        if (os.platform() === 'win32') {
+            return new Powershell();
+        } else {
+            return new Bash();
+        }
+    }
+
+    /**
+     * Expands ShellQuotedString for a specific shell
+     * @param args Array of {@link CommandLineArgs} to expand
+     */
+    public abstract quote(args: CommandLineArgs): Array<string>;
+    /**
+     * Apply shell specific escaping rules to a Go Template string
+     * @param arg The string to apply Go Template specific escaping rules for a given shell
+     * @param quoting A {@link ShellQuotedString} that is properly escaped for Go Templates in the given shell
+     */
+    public goTemplateQuotedString(arg: string, quoting: ShellQuoting): ShellQuotedString {
+        return {
+            value: arg,
+            quoting,
+        };
+    }
+}
+
+/**
+ * Quoting/escaping rules for Powershell shell
+ */
+export class Powershell extends Shell {
+    public quote(args: CommandLineArgs) {
+        const escape = (value: string) => `\`${value}`;
+
+        return args.map((quotedArg) => {
+            switch (quotedArg.quoting) {
+                case ShellQuoting.Escape:
+                    return quotedArg.value.replace(/[ "'()]/g, escape);
+                case ShellQuoting.Weak:
+                    return `"${quotedArg.value.replace(/["]/g, escape)}"`;
+                case ShellQuoting.Strong:
+                    return `'${quotedArg.value.replace(/[']/g, escape)}'`;
+            }
+        });
+    }
+    public goTemplateQuotedString(arg: string, quoting: ShellQuoting) {
+        switch (quoting) {
+            case ShellQuoting.Escape:
+                return { value: arg, quoting };
+            case ShellQuoting.Weak:
+            case ShellQuoting.Strong:
+                return {
+                    value: arg.replace(/["]/g, (value) => `\\${value}`),
+                    quoting,
+                };
+        }
+    }
+}
+
+/**
+ * Quoting/escaping rules for bash/zsh shell
+ */
+export class Bash extends Shell {
+    public quote(args: CommandLineArgs) {
+        const escape = (value: string) => `\\${value}`;
+
+        return args.map((quotedArg) => {
+            switch (quotedArg.quoting) {
+                case ShellQuoting.Escape:
+                    return quotedArg.value.replace(/[ "']/g, escape);
+                case ShellQuoting.Weak:
+                    return `"${quotedArg.value.replace(/["]/g, escape)}"`;
+                case ShellQuoting.Strong:
+                    return `'${quotedArg.value.replace(/[']/g, escape)}'`;
+            }
+        });
+    }
+}
 
 export type StreamSpawnOptions = SpawnOptions & {
     onCommand?: (command: string) => void;
@@ -25,62 +106,6 @@ export type StreamSpawnOptions = SpawnOptions & {
     stdInPipe?: NodeJS.ReadableStream;
     stdOutPipe?: NodeJS.WritableStream;
     stdErrPipe?: NodeJS.WritableStream;
-};
-
-const isQuoted = (value: string): boolean => {
-    if (value.length >= 2 && (value[0] === "'" || value[0] === '"') && value[value.length - 1] === value[0]) {
-        return true;
-    }
-
-    return false;
-};
-
-/**
- * Applies quoting rules for PowerShell to {@link CommandLineArgs} arguments
- * @param args An array of {@link ShellQuotedString} with associated quoting rules
- * @returns An array of string arguments quoted for PowerShell
- */
-export const powershellQuote: ShellQuote = (args: CommandLineArgs): Array<string> => {
-    return args.map((quotedArg) => {
-        if (isQuoted(quotedArg.value)) {
-            return quotedArg.value;
-        }
-
-        switch (quotedArg.quoting) {
-            case ShellQuoting.Escape:
-                return quotedArg.value.replace(/[ "'()]/g, (match) => `\`${match}`);
-            case ShellQuoting.Weak:
-                return `"${quotedArg.value}"`;
-            case ShellQuoting.Strong:
-                return `'${quotedArg.value}'`;
-        }
-    }).map((quotedArg) => {
-        // Additionally, for PowerShell only, escape double quotes that are not
-        // the first or last character in the arg
-        return quotedArg.replace(/(?<!^)"(?!$)/g, (match) => `\\${match}`);
-    });
-};
-
-/**
- * Applies quoting rules for bash/zsh to {@link CommandLineArgs} arguments
- * @param args An array of {@link ShellQuotedString} with associated quoting rules
- * @returns An array of string arguments quoted for bash/zsh
- */
-export const bashQuote: ShellQuote = (args: CommandLineArgs): Array<string> => {
-    return args.map((quotedArg) => {
-        if (isQuoted(quotedArg.value)) {
-            return quotedArg.value;
-        }
-
-        switch (quotedArg.quoting) {
-            case ShellQuoting.Escape:
-                return quotedArg.value.replace(/[ "']/g, (match) => `\\${match}`);
-            case ShellQuoting.Weak:
-                return `"${quotedArg.value}"`;
-            case ShellQuoting.Strong:
-                return `'${quotedArg.value}'`;
-        }
-    });
 };
 
 export async function spawnStreamAsync(

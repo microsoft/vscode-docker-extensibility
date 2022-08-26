@@ -77,10 +77,10 @@ import { asIds } from '../../utils/asIds';
 import {
     CommandLineArgs,
     composeArgs,
-    quoted,
     withArg,
     withFlagArg,
     withNamedArg,
+    withQuotedArg,
 } from "../../utils/commandLineBuilder";
 import { CommandNotSupportedError } from '../../utils/CommandNotSupportedError';
 import { toArray } from '../../utils/toArray';
@@ -121,7 +121,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
     //#region Information Commands
 
     protected getInfoCommandArgs(
-        options?: InfoCommandOptions,
+        options: InfoCommandOptions,
         formatOverrides?: Partial<GoTemplateJsonFormatOptions<DockerInfoRecord>>,
     ): CommandLineArgs {
         return composeArgs(
@@ -129,12 +129,16 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withNamedArg(
                 '--format',
                 // By specifying an explicit Go template format output, we're able to use the same normalization logic
-                // for various Docker clients
-                goTemplateJsonFormat<DockerInfoRecord>({
-                    OperatingSystem: goTemplateJsonProperty`.OperatingSystem`,
-                    OSType: goTemplateJsonProperty`.OSType`,
-                    Raw: goTemplateJsonProperty`.`,
-                }, formatOverrides)),
+                // for both Docker and Podman clients
+                goTemplateJsonFormat<DockerInfoRecord>(
+                    options.shell, {
+                        OperatingSystem: goTemplateJsonProperty`.OperatingSystem`,
+                        OSType: goTemplateJsonProperty`.OSType`,
+                        Raw: goTemplateJsonProperty`.`,
+                    },
+                    formatOverrides,
+                ),
+            ),
         )();
     }
 
@@ -152,7 +156,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
         };
     }
 
-    async info(options?: InfoCommandOptions): Promise<CommandResponse<InfoItem>> {
+    async info(options: InfoCommandOptions): Promise<CommandResponse<InfoItem>> {
         return {
             command: this.commandName,
             args: this.getInfoCommandArgs(options),
@@ -165,7 +169,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
      * @param options Standard version command options
      * @returns Command line args for getting version information from a Docker-like client
      */
-    protected getVersionCommandArgs(options?: VersionCommandOptions): CommandLineArgs {
+    protected getVersionCommandArgs(options: VersionCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('version'),
             withDockerJsonFormatArg,
@@ -195,7 +199,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
      * @param options Standard version command options
      * @returns A CommandResponse object indicating how to run and parse a version command for this runtime
      */
-    async version(options?: VersionCommandOptions): Promise<CommandResponse<VersionItem>> {
+    async version(options: VersionCommandOptions): Promise<CommandResponse<VersionItem>> {
         return {
             command: this.commandName,
             args: this.getVersionCommandArgs(options),
@@ -264,7 +268,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withNamedArg('--iidfile', options.imageIdFile),
             withDockerBuildArg(options.args),
             withArg(options.customOptions),
-            withArg(quoted(options.path)),
+            withQuotedArg(options.path),
         )();
     }
 
@@ -536,24 +540,28 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withNamedArg(
                 '--format',
                 // By specifying an explicit Go template format output, we're able to use the same normalization logic
-                // for various Docker clients
-                goTemplateJsonFormat<DockerInspectImageRecord>({
-                    Id: goTemplateJsonProperty`.ID`,
-                    RepoTags: goTemplateJsonProperty`.RepoTags`,
-                    EnvVars: goTemplateJsonProperty`.Config.Env`,
-                    Labels: goTemplateJsonProperty`.Config.Labels`,
-                    Ports: goTemplateJsonProperty`.Config.ExposedPorts`,
-                    Volumes: goTemplateJsonProperty`.Config.Volumes`,
-                    Entrypoint: goTemplateJsonProperty`.Config.Entrypoint`,
-                    Command: goTemplateJsonProperty`.Config.Cmd`,
-                    CWD: goTemplateJsonProperty`.Config.WorkingDir`,
-                    RepoDigests: goTemplateJsonProperty`.RepoDigests`,
-                    Architecture: goTemplateJsonProperty`.Architecture`,
-                    OperatingSystem: goTemplateJsonProperty`.Os`,
-                    CreatedAt: goTemplateJsonProperty`.Created`,
-                    User: goTemplateJsonProperty`.Config.User`,
-                    Raw: goTemplateJsonProperty`.`,
-                }, formatOverrides)),
+                // for both Docker and Podman clients
+                goTemplateJsonFormat<DockerInspectImageRecord>(
+                    options.shell, {
+                        Id: goTemplateJsonProperty`.ID`,
+                        RepoTags: goTemplateJsonProperty`.RepoTags`,
+                        EnvVars: goTemplateJsonProperty`.Config.Env`,
+                        Labels: goTemplateJsonProperty`.Config.Labels`,
+                        Ports: goTemplateJsonProperty`.Config.ExposedPorts`,
+                        Volumes: goTemplateJsonProperty`.Config.Volumes`,
+                        Entrypoint: goTemplateJsonProperty`.Config.Entrypoint`,
+                        Command: goTemplateJsonProperty`.Config.Cmd`,
+                        CWD: goTemplateJsonProperty`.Config.WorkingDir`,
+                        RepoDigests: goTemplateJsonProperty`.RepoDigests`,
+                        Architecture: goTemplateJsonProperty`.Architecture`,
+                        OperatingSystem: goTemplateJsonProperty`.Os`,
+                        CreatedAt: goTemplateJsonProperty`.Created`,
+                        User: goTemplateJsonProperty`.Config.User`,
+                        Raw: goTemplateJsonProperty`.`,
+                    },
+                    formatOverrides,
+                ),
+            ),
             withArg(...options.images),
         )();
     }
@@ -813,17 +821,21 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withDockerNoTruncArg,
             withNamedArg(
                 '--format',
-                goTemplateJsonFormat<DockerListContainerRecord>({
-                    Id: goTemplateJsonProperty`.ID`,
-                    Names: goTemplateJsonProperty`.Names`,
-                    Image: goTemplateJsonProperty`.Image`,
-                    Ports: goTemplateJsonProperty`.Ports`,
-                    Networks: goTemplateJsonProperty`.Networks`,
-                    Labels: goTemplateJsonProperty`.Labels`,
-                    CreatedAt: goTemplateJsonProperty`.CreatedAt`,
-                    State: goTemplateJsonProperty`.State`,
-                    Status: goTemplateJsonProperty`.Status`,
-                }, formatOverrides)),
+                goTemplateJsonFormat<DockerListContainerRecord>(
+                    options.shell, {
+                        Id: goTemplateJsonProperty`.ID`,
+                        Names: goTemplateJsonProperty`.Names`,
+                        Image: goTemplateJsonProperty`.Image`,
+                        Ports: goTemplateJsonProperty`.Ports`,
+                        Networks: goTemplateJsonProperty`.Networks`,
+                        Labels: goTemplateJsonProperty`.Labels`,
+                        CreatedAt: goTemplateJsonProperty`.CreatedAt`,
+                        State: goTemplateJsonProperty`.State`,
+                        Status: goTemplateJsonProperty`.Status`,
+                    },
+                    formatOverrides,
+                ),
+            ),
         )();
     }
 
@@ -1150,28 +1162,31 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withArg('container', 'inspect'),
             withNamedArg(
                 '--format',
-                goTemplateJsonFormat<DockerInspectContainerRecord>({
-                    Id: goTemplateJsonProperty`.ID`,
-                    Name: goTemplateJsonProperty`.Name`,
-                    ImageId: goTemplateJsonProperty`.Image`,
-                    ImageName: goTemplateJsonProperty`.Config.Image`,
-                    Status: goTemplateJsonProperty`.State.Status`,
-                    Platform: goTemplateJsonProperty`.Platform`,
-                    EnvVars: goTemplateJsonProperty`.Config.Env`,
-                    Networks: goTemplateJsonProperty`.NetworkSettings.Networks`,
-                    IP: goTemplateJsonProperty`.NetworkSettings.IPAddress`,
-                    Ports: goTemplateJsonProperty`.NetworkSettings.Ports`,
-                    PublishAllPorts: goTemplateJsonProperty`.HostConfig.PublishAllPorts`,
-                    Mounts: goTemplateJsonProperty`.Mounts`,
-                    Labels: goTemplateJsonProperty`.Config.Labels`,
-                    Entrypoint: goTemplateJsonProperty`.Config.Entrypoint`,
-                    Command: goTemplateJsonProperty`.Config.Cmd`,
-                    CWD: goTemplateJsonProperty`.Config.WorkingDir`,
-                    CreatedAt: goTemplateJsonProperty`.Created`,
-                    StartedAt: goTemplateJsonProperty`.State.StartedAt`,
-                    FinishedAt: goTemplateJsonProperty`.State.FinishedAt`,
-                    Raw: goTemplateJsonProperty`.`,
-                }, formatOverrides),
+                goTemplateJsonFormat<DockerInspectContainerRecord>(
+                    options.shell, {
+                        Id: goTemplateJsonProperty`.ID`,
+                        Name: goTemplateJsonProperty`.Name`,
+                        ImageId: goTemplateJsonProperty`.Image`,
+                        ImageName: goTemplateJsonProperty`.Config.Image`,
+                        Status: goTemplateJsonProperty`.State.Status`,
+                        Platform: goTemplateJsonProperty`.Platform`,
+                        EnvVars: goTemplateJsonProperty`.Config.Env`,
+                        Networks: goTemplateJsonProperty`.NetworkSettings.Networks`,
+                        IP: goTemplateJsonProperty`.NetworkSettings.IPAddress`,
+                        Ports: goTemplateJsonProperty`.NetworkSettings.Ports`,
+                        PublishAllPorts: goTemplateJsonProperty`.HostConfig.PublishAllPorts`,
+                        Mounts: goTemplateJsonProperty`.Mounts`,
+                        Labels: goTemplateJsonProperty`.Config.Labels`,
+                        Entrypoint: goTemplateJsonProperty`.Config.Entrypoint`,
+                        Command: goTemplateJsonProperty`.Config.Cmd`,
+                        CWD: goTemplateJsonProperty`.Config.WorkingDir`,
+                        CreatedAt: goTemplateJsonProperty`.Created`,
+                        StartedAt: goTemplateJsonProperty`.State.StartedAt`,
+                        FinishedAt: goTemplateJsonProperty`.State.FinishedAt`,
+                        Raw: goTemplateJsonProperty`.`,
+                    },
+                    formatOverrides,
+                ),
             ),
             withArg(...options.containers)
         )();
@@ -1543,16 +1558,20 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withArg('volume', 'inspect'),
             withNamedArg(
                 '--format',
-                goTemplateJsonFormat<DockerInspectVolumeRecord>({
-                    Name: goTemplateJsonProperty`.Name`,
-                    Driver: goTemplateJsonProperty`.Driver`,
-                    Mountpoint: goTemplateJsonProperty`.Mountpoint`,
-                    Scope: goTemplateJsonProperty`.Scope`,
-                    Labels: goTemplateJsonProperty`.Labels`,
-                    Options: goTemplateJsonProperty`.Options`,
-                    CreatedAt: goTemplateJsonProperty`.CreatedAt`,
-                    Raw: goTemplateJsonProperty`.`,
-                }, formatOverrides),
+                goTemplateJsonFormat<DockerInspectVolumeRecord>(
+                    options.shell,
+                    {
+                        Name: goTemplateJsonProperty`.Name`,
+                        Driver: goTemplateJsonProperty`.Driver`,
+                        Mountpoint: goTemplateJsonProperty`.Mountpoint`,
+                        Scope: goTemplateJsonProperty`.Scope`,
+                        Labels: goTemplateJsonProperty`.Labels`,
+                        Options: goTemplateJsonProperty`.Options`,
+                        CreatedAt: goTemplateJsonProperty`.CreatedAt`,
+                        Raw: goTemplateJsonProperty`.`,
+                    },
+                    formatOverrides,
+                ),
             ),
             withArg(...options.volumes),
         )();
@@ -1656,16 +1675,19 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withDockerLabelFilterArgs(options.labels),
             withNamedArg(
                 '--format',
-                goTemplateJsonFormat<DockerNetworkRecord>({
-                    Id: goTemplateJsonProperty`.ID`,
-                    Name: goTemplateJsonProperty`.Name`,
-                    Driver: goTemplateJsonProperty`.Driver`,
-                    Scope: goTemplateJsonProperty`.Scope`,
-                    Labels: goTemplateJsonProperty`.Labels`,
-                    IPv6: goTemplateJsonProperty`.IPv6`,
-                    Internal: goTemplateJsonProperty`.Internal`,
-                    CreatedAt: goTemplateJsonProperty`.CreatedAt`,
-                }, formatOverrides),
+                goTemplateJsonFormat<DockerNetworkRecord>(
+                    options.shell, {
+                        Id: goTemplateJsonProperty`.ID`,
+                        Name: goTemplateJsonProperty`.Name`,
+                        Driver: goTemplateJsonProperty`.Driver`,
+                        Scope: goTemplateJsonProperty`.Scope`,
+                        Labels: goTemplateJsonProperty`.Labels`,
+                        IPv6: goTemplateJsonProperty`.IPv6`,
+                        Internal: goTemplateJsonProperty`.Internal`,
+                        CreatedAt: goTemplateJsonProperty`.CreatedAt`,
+                    },
+                    formatOverrides,
+                ),
             ),
         )();
     }
@@ -1799,20 +1821,23 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withArg('network', 'inspect'),
             withNamedArg(
                 '--format',
-                goTemplateJsonFormat<DockerInspectNetworkRecord>({
-                    Id: goTemplateJsonProperty`.Id`,
-                    Name: goTemplateJsonProperty`.Name`,
-                    Driver: goTemplateJsonProperty`.Driver`,
-                    Scope: goTemplateJsonProperty`.Scope`,
-                    Labels: goTemplateJsonProperty`.Labels`,
-                    Ipam: goTemplateJsonProperty`.IPAM`,
-                    EnableIPv6: goTemplateJsonProperty`.EnableIPv6`,
-                    Internal: goTemplateJsonProperty`.Internal`,
-                    Attachable: goTemplateJsonProperty`.Attachable`,
-                    Ingress: goTemplateJsonProperty`.Ingress`,
-                    CreatedAt: goTemplateJsonProperty`.Created`,
-                    Raw: goTemplateJsonProperty`.`,
-                }, formatOverrides),
+                goTemplateJsonFormat<DockerInspectNetworkRecord>(
+                    options.shell, {
+                        Id: goTemplateJsonProperty`.Id`,
+                        Name: goTemplateJsonProperty`.Name`,
+                        Driver: goTemplateJsonProperty`.Driver`,
+                        Scope: goTemplateJsonProperty`.Scope`,
+                        Labels: goTemplateJsonProperty`.Labels`,
+                        Ipam: goTemplateJsonProperty`.IPAM`,
+                        EnableIPv6: goTemplateJsonProperty`.EnableIPv6`,
+                        Internal: goTemplateJsonProperty`.Internal`,
+                        Attachable: goTemplateJsonProperty`.Attachable`,
+                        Ingress: goTemplateJsonProperty`.Ingress`,
+                        CreatedAt: goTemplateJsonProperty`.Created`,
+                        Raw: goTemplateJsonProperty`.`,
+                    },
+                    formatOverrides,
+                ),
             ),
             withArg(...options.networks),
         )();
