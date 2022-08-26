@@ -129,7 +129,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withNamedArg(
                 '--format',
                 // By specifying an explicit Go template format output, we're able to use the same normalization logic
-                // for both Docker and Docker-Like clients
+                // for various Docker clients
                 goTemplateJsonFormat<DockerInfoRecord>({
                     OperatingSystem: goTemplateJsonProperty`.OperatingSystem`,
                     OSType: goTemplateJsonProperty`.OSType`,
