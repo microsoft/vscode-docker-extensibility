@@ -51,7 +51,7 @@ export abstract class Shell {
  * Quoting/escaping rules for Powershell shell
  */
 export class Powershell extends Shell {
-    public quote(args: CommandLineArgs) {
+    public quote(args: CommandLineArgs) : Array<string> {
         const escape = (value: string) => `\`${value}`;
 
         return args.map((quotedArg) => {
