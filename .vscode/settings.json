@@ -4,7 +4,6 @@
     ],
     "eslint.workingDirectories": [
         "./packages/container-runtimes",
-        "./packages/vscode-container-runtimes",
         "./packages/vscode-docker-registries"
     ],
     "files.trimTrailingWhitespace": true,
