@@ -6,6 +6,7 @@
 import { spawn, SpawnOptions } from 'child_process';
 import * as os from 'os';
 import { ShellQuotedString, ShellQuoting } from 'vscode';
+import { IShell } from '../contracts/Shell';
 
 import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { CancellationError } from './CancellationError';
@@ -16,7 +17,7 @@ import { CommandLineArgs } from './commandLineBuilder';
  * A {@link Shell} class applies quoting rules for a specific shell.
  * Quoth the cmd.exe 'nevermore'.
  */
-export abstract class Shell {
+export abstract class Shell implements IShell {
     public static getShellOrDefault(shell: Shell | null | undefined) {
         if (shell) {
             return shell;
@@ -34,6 +35,7 @@ export abstract class Shell {
      * @param args Array of {@link CommandLineArgs} to expand
      */
     public abstract quote(args: CommandLineArgs): Array<string>;
+
     /**
      * Apply shell specific escaping rules to a Go Template string
      * @param arg The string to apply Go Template specific escaping rules for a given shell
@@ -45,13 +47,17 @@ export abstract class Shell {
             quoting,
         };
     }
+
+    public getShellOrDefault(shell?: string | boolean): string | boolean | undefined {
+        return shell;
+    }
 }
 
 /**
  * Quoting/escaping rules for Powershell shell
  */
 export class Powershell extends Shell {
-    public quote(args: CommandLineArgs) : Array<string> {
+    public quote(args: CommandLineArgs): Array<string> {
         const escape = (value: string) => `\`${value}`;
 
         return args.map((quotedArg) => {
@@ -78,6 +84,14 @@ export class Powershell extends Shell {
                 };
         }
     }
+
+    public override getShellOrDefault(shell?: string | boolean | undefined): string | boolean | undefined {
+        if (typeof shell !== 'string' && shell !== false) {
+            return 'powershell.exe';
+        }
+
+        return shell;
+    }
 }
 
 /**
@@ -103,6 +117,7 @@ export class Bash extends Shell {
 export type StreamSpawnOptions = SpawnOptions & {
     onCommand?: (command: string) => void;
     cancellationToken?: CancellationTokenLike;
+    shellProvider?: Shell;
 
     stdInPipe?: NodeJS.ReadableStream;
     stdOutPipe?: NodeJS.WritableStream;
@@ -117,9 +132,7 @@ export async function spawnStreamAsync(
     const cancellationToken = options.cancellationToken || CancellationTokenLike.None;
     // Force PowerShell as the default on Windows, but use the system default on
     // *nix
-    const shell = typeof options.shell !== 'string' && options.shell !== false && os.platform() === 'win32'
-        ? 'powershell.exe'
-        : options.shell;
+    const shell = options.shellProvider?.getShellOrDefault(options.shell) ?? options.shell;
 
     if (cancellationToken.isCancellationRequested) {
         throw new CancellationError('Command cancelled', cancellationToken);

@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { FileType, ShellQuotedString } from 'vscode';
-import { Shell } from '../utils/spawnStreamAsync';
 import { CommandResponse } from "./CommandRunner";
+import { IShell } from './Shell';
 
 export type ContainerOS = "linux" | "windows";
 
@@ -39,7 +39,7 @@ export type ClientIdentity = {
 };
 
 export type CommonCommandOptions = {
-    shell?: Shell;
+    shellProvider?: IShell;
 };
 
 // Version Command Types

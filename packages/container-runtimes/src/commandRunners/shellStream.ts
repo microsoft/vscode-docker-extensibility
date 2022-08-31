@@ -22,7 +22,6 @@ import {
 } from '../utils/spawnStreamAsync';
 
 export type ShellStreamCommandRunnerOptions = StreamSpawnOptions & {
-    shellQuote?: Shell;
     strict?: boolean;
 };
 
@@ -89,7 +88,7 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
         return {
             command: commandResponse.command,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            args: Shell.getShellOrDefault(this.options.shellQuote).quote(commandResponse.args),
+            args: Shell.getShellOrDefault(this.options.shellProvider).quote(commandResponse.args),
         };
     }
 }

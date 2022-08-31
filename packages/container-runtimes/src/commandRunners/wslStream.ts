@@ -34,7 +34,7 @@ export class WslShellCommandRunnerFactory extends ShellStreamCommandRunnerFactor
             '--',
             commandResponse.command,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            ...Shell.getShellOrDefault(this.options.shellQuote).quote(commandResponse.args),
+            ...Shell.getShellOrDefault(this.options.shellProvider).quote(commandResponse.args),
         ];
 
         return { command, args };
