@@ -18,7 +18,7 @@ import { CommandLineArgs } from './commandLineBuilder';
  * Quoth the cmd.exe 'nevermore'.
  */
 export abstract class Shell implements IShell {
-    public static getShellOrDefault(shell: Shell | null | undefined) {
+    public static getShellOrDefault(shell: Shell | null | undefined): Shell {
         if (shell) {
             return shell;
         }
@@ -72,7 +72,7 @@ export class Powershell extends Shell {
         });
     }
 
-    public override goTemplateQuotedString(arg: string, quoting: ShellQuoting) {
+    public override goTemplateQuotedString(arg: string, quoting: ShellQuoting): ShellQuotedString {
         switch (quoting) {
             case ShellQuoting.Escape:
                 return { value: arg, quoting };
@@ -98,7 +98,7 @@ export class Powershell extends Shell {
  * Quoting/escaping rules for bash/zsh shell
  */
 export class Bash extends Shell {
-    public quote(args: CommandLineArgs) {
+    public quote(args: CommandLineArgs): Array<string> {
         const escape = (value: string) => `\\${value}`;
 
         return args.map((quotedArg) => {
