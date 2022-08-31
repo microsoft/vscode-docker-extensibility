@@ -65,7 +65,8 @@ export class Powershell extends Shell {
             }
         });
     }
-    public goTemplateQuotedString(arg: string, quoting: ShellQuoting) {
+
+    public override goTemplateQuotedString(arg: string, quoting: ShellQuoting) {
         switch (quoting) {
             case ShellQuoting.Escape:
                 return { value: arg, quoting };
