@@ -78,6 +78,29 @@ describe('parseDockerLikeImageName', () => {
         });
     });
 
+    it('Should return empty on <none> image names', () => {
+        expect(parseDockerLikeImageName('<none>:<none>')).to.deep.equal({
+            originalName: '<none>:<none>',
+            image: undefined,
+            tag: undefined,
+            registry: undefined,
+        });
+
+        expect(parseDockerLikeImageName('<none>')).to.deep.equal({
+            originalName: '<none>',
+            image: undefined,
+            tag: undefined,
+            registry: undefined,
+        });
+
+        expect(parseDockerLikeImageName('alpine:<none>')).to.deep.equal({
+            originalName: 'alpine:<none>',
+            image: 'alpine',
+            tag: undefined,
+            registry: undefined,
+        });
+    });
+
     it('Should return empty on empty image names', () => {
         expect(parseDockerLikeImageName(undefined)).to.deep.equal({
             originalName: undefined,

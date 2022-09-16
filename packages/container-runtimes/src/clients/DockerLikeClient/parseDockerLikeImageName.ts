@@ -21,6 +21,9 @@ import { ImageNameInfo } from '../../contracts/ContainerClient';
  */
 const imageNameRegex = /^((?<registry>(localhost|([\w-]+(\.[\w-]+)+))(:\d+)?)\/)?(?<image>[\w./<>]+)(:(?<tag>[\w-.<>]+))?$/;
 
+// In certain cases, Docker makes image/tag names "<none>", which is not really valid. We will reinterpret those as `undefined`.
+const noneImageName = /[<>]/i;
+
 /**
  * Parse an image name and return its components.
  * @param originalName The original image name
@@ -44,8 +47,8 @@ export function parseDockerLikeImageName(originalName: string | undefined): Imag
 
     return {
         originalName,
-        image,
-        tag,
+        image: noneImageName.test(image) ? undefined : image,
+        tag: noneImageName.test(tag) ? undefined : tag,
         registry,
     };
 }
