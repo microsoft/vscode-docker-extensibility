@@ -32,10 +32,33 @@ export type LabelFilters = {
 
 // Uniquely identifies a container client
 export type ClientIdentity = {
+    /**
+     * The client ID. Must be unique.
+     */
     readonly id: string;
-    readonly displayName: string;
+    /**
+     * A human-readable display name for the client.
+     */
+    displayName: string;
+    /**
+     * A human-readable description for the client.
+     */
     readonly description: string;
+    /**
+     * The default command name / path to use for the client.
+     */
     readonly commandName: string;
+};
+
+export type ImageNameDefaults = {
+    /**
+     * The default registry used by the client for pulling public images
+     */
+    readonly defaultRegistry: string;
+    /**
+     * The default tag used by the client for pulling public images
+     */
+    readonly defaultTag: string;
 };
 
 export type CommonCommandOptions = {
@@ -1707,6 +1730,7 @@ type WriteFileCommand = {
  */
 export interface IContainersClient extends
     ClientIdentity,
+    ImageNameDefaults,
     VersionCommand,
     InfoCommand,
     LoginCommand,
