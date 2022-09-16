@@ -388,7 +388,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
         return composeArgs(
             withArg('image', 'remove'),
             withFlagArg('--force', options.force),
-            withArg(...options.imageNames),
+            withArg(...options.imageRefs),
         )();
     }
 
@@ -415,7 +415,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
     protected getPushImageCommandArgs(options: PushImageCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('image', 'push'),
-            withArg(options.imageName),
+            withArg(options.imageRef),
         )();
     }
 
@@ -474,7 +474,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
                 typeof options.disableContentTrust === 'boolean'
                     ? options.disableContentTrust.toString()
                     : undefined),
-            withArg(options.imageName),
+            withArg(options.imageRef),
         )();
     }
 
@@ -501,7 +501,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
     protected getTagImageCommandArgs(options: TagImageCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('image', 'tag'),
-            withArg(options.fromImageName, options.toImageName),
+            withArg(options.fromImageRef, options.toImageRef),
         )();
     }
 
@@ -553,7 +553,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
                     formatOverrides,
                 ),
             ),
-            withArg(...options.imageNames),
+            withArg(...options.imageRefs),
         )();
     }
 
@@ -715,7 +715,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
             withNamedArg('--env-file', options.environmentFiles),
             withNamedArg('--entrypoint', options.entrypoint),
             withArg(options.customOptions),
-            withArg(options.imageName),
+            withArg(options.imageRef),
             withArg(...(toArray(options.command || []))),
         )();
     }
