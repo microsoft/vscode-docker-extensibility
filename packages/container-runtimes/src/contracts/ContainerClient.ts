@@ -20,6 +20,40 @@ export function isContainerOS(maybeContainerOS: unknown): maybeContainerOS is Co
     }
 }
 
+/**
+ * Information about an image's name
+ */
+export interface ImageNameInfo {
+    /**
+     * The original name as returned by the CLI
+     */
+    readonly originalName: string;
+    /**
+     * The most verbose image name possible from the given information. Will always include
+     * the registry; if it is absent from the original name then "localhost" is assumed.
+     */
+    readonly verboseName: string;
+    /**
+     * The most verbose image name possible from the given information. Excludes the registry
+     * if it is "localhost".
+     */
+    readonly nonLocalhostVerboseName: string;
+    /**
+     * The name of the image. For example, in "docker.io/library/alpine:latest", this would
+     * be "library/alpine".
+     */
+    readonly image: string;
+    /**
+     * The name of the registry. If absent from the original name, this will be undefined,
+     * but `verboseName` above assumes "localhost".
+     */
+    readonly registry?: string;
+    /**
+     * The tag/anchor name. If absent, this will be undefined.
+     */
+    readonly tag?: string;
+}
+
 export type Labels = {
     [key: string]: string;
 };
@@ -231,30 +265,13 @@ export type ListImagesItem = {
      */
     id: string;
     /**
-     * The name of the image (unless this is an anonymous base image)
+     * Image name information
      */
-    name?: string;
-    /**
-     * Labels on the image
-     */
-    // TODO: images are not present in Docker image listing, so disabling this for now
-    // labels: Labels;
-    /**
-     * The tag of the image (unless this is an anonymous base image)
-     */
-    tag?: string;
-    /**
-     * The full image name (registry/name:tag)
-     */
-    image: string;
+    image: ImageNameInfo;
     /**
      * The date the image was created
      */
     createdAt: Date;
-    /**
-     * The registry the image belongs to
-     */
-    registry?: string;
     /**
      * The size (in bytes) of the image
      */
@@ -273,9 +290,9 @@ type ListImagesCommand = {
 
 export type RemoveImagesCommandOptions = CommonCommandOptions & {
     /**
-     * Images to remove
+     * Image names to remove, passed directly to the CLI
      */
-    images: Array<string>;
+    imageNames: Array<string>;
     /**
      * Force remove images even if there are running containers
      */
@@ -307,9 +324,9 @@ export type PruneImagesCommandOptions = CommonCommandOptions & {
  */
 export type PruneImagesItem = {
     /**
-     * A list of the images deleted
+     * A list of the image names deleted
      */
-    imagesDeleted?: string[];
+    imageNamesDeleted?: string[];
 
     /**
      * The amount of space (in bytes) reclaimed
@@ -332,9 +349,9 @@ type PruneImagesCommand = {
  */
 export type PullImageCommandOptions = CommonCommandOptions & {
     /**
-     * The specific image to pull (registry/name:tag format)
+     * The specific image to pull (registry/name:tag format), passed directly to CLI
      */
-    image: string;
+    imageName: string;
     /**
      * Should all tags for the given image be pulled or just the given tag?
      */
@@ -360,9 +377,9 @@ type PullImageCommand = {
  */
 export type PushImageCommandOptions = CommonCommandOptions & {
     /**
-     * The specific image to push (registry/name:tag format)
+     * The specific image to push (registry/name:tag format), passed directly to CLI
      */
-    image: string;
+    imageName: string;
 };
 
 type PushImageCommand = {
@@ -377,13 +394,13 @@ type PushImageCommand = {
 
 export type TagImageCommandOptions = CommonCommandOptions & {
     /**
-     * The base image to add an additional tag to
+     * The base image to add an additional tag to, passed directly to CLI
      */
-    fromImage: string;
+    fromImageName: string;
     /**
-     * The new image with tag for the existing image
+     * The new image with tag for the existing image, passed directly to CLI
      */
-    toImage: string;
+    toImageName: string;
 };
 
 type TagImageCommand = {
@@ -403,21 +420,9 @@ export type InspectImagesItem = {
      */
     id: string;
     /**
-     * The image name, e.g. 'alpine'
+     * Image name information
      */
-    name?: string;
-    /**
-     * The image tag, e.g. 'latest'
-     */
-    tag?: string;
-    /**
-     * The registry the image belongs to, e.g. 'docker.io/library'
-     */
-    registry?: string;
-    /**
-     * The full name of the image (registry/name:tag), e.g. 'docker.io/library/alpine:latest'
-     */
-    image?: string;
+    image: ImageNameInfo;
     /**
      * Repo digest values
      */
@@ -481,9 +486,9 @@ export type InspectImagesItem = {
  */
 export type InspectImagesCommandOptions = CommonCommandOptions & {
     /**
-     * The images to inspect
+     * The image names to inspect, passed directly to the CLI
      */
-    images: Array<string>;
+    imageNames: Array<string>;
 };
 
 type InspectImagesCommand = {
@@ -544,9 +549,9 @@ export type RunContainerExtraHost = {
 
 export type RunContainerCommandOptions = CommonCommandOptions & {
     /**
-     * The image to run
+     * The image to run, passed directly to CLI
      */
-    image: string;
+    imageName: string;
     /**
      * Optional name to give the new container
      */
@@ -713,9 +718,9 @@ export type ListContainersItem = {
      */
     labels: Labels;
     /**
-     * The image name used to run the container (e.g. 'alpine')
+     * Image name information
      */
-    image: string;
+    image: ImageNameInfo;
     /**
      * The exposed ports for the container
      */
@@ -970,9 +975,9 @@ export type InspectContainersItem = {
      */
     imageId: string;
     /**
-     * The name of the image used to run the container
+     * Image name information
      */
-    imageName: string;
+    image: ImageNameInfo;
     /**
      * The status of the container
      */
