@@ -279,9 +279,9 @@ type ListImagesCommand = {
 
 export type RemoveImagesCommandOptions = CommonCommandOptions & {
     /**
-     * Image names to remove, passed directly to the CLI
+     * Image names/IDs/etc. to remove, passed directly to the CLI
      */
-    imageNames: Array<string>;
+    imageRefs: Array<string>;
     /**
      * Force remove images even if there are running containers
      */
@@ -313,9 +313,9 @@ export type PruneImagesCommandOptions = CommonCommandOptions & {
  */
 export type PruneImagesItem = {
     /**
-     * A list of the image names deleted
+     * A list of the image names/IDs/etc. deleted
      */
-    imageNamesDeleted?: string[];
+    imageRefsDeleted?: string[];
 
     /**
      * The amount of space (in bytes) reclaimed
@@ -340,7 +340,7 @@ export type PullImageCommandOptions = CommonCommandOptions & {
     /**
      * The specific image to pull (registry/name:tag format), passed directly to CLI
      */
-    imageName: string;
+    imageRef: string;
     /**
      * Should all tags for the given image be pulled or just the given tag?
      */
@@ -368,7 +368,7 @@ export type PushImageCommandOptions = CommonCommandOptions & {
     /**
      * The specific image to push (registry/name:tag format), passed directly to CLI
      */
-    imageName: string;
+    imageRef: string;
 };
 
 type PushImageCommand = {
@@ -385,11 +385,11 @@ export type TagImageCommandOptions = CommonCommandOptions & {
     /**
      * The base image to add an additional tag to, passed directly to CLI
      */
-    fromImageName: string;
+    fromImageRef: string;
     /**
      * The new image with tag for the existing image, passed directly to CLI
      */
-    toImageName: string;
+    toImageRef: string;
 };
 
 type TagImageCommand = {
@@ -475,9 +475,9 @@ export type InspectImagesItem = {
  */
 export type InspectImagesCommandOptions = CommonCommandOptions & {
     /**
-     * The image names to inspect, passed directly to the CLI
+     * The image names/IDs/etc. to inspect, passed directly to the CLI
      */
-    imageNames: Array<string>;
+    imageRefs: Array<string>;
 };
 
 type InspectImagesCommand = {
@@ -538,9 +538,9 @@ export type RunContainerExtraHost = {
 
 export type RunContainerCommandOptions = CommonCommandOptions & {
     /**
-     * The image to run, passed directly to CLI
+     * The image name/ID/etc. to run, passed directly to CLI
      */
-    imageName: string;
+    imageRef: string;
     /**
      * Optional name to give the new container
      */
