@@ -37,15 +37,19 @@ export type ClientIdentity = {
      */
     readonly id: string;
     /**
-     * A human-readable display name for the client.
+     * A human-readable display name for the client. Will have a default value,
+     * but can be changed by the consumer (e.g. for localization).
      */
     displayName: string;
     /**
-     * A human-readable description for the client.
+     * A human-readable description for the client. Will have a default value,
+     * but can be changed by the consumer (e.g. for localization).
      */
     description: string;
     /**
-     * The default command name / path to use for the client.
+     * The default command name / path to use for the client. Will have a
+     * default value, but can be changed by the consumer (e.g. for
+     * custom install paths).
      */
     commandName: string;
 };
