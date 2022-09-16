@@ -585,8 +585,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
 
                     // This is effectively doing firstOrDefault on the RepoTags for the image. If there are any values
                     // in RepoTags, the first one will be parsed and returned as the tag name for the image.
-                    // Otherwise, '<none>' will be used as the name.
-                    const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(inspect.RepoTags?.[0] || '<none>');
+                    const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(inspect.RepoTags?.[0]);
 
                     // Parse any environment variables defined for the image
                     const environmentVariables = (inspect.EnvVars || []).reduce<Record<string, string>>((evs, ev) => {

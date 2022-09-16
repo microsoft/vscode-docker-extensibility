@@ -27,25 +27,14 @@ export interface ImageNameInfo {
     /**
      * The original name as returned by the CLI
      */
-    readonly originalName: string;
+    readonly originalName?: string;
     /**
-     * The most verbose image name possible from the given information. Will always include
-     * the registry; if it is absent from the original name then "localhost" is assumed.
-     */
-    readonly verboseName: string;
-    /**
-     * The most verbose image name possible from the given information. Excludes the registry
-     * if it is "localhost".
-     */
-    readonly nonLocalhostVerboseName: string;
-    /**
-     * The name of the image. For example, in "docker.io/library/alpine:latest", this would
+     * The name of the image. For example, in "docker.io/library/alpine:latest", this will
      * be "library/alpine".
      */
-    readonly image: string;
+    readonly image?: string;
     /**
-     * The name of the registry. If absent from the original name, this will be undefined,
-     * but `verboseName` above assumes "localhost".
+     * The name of the registry. If absent from the original name, this will be undefined.
      */
     readonly registry?: string;
     /**

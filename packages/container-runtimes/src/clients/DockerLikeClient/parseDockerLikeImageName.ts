@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ImageNameInfo } from "../../contracts/ContainerClient";
+import { ImageNameInfo } from '../../contracts/ContainerClient';
 
 /**
  * A regex for parsing image names. Because this is only used to parse CLI output, we can assume
@@ -27,7 +27,13 @@ const imageNameRegex = /^((?<registry>(localhost|([\w-]+(\.[\w-]+)+))(:\d+)?)\/)
  * @returns The separated registry, image, and tag, along with the input original name
  * and a verbose name composed of as much information as possible.
  */
-export function parseDockerLikeImageName(originalName: string): ImageNameInfo {
+export function parseDockerLikeImageName(originalName: string | undefined): ImageNameInfo {
+    if (!originalName) {
+        return {
+            originalName,
+        };
+    }
+
     const match = imageNameRegex.exec(originalName);
 
     if (!match || !match.groups) {
@@ -41,7 +47,5 @@ export function parseDockerLikeImageName(originalName: string): ImageNameInfo {
         image,
         tag,
         registry,
-        verboseName: `${registry || 'localhost'}/${image}${tag ? ':' + tag : ''}`,
-        nonLocalhostVerboseName: `${registry && registry !== 'localhost' ? registry + '/' : ''}${image}${tag ? ':' + tag : ''}`,
     };
 }
