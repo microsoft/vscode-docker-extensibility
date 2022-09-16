@@ -636,7 +636,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
                     const isLocalImage = !(inspect.RepoDigests || []).some((digest) => !digest.toLowerCase().startsWith('localhost/'));
 
                     // Return a normalized InspectImagesItem record
-                    const result: InspectImagesItem = {
+                    const image: InspectImagesItem = {
                         id: inspect.Id,
                         image: imageNameInfo,
                         repoDigests: inspect.RepoDigests,
@@ -655,7 +655,7 @@ export abstract class DockerLikeClient extends ConfigurableClient implements ICo
                         raw: JSON.stringify(inspect.Raw),
                     };
 
-                    return [...images, result];
+                    return [...images, image];
                 } catch (err) {
                     if (strict) {
                         throw err;
