@@ -43,11 +43,11 @@ export type ClientIdentity = {
     /**
      * A human-readable description for the client.
      */
-    readonly description: string;
+    description: string;
     /**
      * The default command name / path to use for the client.
      */
-    readonly commandName: string;
+    commandName: string;
 };
 
 export type ImageNameDefaults = {
