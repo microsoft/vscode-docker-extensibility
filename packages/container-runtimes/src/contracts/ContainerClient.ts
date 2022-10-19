@@ -111,20 +111,19 @@ type VersionCommand = {
     version(options: VersionCommandOptions): Promise<CommandResponse<VersionItem>>;
 };
 
-// V Command Types
+// CheckInstall Command Types
 
-export type VCommandOptions = CommonCommandOptions & {
+export type CheckInstallCommandOptions = CommonCommandOptions & {
     // Intentionally empty for now
 };
 
-type VCommand = {
+type CheckInstallCommand = {
     /**
-     * Generate a CommandResponse to retrieve version information. Different from
-     * `version()` in that it does `-v` instead, which works even when the daemon
-     * isn't running
+     * Generate a CommandResponse to check if the runtime is installed. The
+     * command will return a non-zero exit code if the runtime is not installed.
      * @param options Command options
      */
-    v(options: VersionCommandOptions): Promise<CommandResponse<string>>;
+    checkInstall(options: CheckInstallCommandOptions): Promise<CommandResponse<string>>;
 };
 
 // Info Command Types
@@ -1733,7 +1732,7 @@ export interface IContainersClient extends
     ClientIdentity,
     ImageNameDefaults,
     VersionCommand,
-    VCommand,
+    CheckInstallCommand,
     InfoCommand,
     LoginCommand,
     LogoutCommand,

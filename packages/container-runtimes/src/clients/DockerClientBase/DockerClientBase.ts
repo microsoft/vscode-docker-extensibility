@@ -11,6 +11,7 @@ import { ShellQuotedString, ShellQuoting } from 'vscode';
 import { CommandResponse } from '../../contracts/CommandRunner';
 import {
     BuildImageCommandOptions,
+    CheckInstallCommandOptions,
     ContainersStatsCommandOptions,
     CreateNetworkCommandOptions,
     CreateVolumeCommandOptions,
@@ -70,7 +71,6 @@ import {
     StopContainersCommandOptions,
     TagImageCommandOptions,
     UseContextCommandOptions,
-    VCommandOptions,
     VersionCommandOptions,
     VersionItem,
     WriteFileCommandOptions
@@ -220,25 +220,26 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     }
 
     /**
-     * Get the command line arguments for a Docker-like client -v command
-     * @param options Standard -v command options
-     * @returns Command line args for getting -v information from a Docker-like client
+     * Get the command line arguments for a Docker-like client install check command
+     * @param options Standard install check command options
+     * @returns Command line args for doing install check for a Docker-like client
      */
-    protected getVCommandArgs(options: VCommandOptions): CommandLineArgs {
+    protected getCheckInstallCommandArgs(options: CheckInstallCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('-v')
         )();
     }
 
     /**
-     * -v command implementation for Docker-like clients
-     * @param options Standard -v command options
-     * @returns A CommandResponse object indicating how to run and parse a -v command for this runtime
+     * Install check command implementation for Docker-like clients
+     * @param options Standard install check command options
+     * @returns A CommandResponse object indicating how to run and parse an install check
+     * command for this runtime
      */
-    async v(options: VCommandOptions): Promise<CommandResponse<string>> {
+    async checkInstall(options: CheckInstallCommandOptions): Promise<CommandResponse<string>> {
         return {
             command: this.commandName,
-            args: this.getVCommandArgs(options),
+            args: this.getCheckInstallCommandArgs(options),
             parse: (output) => Promise.resolve(output),
         };
     }
