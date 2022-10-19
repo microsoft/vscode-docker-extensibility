@@ -111,7 +111,23 @@ type VersionCommand = {
     version(options: VersionCommandOptions): Promise<CommandResponse<VersionItem>>;
 };
 
-// Info CommandTypes
+// V Command Types
+
+export type VCommandOptions = CommonCommandOptions & {
+    // Intentionally empty for now
+};
+
+type VCommand = {
+    /**
+     * Generate a CommandResponse to retrieve version information. Different from
+     * `version()` in that it does `-v` instead, which works even when the daemon
+     * isn't running
+     * @param options Command options
+     */
+    v(options: VersionCommandOptions): Promise<CommandResponse<string>>;
+};
+
+// Info Command Types
 
 export type InfoCommandOptions = CommonCommandOptions & {
     // Intentionally empty for now
@@ -1717,6 +1733,7 @@ export interface IContainersClient extends
     ClientIdentity,
     ImageNameDefaults,
     VersionCommand,
+    VCommand,
     InfoCommand,
     LoginCommand,
     LogoutCommand,

@@ -70,6 +70,7 @@ import {
     StopContainersCommandOptions,
     TagImageCommandOptions,
     UseContextCommandOptions,
+    VCommandOptions,
     VersionCommandOptions,
     VersionItem,
     WriteFileCommandOptions
@@ -215,6 +216,30 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             command: this.commandName,
             args: this.getVersionCommandArgs(options),
             parse: this.parseVersionCommandOutput,
+        };
+    }
+
+    /**
+     * Get the command line arguments for a Docker-like client -v command
+     * @param options Standard -v command options
+     * @returns Command line args for getting -v information from a Docker-like client
+     */
+    protected getVCommandArgs(options: VCommandOptions): CommandLineArgs {
+        return composeArgs(
+            withArg('-v')
+        )();
+    }
+
+    /**
+     * -v command implementation for Docker-like clients
+     * @param options Standard -v command options
+     * @returns A CommandResponse object indicating how to run and parse a -v command for this runtime
+     */
+    async v(options: VCommandOptions): Promise<CommandResponse<string>> {
+        return {
+            command: this.commandName,
+            args: this.getVCommandArgs(options),
+            parse: (output) => Promise.resolve(output),
         };
     }
 
