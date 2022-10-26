@@ -269,8 +269,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                     options.shellProvider, {
                     Type: goTemplateJsonProperty`.Type`,
                     Action: goTemplateJsonProperty`.Action`,
-                    Actor: goTemplateJsonProperty`.Actor`, // TODO: is this right?
-                    time: goTemplateJsonProperty`.time`,
+                    Actor: goTemplateJsonProperty`.Actor`,
+                    time: goTemplateJsonProperty`.Time`,
                     Raw: goTemplateJsonProperty`.`,
                 })
             ),

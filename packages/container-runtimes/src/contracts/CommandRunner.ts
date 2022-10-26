@@ -19,7 +19,10 @@ export type GeneratorCommandResponse<T> = CommandResponseBase & {
     parseStream: (output: NodeJS.ReadableStream, strict: boolean, cancellationToken?: CancellationTokenLike) => AsyncGenerator<T>;
 };
 
-export type VoidCommandResponse = CommandResponseBase;
+export type VoidCommandResponse = CommandResponseBase & {
+    parse?: never;
+    parseStream?: never;
+};
 
 /**
  * A CommandResponse record provides instructions on how to invoke a command
@@ -29,54 +32,20 @@ export type VoidCommandResponse = CommandResponseBase;
  */
 export type CommandResponse<T> = PromiseCommandResponse<T> | GeneratorCommandResponse<T> | VoidCommandResponse;
 
-function isCommandResponseBase(maybeCommandResponse: unknown): maybeCommandResponse is CommandResponseBase {
-    const asCommandResponse = maybeCommandResponse as CommandResponseBase;
 
-    if (!asCommandResponse || typeof asCommandResponse !== 'object') {
-        return false;
-    }
-
-    if (typeof asCommandResponse.command !== 'string') {
-        return false;
-    }
-
-    if (!Array.isArray(asCommandResponse.args)) {
-        return false;
-    }
-
-    return true;
-}
-
-export function isPromiseCommandResponse<T>(maybePromiseCommandResponse: unknown): maybePromiseCommandResponse is PromiseCommandResponse<T> {
-    return isCommandResponseBase(maybePromiseCommandResponse) &&
-        typeof (maybePromiseCommandResponse as PromiseCommandResponse<T>).parse === 'function';
-}
-
-export function isGeneratorCommandResponse<T>(maybeGeneratorCommandResponse: unknown): maybeGeneratorCommandResponse is GeneratorCommandResponse<T> {
-    return isCommandResponseBase(maybeGeneratorCommandResponse) &&
-        typeof (maybeGeneratorCommandResponse as GeneratorCommandResponse<T>).parseStream === 'function';
-}
-
-export function isVoidCommandResponse(maybeVoidCommandResponse: unknown): maybeVoidCommandResponse is VoidCommandResponse {
-    return isCommandResponseBase(maybeVoidCommandResponse) &&
-        !isPromiseCommandResponse(maybeVoidCommandResponse) &&
-        !isGeneratorCommandResponse(maybeVoidCommandResponse);
-}
-
-type ThingLike<T> = T | Promise<T> | (() => T | Promise<T>);
-
-export type CommandResponseLike<T> = ThingLike<CommandResponse<T>>;
-export type GeneratorCommandResponseLike<T> = ThingLike<GeneratorCommandResponse<T>>;
-
-//export type CommandResponseLike<T> = CommandResponse<T> | Promise<CommandResponse<T>> | (() => CommandResponse<T> | Promise<CommandResponse<T>>);
+export type Like<T> = T | Promise<T> | (() => T | Promise<T>);
 
 /**
  * A {@link CommandRunner} provides instructions on how to invoke a command
  */
 export type CommandRunner =
-    ((commandResponse: ThingLike<VoidCommandResponse>) => Promise<void>) |
-    (<T>(commandResponse: ThingLike<PromiseCommandResponse<T>>) => Promise<T>) |
-    (<T>(commandResponse: ThingLike<GeneratorCommandResponse<T>>) => AsyncGenerator<T, void, unknown>);
+    (<T>(commandResponseLike: Like<PromiseCommandResponse<T>>) => Promise<T>) &
+    ((commandResponseLike: Like<VoidCommandResponse>) => Promise<void>);
+
+/**
+ * A {@link StreamingCommandRunner} provides instructions on how to invoke a streaming command
+ */
+export type StreamingCommandRunner = <T>(commandResponseLike: Like<GeneratorCommandResponse<T>>) => Promise<AsyncGenerator<T>>;
 
 /**
  * A {@link ICommandRunnerFactory} is used to build a CommandRunner instance
@@ -84,9 +53,10 @@ export type CommandRunner =
  */
 export interface ICommandRunnerFactory {
     getCommandRunner(): CommandRunner;
+    getStreamingCommandRunner(): StreamingCommandRunner;
 }
 
-export function normalizeCommandResponseLike<T>(commandResponseLike: CommandResponseLike<T>): Promise<CommandResponse<T>> {
+export function normalizeCommandResponseLike<TCommandResponse extends CommandResponseBase>(commandResponseLike: Like<TCommandResponse>): Promise<TCommandResponse> {
     if (typeof commandResponseLike === 'function') {
         return Promise.resolve(commandResponseLike());
     } else {
