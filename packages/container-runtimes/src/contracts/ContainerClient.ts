@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { FileType, ShellQuotedString } from 'vscode';
-import { GeneratorCommandResponse, PromiseCommandResponse } from './CommandRunner';
+import { GeneratorCommandResponse, PromiseCommandResponse, VoidCommandResponse } from './CommandRunner';
 import { IShell } from './Shell';
 
 export type ContainerOS = "linux" | "windows";
@@ -258,7 +258,7 @@ type LoginCommand = {
      * Log in to a Docker registry
      * @param options Command options
      */
-    login(options: LoginCommandOptions): Promise<PromiseCommandResponse<void>>;
+    login(options: LoginCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // Logout Command Types
@@ -278,7 +278,7 @@ type LogoutCommand = {
      * Log out from a Docker registry
      * @param options Command options
      */
-    logout(options: LogoutCommandOptions): Promise<PromiseCommandResponse<void>>;
+    logout(options: LogoutCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // #endregion
@@ -338,7 +338,7 @@ type BuildImageCommand = {
      * Generate a CommandResponse for building a container image.
      * @param options Command options
      */
-    buildImage(options: BuildImageCommandOptions): Promise<PromiseCommandResponse<void>>;
+    buildImage(options: BuildImageCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // List Images Command Types
@@ -473,7 +473,7 @@ type PullImageCommand = {
      * Generate a CommandResponse for pulling an image.
      * @param options Command options
      */
-    pullImage(options: PullImageCommandOptions): Promise<PromiseCommandResponse<void>>;
+    pullImage(options: PullImageCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // Push Image Command Types
@@ -493,7 +493,7 @@ type PushImageCommand = {
      * Generate a CommandResponse for pushing an image.
      * @param options Command options
      */
-    pushImage(options: PushImageCommandOptions): Promise<PromiseCommandResponse<void>>;
+    pushImage(options: PushImageCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // Tag Image Command Types
@@ -515,7 +515,7 @@ type TagImageCommand = {
      * image.
      * @param options Command options
      */
-    tagImage(options: TagImageCommandOptions): Promise<PromiseCommandResponse<void>>;
+    tagImage(options: TagImageCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // Inspect Image Command Types
@@ -993,7 +993,7 @@ type LogsForContainerCommand = {
      * Generate a CommandResponse for retrieving container logs
      * @param options Command options
      */
-    logsForContainer(options: LogsForContainerCommandOptions): Promise<PromiseCommandResponse<void>>;
+    logsForContainer(options: LogsForContainerCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // Inspect Container Command Types
@@ -1193,7 +1193,7 @@ type CreateVolumeCommand = {
      * Generate a CommandResponse for creating a volume
      * @param options Command options
      */
-    createVolume(options: CreateVolumeCommandOptions): Promise<PromiseCommandResponse<void>>;
+    createVolume(options: CreateVolumeCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // List Volumes Command Types
@@ -1382,7 +1382,7 @@ type CreateNetworkCommand = {
      * Generate a CommandResponse for creating a network
      * @param options Command options
      */
-    createNetwork(options: CreateNetworkCommandOptions): Promise<PromiseCommandResponse<void>>;
+    createNetwork(options: CreateNetworkCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // List Networks Command Types
@@ -1636,7 +1636,7 @@ type UseContextCommand = {
      * Generate a CommandResponse for using a context
      * @param options Command options
      */
-    useContext(options: UseContextCommandOptions): Promise<PromiseCommandResponse<void>>;
+    useContext(options: UseContextCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // Inspect Contexts Command Types
@@ -1761,7 +1761,7 @@ type ReadFileCommand = {
      * NOTE: the output stream is in tarball format with Linux containers, and cleartext with Windows containers.
      * @param options Command options
      */
-    readFile(options: ReadFileCommandOptions): Promise<PromiseCommandResponse<void>>;
+    readFile(options: ReadFileCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // Write file command types
@@ -1794,7 +1794,7 @@ type WriteFileCommand = {
      * NOTE: this command is not supported on Windows containers.
      * @param options Command options
      */
-    writeFile(options: WriteFileCommandOptions): Promise<PromiseCommandResponse<void>>;
+    writeFile(options: WriteFileCommandOptions): Promise<VoidCommandResponse>;
 };
 
 // #endregion

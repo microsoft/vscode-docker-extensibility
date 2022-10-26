@@ -10,6 +10,8 @@ import {
     CommandResponseLike,
     CommandRunner,
     ICommandRunnerFactory,
+    isGeneratorCommandResponse,
+    isPromiseCommandResponse,
     normalizeCommandResponseLike,
 } from '../contracts/CommandRunner';
 import { CancellationTokenLike } from '../typings/CancellationTokenLike';
@@ -39,7 +41,7 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
 
             throwIfCancellationRequested(this.options.cancellationToken);
 
-            let result: T | undefined;
+            let result: T | void;
 
             let splitterStream: stream.PassThrough | undefined;
             const pipelinePromises: Promise<void>[] = [];
@@ -47,12 +49,14 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
             let accumulator: AccumulatorStream | undefined;
 
             try {
-                if (commandResponse.parse) {
+                if (isPromiseCommandResponse<T>(commandResponse)) {
                     splitterStream ??= new stream.PassThrough();
                     accumulator = new AccumulatorStream();
                     pipelinePromises.push(
                         streamPromise.pipeline(splitterStream, accumulator)
                     );
+                } else if (isGeneratorCommandResponse<T>(commandResponse)) {
+                    splitterStream ??= new stream.PassThrough();
                 }
 
                 if (this.options.stdOutPipe) {
@@ -66,18 +70,20 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
 
                 throwIfCancellationRequested(this.options.cancellationToken);
 
-                if (accumulator && commandResponse.parse) {
+                if (accumulator && isPromiseCommandResponse<T>(commandResponse)) {
                     const output = await accumulator.getString();
                     throwIfCancellationRequested(this.options.cancellationToken);
                     result = await commandResponse.parse(output, !!this.options.strict);
+                } else if (isGeneratorCommandResponse<T>(commandResponse)) {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    result = commandResponse.parseStream(splitterStream!, !!this.options.strict, this.options.cancellationToken);
                 }
 
                 throwIfCancellationRequested(this.options.cancellationToken);
 
                 await Promise.all(pipelinePromises);
 
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                return result!;
+                return result;
             } finally {
                 accumulator?.destroy();
             }
