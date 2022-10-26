@@ -3,22 +3,29 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { CommandLineArgs } from '../utils/commandLineBuilder';
+
+type CommandResponseBase = {
+    command: string;
+    args: CommandLineArgs;
+};
+
+export type PromiseCommandResponse<T> = CommandResponseBase & {
+    parse?: (output: string, strict: boolean) => Promise<T>;
+};
+
+export type GeneratorCommandResponse<T> = CommandResponseBase & {
+    parseStream?: (output: NodeJS.ReadableStream, strict: boolean, cancellationToken?: CancellationTokenLike) => AsyncGenerator<T>;
+};
 
 /**
  * A CommandResponse record provides instructions on how to invoke a command
  * and a parse callback that can be used to parse and normalize the standard
  * output from invoking the command. This is the standard type returned by all
  * commands defined by the IContainersClient interface.
- *
- * Parse will not be implemented for streaming operations, like container logs
- * or files.
  */
-export type CommandResponse<T> = {
-    command: string;
-    args: CommandLineArgs;
-    parse?: (output: string, strict: boolean) => Promise<T>;
-};
+export type CommandResponse<T> = PromiseCommandResponse<T> | GeneratorCommandResponse<T>;
 
 export type CommandResponseLike<T> = CommandResponse<T> | Promise<CommandResponse<T>> | (() => CommandResponse<T> | Promise<CommandResponse<T>>);
 
