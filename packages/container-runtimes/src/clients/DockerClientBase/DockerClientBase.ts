@@ -259,8 +259,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withNamedArg('--since', options.since),
             withNamedArg('--until', options.until),
             withDockerLabelFilterArgs(options.labels),
-            // TODO: type filters
-            // TODO: action filters
+            withNamedArg('--filter', options.types?.map((type) => `type=${type}`)),
+            withNamedArg('--filter', options.events?.map((event) => `event=${event}`)),
             withNamedArg(
                 '--format',
                 // By specifying an explicit Go template format output, we're able to use the same normalization logic
