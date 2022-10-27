@@ -270,7 +270,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                     Type: goTemplateJsonProperty`.Type`,
                     Action: goTemplateJsonProperty`.Action`,
                     Actor: goTemplateJsonProperty`.Actor`,
-                    time: goTemplateJsonProperty`.Time`,
+                    Time: goTemplateJsonProperty`.Time`,
                     Raw: goTemplateJsonProperty`.`,
                 })
             ),
@@ -307,7 +307,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                     type: item.Type,
                     action: item.Action,
                     actor: { id: item.Actor.ID, attributes: item.Actor.Attributes },
-                    timestamp: new Date(item.time),
+                    timestamp: new Date(item.Time),
                     raw: JSON.stringify(item.Raw),
                 };
             } catch (err) {
