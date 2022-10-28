@@ -97,6 +97,7 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
 
             const dataStream: stream.PassThrough = new stream.PassThrough();
 
+            // Unlike above in `getCommandRunner()`, we cannot await the process, because it will (probably) never exit
             void spawnStreamAsync(command, args, { ...this.options, stdOutPipe: dataStream, shell: true });
 
             throwIfCancellationRequested(this.options.cancellationToken);
