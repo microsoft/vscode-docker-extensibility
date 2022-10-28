@@ -180,7 +180,7 @@ export type EventStreamCommandOptions = CommonCommandOptions & {
      */
     until?: string;
     /**
-     * Only listen for events of affecting these object types
+     * Only listen for events affecting these object types
      */
     types?: EventType[];
     /**
