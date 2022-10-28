@@ -168,7 +168,7 @@ export type EventType = 'container' | 'image' | 'network' | 'volume' | 'daemon' 
 export type EventAction = 'create' | 'destroy' | 'delete' | 'start' | 'stop' | 'restart' | 'pause' | 'update' | string;
 
 /**
- * Options for the event stream command
+ * Options for the Event Stream command
  */
 export type EventStreamCommandOptions = CommonCommandOptions & {
     /**
@@ -194,7 +194,7 @@ export type EventStreamCommandOptions = CommonCommandOptions & {
 };
 
 /**
- * The items returned by the Event Stream Command
+ * The items returned by the Event Stream command
  */
 export type EventItem = {
     /**
