@@ -16,8 +16,6 @@ import {
     StopCommandOptions,
     UpCommandOptions
 } from '../../contracts/ContainerOrchestratorClient';
-import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
-import { CancellationError } from '../../utils/CancellationError';
 import {
     CommandLineArgs,
     CommandLineCurryFn,
@@ -26,6 +24,7 @@ import {
     withFlagArg,
     withNamedArg
 } from '../../utils/commandLineBuilder';
+import { stringStreamToGenerator } from '../../utils/streamToGenerator';
 import { ConfigurableClient } from '../ConfigurableClient';
 
 function withCommonOrchestratorArgs(options: CommonOrchestratorCommandOptions): CommandLineCurryFn {
@@ -239,7 +238,7 @@ export class DockerComposeClient extends ConfigurableClient implements IContaine
         return {
             command: this.commandName,
             args: this.getLogsCommandArgs(options),
-            parseStream: (output, strict, token) => this.stringStreamToGenerator(output, token),
+            parseStream: (output, strict) => stringStreamToGenerator(output),
         };
     }
 
@@ -277,27 +276,4 @@ export class DockerComposeClient extends ConfigurableClient implements IContaine
     }
 
     //#endregion Config command
-
-    //#region Common parse methods
-
-    protected async *stringStreamToGenerator(
-        output: NodeJS.ReadableStream,
-        cancellationToken?: CancellationTokenLike
-    ): AsyncGenerator<string> {
-        cancellationToken ||= CancellationTokenLike.None;
-
-        for await (const chunk of output) {
-            if (cancellationToken.isCancellationRequested) {
-                throw new CancellationError('Operation cancelled', cancellationToken);
-            }
-
-            if (typeof chunk === 'string') {
-                yield chunk;
-            } else if (Buffer.isBuffer(chunk)) {
-                yield chunk.toString();
-            }
-        }
-    }
-
-    //#endregion
 }

@@ -90,6 +90,7 @@ import {
     withQuotedArg,
 } from "../../utils/commandLineBuilder";
 import { CommandNotSupportedError } from '../../utils/CommandNotSupportedError';
+import { byteStreamToGenerator, stringStreamToGenerator } from '../../utils/streamToGenerator';
 import { toArray } from '../../utils/toArray';
 import { ConfigurableClient } from '../ConfigurableClient';
 import { DockerEventRecord, isDockerEventRecord } from './DockerEventRecord';
@@ -322,7 +323,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         return {
             command: this.commandName,
             args: this.getEventStreamCommandArgs(options),
-            parseStream: (output, strict, token) => this.parseEventStreamCommandOutput(options, output, strict, token),
+            parseStream: (output, strict) => this.parseEventStreamCommandOutput(options, output, strict),
         };
     }
 
@@ -879,7 +880,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         return {
             command: this.commandName,
             args: this.getExecContainerCommandArgs(options),
-            parseStream: (output, strict, token) => this.stringStreamToGenerator(output, token),
+            parseStream: (output, strict) => stringStreamToGenerator(output),
         };
     }
 
@@ -1206,7 +1207,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         return {
             command: this.commandName,
             args: this.getLogsForContainerCommandArgs(options),
-            parseStream: (output, strict, token) => this.stringStreamToGenerator(output, token),
+            parseStream: (output, strict) => stringStreamToGenerator(output),
         };
     }
 
@@ -2101,7 +2102,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         return {
             command: this.commandName,
             args: this.getReadFileCommandArgs(options),
-            parseStream: (output, strict, cancellationToken) => this.byteStreamToGenerator(output, cancellationToken),
+            parseStream: (output, strict) => byteStreamToGenerator(output),
         };
     }
 
@@ -2129,48 +2130,6 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     }
 
     //#endregion
-
-    //#endregion
-
-    //#region Common parse methods
-
-    protected async *stringStreamToGenerator(
-        output: NodeJS.ReadableStream,
-        cancellationToken?: CancellationTokenLike
-    ): AsyncGenerator<string> {
-        cancellationToken ||= CancellationTokenLike.None;
-
-        for await (const chunk of output) {
-            if (cancellationToken.isCancellationRequested) {
-                throw new CancellationError('Operation cancelled', cancellationToken);
-            }
-
-            if (typeof chunk === 'string') {
-                yield chunk;
-            } else if (Buffer.isBuffer(chunk)) {
-                yield chunk.toString();
-            }
-        }
-    }
-
-    protected async *byteStreamToGenerator(
-        output: NodeJS.ReadableStream,
-        cancellationToken?: CancellationTokenLike
-    ): AsyncGenerator<Buffer> {
-        cancellationToken ||= CancellationTokenLike.None;
-
-        for await (const chunk of output) {
-            if (cancellationToken.isCancellationRequested) {
-                throw new CancellationError('Operation cancelled', cancellationToken);
-            }
-
-            if (typeof chunk === 'string') {
-                yield Buffer.from(chunk);
-            } else if (Buffer.isBuffer(chunk)) {
-                yield chunk;
-            }
-        }
-    }
 
     //#endregion
 }

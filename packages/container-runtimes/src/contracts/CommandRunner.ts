@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationTokenLike } from '../typings/CancellationTokenLike';
 import { CommandLineArgs } from '../utils/commandLineBuilder';
 
 type CommandResponseBase = {
@@ -16,7 +15,7 @@ export type PromiseCommandResponse<T> = CommandResponseBase & {
 };
 
 export type GeneratorCommandResponse<T> = CommandResponseBase & {
-    parseStream: (output: NodeJS.ReadableStream, strict: boolean, cancellationToken?: CancellationTokenLike) => AsyncGenerator<T>;
+    parseStream: (output: NodeJS.ReadableStream, strict: boolean) => AsyncGenerator<T>;
 };
 
 export type VoidCommandResponse = CommandResponseBase & {
