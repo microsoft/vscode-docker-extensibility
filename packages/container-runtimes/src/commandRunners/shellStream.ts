@@ -83,13 +83,14 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
             throwIfCancellationRequested(this.options.cancellationToken);
 
             const dataStream: stream.PassThrough = new stream.PassThrough();
+            const generator = commandResponse.parseStream(dataStream, !!this.options.strict);
 
             // Unlike above in `getCommandRunner()`, we cannot await the process, because it will (probably) never exit
-            void spawnStreamAsync(command, args, { ...this.options, stdOutPipe: dataStream, shell: true });
+            // Instead, forward any error it throws through the stream to the generator
+            spawnStreamAsync(command, args, { ...this.options, stdOutPipe: dataStream, shell: true })
+                .catch(err => dataStream.destroy(err));
 
-            throwIfCancellationRequested(this.options.cancellationToken);
-
-            return commandResponse.parseStream(dataStream, !!this.options.strict);
+            return generator;
         };
     }
 
