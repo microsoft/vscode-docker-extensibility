@@ -770,7 +770,7 @@ type ExecContainerCommand = {
      * Generate a CommandResponse for executing a command in a running container.
      * @param options Command options
      */
-    execContainer(options: ExecContainerCommandOptions): Promise<PromiseCommandResponse<string>>;
+    execContainer(options: ExecContainerCommandOptions): Promise<GeneratorCommandResponse<string>>;
 };
 
 // List Containers Command Types
@@ -993,7 +993,7 @@ type LogsForContainerCommand = {
      * Generate a CommandResponse for retrieving container logs
      * @param options Command options
      */
-    logsForContainer(options: LogsForContainerCommandOptions): Promise<VoidCommandResponse>;
+    logsForContainer(options: LogsForContainerCommandOptions): Promise<GeneratorCommandResponse<string>>;
 };
 
 // Inspect Container Command Types
@@ -1743,11 +1743,6 @@ export type ReadFileCommandOptions = CommonCommandOptions & {
      */
     path: string;
     /**
-     * (Optional) The path on the host to write the container file to. If not given, it is
-     * necessary to handle contents from stdout in the command runner.
-     */
-    outputFile?: string;
-    /**
      * The container operating system. If not supplied, 'linux' will be assumed.
      */
     operatingSystem?: ContainerOS;
@@ -1761,7 +1756,7 @@ type ReadFileCommand = {
      * NOTE: the output stream is in tarball format with Linux containers, and cleartext with Windows containers.
      * @param options Command options
      */
-    readFile(options: ReadFileCommandOptions): Promise<VoidCommandResponse>;
+    readFile(options: ReadFileCommandOptions): Promise<GeneratorCommandResponse<Buffer>>;
 };
 
 // Write file command types

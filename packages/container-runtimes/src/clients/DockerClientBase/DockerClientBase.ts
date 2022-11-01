@@ -80,6 +80,7 @@ import {
 } from "../../contracts/ContainerClient";
 import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
 import { asIds } from '../../utils/asIds';
+import { bufferToString } from '../../utils/bufferToString';
 import { CancellationError } from '../../utils/CancellationError';
 import {
     CommandLineArgs,
@@ -282,7 +283,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         output: NodeJS.ReadableStream,
         strict: boolean,
         cancellationToken?: CancellationTokenLike
-    ): AsyncGenerator<EventItem, never, void> {
+    ): AsyncGenerator<EventItem> {
         cancellationToken ||= CancellationTokenLike.None;
 
         const lineReader = readline.createInterface({
@@ -292,7 +293,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
 
         for await (const line of lineReader) {
             if (cancellationToken.isCancellationRequested) {
-                break;
+                throw new CancellationError('Event stream cancelled', cancellationToken);
             }
 
             try {
@@ -316,8 +317,6 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
             }
         }
-
-        throw new CancellationError('Event stream cancelled', cancellationToken);
     }
 
     async getEventStream(options: EventStreamCommandOptions): Promise<GeneratorCommandResponse<EventItem>> {
@@ -877,19 +876,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         )();
     }
 
-    protected parseExecContainerCommandOutput(
-        options: ExecContainerCommandOptions,
-        output: string,
-        strict: boolean,
-    ): Promise<string> {
-        return Promise.resolve(output);
-    }
-
-    async execContainer(options: ExecContainerCommandOptions): Promise<PromiseCommandResponse<string>> {
+    async execContainer(options: ExecContainerCommandOptions): Promise<GeneratorCommandResponse<string>> {
         return {
             command: this.commandName,
             args: this.getExecContainerCommandArgs(options),
-            parse: (output, strict) => this.parseExecContainerCommandOutput(options, output, strict),
+            parseStream: (output, strict, token) => this.stringStreamToGenerator(output, token),
         };
     }
 
@@ -1212,10 +1203,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param options Options for the log container command
      * @returns The CommandResponse object for the log container command
      */
-    async logsForContainer(options: LogsForContainerCommandOptions): Promise<VoidCommandResponse> {
+    async logsForContainer(options: LogsForContainerCommandOptions): Promise<GeneratorCommandResponse<string>> {
         return {
             command: this.commandName,
             args: this.getLogsForContainerCommandArgs(options),
+            parseStream: (output, strict, token) => this.stringStreamToGenerator(output, token),
         };
     }
 
@@ -2102,15 +2094,15 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             return composeArgs(
                 withArg('cp'),
                 withContainerPathArg(options),
-                withArg(options.outputFile || '-'),
             )();
         }
     }
 
-    async readFile(options: ReadFileCommandOptions): Promise<VoidCommandResponse> {
+    async readFile(options: ReadFileCommandOptions): Promise<GeneratorCommandResponse<Buffer>> {
         return {
             command: this.commandName,
             args: this.getReadFileCommandArgs(options),
+            parseStream: (output, strict, cancellationToken) => this.byteStreamToGenerator(output, cancellationToken),
         };
     }
 
@@ -2138,6 +2130,48 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     }
 
     //#endregion
+
+    //#endregion
+
+    //#region Common parse methods
+
+    protected async *stringStreamToGenerator(
+        output: NodeJS.ReadableStream,
+        cancellationToken?: CancellationTokenLike
+    ): AsyncGenerator<string> {
+        cancellationToken ||= CancellationTokenLike.None;
+
+        for await (const chunk of output) {
+            if (cancellationToken.isCancellationRequested) {
+                throw new CancellationError('Operation cancelled', cancellationToken);
+            }
+
+            if (typeof chunk === 'string') {
+                yield chunk;
+            } else if (Buffer.isBuffer(chunk)) {
+                yield bufferToString(chunk);
+            }
+        }
+    }
+
+    protected async *byteStreamToGenerator(
+        output: NodeJS.ReadableStream,
+        cancellationToken?: CancellationTokenLike
+    ): AsyncGenerator<Buffer> {
+        cancellationToken ||= CancellationTokenLike.None;
+
+        for await (const chunk of output) {
+            if (cancellationToken.isCancellationRequested) {
+                throw new CancellationError('Operation cancelled', cancellationToken);
+            }
+
+            if (typeof chunk === 'string') {
+                yield Buffer.from(chunk);
+            } else if (Buffer.isBuffer(chunk)) {
+                yield chunk;
+            }
+        }
+    }
 
     //#endregion
 }
