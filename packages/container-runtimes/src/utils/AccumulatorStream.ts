@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as stream from 'stream';
+import { bufferToString } from './bufferToString';
 
 // Caller can pass any writable options except 'write' and 'writev'
 type AccumulatorOptions = Omit<stream.WritableOptions, 'write' | 'writev'>;
@@ -55,9 +56,6 @@ export class AccumulatorStream extends stream.Writable {
      * @returns The full stream content in a string
      */
     public async getString(encoding: BufferEncoding = 'utf-8'): Promise<string> {
-        const rawString = (await this.getBytes()).toString(encoding);
-        // Remove non-printing control characters and trailing newlines
-        // eslint-disable-next-line no-control-regex
-        return rawString.replace(/[\x00-\x09\x0B-\x0C\x0E-\x1F]|\r?\n$/g, '');
+        return bufferToString(await this.getBytes(), encoding);
     }
 }
