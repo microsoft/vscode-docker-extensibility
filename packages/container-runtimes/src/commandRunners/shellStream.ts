@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as stream from 'stream';
-import * as streamPromise from 'stream/promises';
 import {
     CommandResponse,
     CommandRunner,
@@ -25,7 +24,7 @@ import {
     StreamSpawnOptions,
 } from '../utils/spawnStreamAsync';
 
-export type ShellStreamCommandRunnerOptions = StreamSpawnOptions & {
+export type ShellStreamCommandRunnerOptions = Omit<StreamSpawnOptions, 'stdOutPipe'> & {
     strict?: boolean;
 };
 
@@ -45,28 +44,16 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
 
             let result: T | void;
 
-            let splitterStream: stream.PassThrough | undefined;
             const pipelinePromises: Promise<void>[] = [];
 
             let accumulator: AccumulatorStream | undefined;
 
             try {
                 if (commandResponse.parse) {
-                    splitterStream ??= new stream.PassThrough();
                     accumulator = new AccumulatorStream();
-                    pipelinePromises.push(
-                        streamPromise.pipeline(splitterStream, accumulator)
-                    );
                 }
 
-                if (this.options.stdOutPipe) {
-                    splitterStream ??= new stream.PassThrough;
-                    pipelinePromises.push(
-                        streamPromise.pipeline(splitterStream, this.options.stdOutPipe)
-                    );
-                }
-
-                await spawnStreamAsync(command, args, { ...this.options, stdOutPipe: splitterStream, shell: true });
+                await spawnStreamAsync(command, args, { ...this.options, stdOutPipe: accumulator, shell: true });
 
                 throwIfCancellationRequested(this.options.cancellationToken);
 
