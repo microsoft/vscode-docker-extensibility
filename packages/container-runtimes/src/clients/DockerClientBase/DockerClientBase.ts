@@ -80,7 +80,6 @@ import {
 } from "../../contracts/ContainerClient";
 import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
 import { asIds } from '../../utils/asIds';
-import { bufferToString } from '../../utils/bufferToString';
 import { CancellationError } from '../../utils/CancellationError';
 import {
     CommandLineArgs,
@@ -2149,7 +2148,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             if (typeof chunk === 'string') {
                 yield chunk;
             } else if (Buffer.isBuffer(chunk)) {
-                yield bufferToString(chunk);
+                yield chunk.toString();
             }
         }
     }
