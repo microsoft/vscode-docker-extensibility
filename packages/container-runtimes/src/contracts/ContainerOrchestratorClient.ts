@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { PromiseCommandResponse, VoidCommandResponse } from "./CommandRunner";
+import { GeneratorCommandResponse, PromiseCommandResponse, VoidCommandResponse } from "./CommandRunner";
 import { ClientIdentity, CommonCommandOptions } from "./ContainerClient";
 
 // #region Container orchestrator commands
@@ -153,10 +153,10 @@ export type LogsCommandOptions = CommonOrchestratorCommandOptions & {
 
 type LogsCommand = {
     /**
-     * Generate a {@link VoidCommandResponse} for getting collated logs from services with a container orchestrator
+     * Generate a {@link GeneratorCommandResponse} for getting collated logs from services with a container orchestrator
      * @param options Command options
      */
-    logs(options: LogsCommandOptions): Promise<VoidCommandResponse>;
+    logs(options: LogsCommandOptions): Promise<GeneratorCommandResponse<string>>;
 };
 
 // Config command types

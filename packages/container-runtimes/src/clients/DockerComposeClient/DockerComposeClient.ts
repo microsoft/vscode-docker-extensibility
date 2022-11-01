@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { PromiseCommandResponse, VoidCommandResponse } from '../../contracts/CommandRunner';
+import { GeneratorCommandResponse, PromiseCommandResponse, VoidCommandResponse } from '../../contracts/CommandRunner';
 import {
     CommonOrchestratorCommandOptions,
     ConfigCommandOptions,
@@ -16,6 +16,8 @@ import {
     StopCommandOptions,
     UpCommandOptions
 } from '../../contracts/ContainerOrchestratorClient';
+import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
+import { CancellationError } from '../../utils/CancellationError';
 import {
     CommandLineArgs,
     CommandLineCurryFn,
@@ -233,10 +235,11 @@ export class DockerComposeClient extends ConfigurableClient implements IContaine
      * @param options Standard orchestrator logs command options
      * @returns A CommandResponse indicating how to run an orchestrator logs command for Docker Compose
      */
-    public async logs(options: LogsCommandOptions): Promise<VoidCommandResponse> {
+    public async logs(options: LogsCommandOptions): Promise<GeneratorCommandResponse<string>> {
         return {
             command: this.commandName,
             args: this.getLogsCommandArgs(options),
+            parseStream: (output, strict, token) => this.stringStreamToGenerator(output, token),
         };
     }
 
@@ -274,4 +277,27 @@ export class DockerComposeClient extends ConfigurableClient implements IContaine
     }
 
     //#endregion Config command
+
+    //#region Common parse methods
+
+    protected async *stringStreamToGenerator(
+        output: NodeJS.ReadableStream,
+        cancellationToken?: CancellationTokenLike
+    ): AsyncGenerator<string> {
+        cancellationToken ||= CancellationTokenLike.None;
+
+        for await (const chunk of output) {
+            if (cancellationToken.isCancellationRequested) {
+                throw new CancellationError('Operation cancelled', cancellationToken);
+            }
+
+            if (typeof chunk === 'string') {
+                yield chunk;
+            } else if (Buffer.isBuffer(chunk)) {
+                yield chunk.toString();
+            }
+        }
+    }
+
+    //#endregion
 }
