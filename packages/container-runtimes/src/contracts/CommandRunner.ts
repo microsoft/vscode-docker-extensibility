@@ -44,7 +44,7 @@ export type CommandRunner =
 /**
  * A {@link StreamingCommandRunner} provides instructions on how to invoke a streaming command
  */
-export type StreamingCommandRunner = <T>(commandResponseLike: Like<GeneratorCommandResponse<T>>) => Promise<AsyncGenerator<T>>;
+export type StreamingCommandRunner = <T>(commandResponseLike: Like<GeneratorCommandResponse<T>>) => AsyncGenerator<T>;
 
 /**
  * A {@link ICommandRunnerFactory} is used to build a CommandRunner instance

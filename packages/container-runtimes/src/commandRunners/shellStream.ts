@@ -72,22 +72,26 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
     }
 
     public getStreamingCommandRunner(): StreamingCommandRunner {
-        return async <T>(commandResponseLike: Like<GeneratorCommandResponse<T>>) => {
-            const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
-            const { command, args } = this.getCommandAndArgs(commandResponse);
+        return this.streamingCommandRunner.bind(this);
+    }
 
-            throwIfCancellationRequested(this.options.cancellationToken);
+    private async *streamingCommandRunner<T>(commandResponseLike: Like<GeneratorCommandResponse<T>>): AsyncGenerator<T> {
+        const commandResponse = await normalizeCommandResponseLike(commandResponseLike);
+        const { command, args } = this.getCommandAndArgs(commandResponse);
 
-            const dataStream: stream.PassThrough = new stream.PassThrough();
-            const generator = commandResponse.parseStream(dataStream, !!this.options.strict);
+        throwIfCancellationRequested(this.options.cancellationToken);
 
-            // Unlike above in `getCommandRunner()`, we cannot await the process, because it will (probably) never exit
-            // Instead, forward any error it throws through the stream to the generator
-            spawnStreamAsync(command, args, { ...this.options, stdOutPipe: dataStream, shell: true })
-                .catch(err => dataStream.destroy(err));
+        const dataStream: stream.PassThrough = new stream.PassThrough();
+        const innerGenerator = commandResponse.parseStream(dataStream, !!this.options.strict);
 
-            return generator;
-        };
+        // The process promise will be awaited only after the innerGenerator finishes
+        const processPromise = spawnStreamAsync(command, args, { ...this.options, stdOutPipe: dataStream, shell: true });
+
+        for await (const element of innerGenerator) {
+            yield element;
+        }
+
+        await processPromise;
     }
 
     protected getCommandAndArgs(commandResponse: CommandResponse<unknown>): { command: string, args: string[] } {
