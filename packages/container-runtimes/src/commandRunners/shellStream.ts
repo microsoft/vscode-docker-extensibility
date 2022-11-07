@@ -5,7 +5,7 @@
 
 import * as stream from 'stream';
 import {
-    CommandResponse,
+    CommandResponseBase,
     CommandRunner,
     GeneratorCommandResponse,
     ICommandRunnerFactory,
@@ -94,7 +94,7 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
         await processPromise;
     }
 
-    protected getCommandAndArgs(commandResponse: CommandResponse<unknown>): { command: string, args: string[] } {
+    protected getCommandAndArgs(commandResponse: CommandResponseBase): { command: string, args: string[] } {
         return {
             command: commandResponse.command,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
