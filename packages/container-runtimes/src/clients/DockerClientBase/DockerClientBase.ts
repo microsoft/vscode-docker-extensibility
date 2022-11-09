@@ -257,8 +257,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     ): CommandLineArgs {
         return composeArgs(
             withArg('events'),
-            withNamedArg('--since', options.since),
-            withNamedArg('--until', options.until),
+            withNamedArg('--since', options.since?.toString(), { shouldQuote: !(typeof options.since === 'number') }),
+            withNamedArg('--until', options.until?.toString(), { shouldQuote: !(typeof options.until === 'number') }),
             withDockerLabelFilterArgs(options.labels),
             withNamedArg('--filter', options.types?.map((type) => `type=${type}`)),
             withNamedArg('--filter', options.events?.map((event) => `event=${event}`)),
