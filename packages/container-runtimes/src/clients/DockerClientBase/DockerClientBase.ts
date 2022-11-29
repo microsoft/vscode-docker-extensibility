@@ -85,6 +85,7 @@ import {
     CommandLineArgs,
     composeArgs,
     withArg,
+    withExactArg,
     withFlagArg,
     withNamedArg,
     withQuotedArg,
@@ -390,7 +391,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerLabelsArg(options.labels),
             withNamedArg('--iidfile', options.imageIdFile),
             withDockerBuildArg(options.args),
-            withArg(options.customOptions),
+            withExactArg(options.customOptions),
             withQuotedArg(options.path),
         )();
     }
@@ -829,7 +830,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerEnvArg(options.environmentVariables),
             withNamedArg('--env-file', options.environmentFiles),
             withNamedArg('--entrypoint', options.entrypoint),
-            withArg(options.customOptions),
+            withExactArg(options.customOptions),
             withArg(options.imageRef),
             withArg(...(toArray(options.command || []))),
         )();

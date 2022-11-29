@@ -62,6 +62,11 @@ export class Powershell extends Shell {
         const escape = (value: string) => `\`${value}`;
 
         return args.map((quotedArg) => {
+            if (typeof quotedArg === 'string') {
+                // If it's a plain string, return it as-is
+                return quotedArg;
+            }
+
             switch (quotedArg.quoting) {
                 case ShellQuoting.Escape:
                     return quotedArg.value.replace(/[ "'()]/g, escape);
@@ -103,6 +108,11 @@ export class Bash extends Shell {
         const escape = (value: string) => `\\${value}`;
 
         return args.map((quotedArg) => {
+            if (typeof quotedArg === 'string') {
+                // If it's a plain string, return it as-is
+                return quotedArg;
+            }
+
             switch (quotedArg.quoting) {
                 case ShellQuoting.Escape:
                     return quotedArg.value.replace(/[ "']/g, escape);

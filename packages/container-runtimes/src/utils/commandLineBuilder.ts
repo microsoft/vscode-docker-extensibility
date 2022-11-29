@@ -6,7 +6,7 @@
 import { ShellQuotedString, ShellQuoting } from 'vscode';
 import { toArray } from './toArray';
 
-export type CommandLineArgs = Array<ShellQuotedString>;
+export type CommandLineArgs = Array<ShellQuotedString | string>;
 
 export type CommandLineCurryFn = (cmdLineArgs?: CommandLineArgs) => CommandLineArgs;
 
@@ -77,6 +77,24 @@ export function withFlagArg(name: string, value: boolean | undefined): CommandLi
     };
 }
 
+/**
+ * Functional method for adding additional exact arguments to an existing list of
+ * arguments. They will not be quoted nor escaped.
+ * @param args Raw arguments to add to the CommandLineArguments records
+ * @returns A function that takes an optional array of CommandLineArguments and appends the provided arguments
+ */
+export function withExactArg(...args: Array<string | null | undefined>): CommandLineCurryFn {
+    return (cmdLineArgs: CommandLineArgs = []) => {
+        return args.reduce<CommandLineArgs>((allArgs, arg) => {
+            if (arg) {
+                return [...allArgs, arg];
+            }
+
+            return allArgs;
+        }, cmdLineArgs);
+    };
+}
+
 type WithNamedArgOptions = {
     assignValue?: boolean;
     shouldQuote?: boolean;
@@ -95,18 +113,18 @@ export function withNamedArg(
 ): CommandLineCurryFn {
     return (cmdLineArgs: CommandLineArgs = []) => {
         return toArray(args)
-        .reduce((allArgs, arg) => {
-            if (arg) {
-                const normalizedArg = shouldQuote ? quoted(arg) : escaped(arg);
-                if (assignValue) {
-                    return withArg(`${name}=${normalizedArg}`)(allArgs);
+            .reduce((allArgs, arg) => {
+                if (arg) {
+                    const normalizedArg = shouldQuote ? quoted(arg) : escaped(arg);
+                    if (assignValue) {
+                        return withArg(`${name}=${normalizedArg}`)(allArgs);
+                    }
+
+                    return withArg(name, normalizedArg)(allArgs);
                 }
 
-                return withArg(name, normalizedArg)(allArgs);
-            }
-
-            return allArgs;
-        }, cmdLineArgs);
+                return allArgs;
+            }, cmdLineArgs);
     };
 }
 
