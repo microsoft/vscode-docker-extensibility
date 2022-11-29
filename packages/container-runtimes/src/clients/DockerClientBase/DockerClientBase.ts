@@ -832,7 +832,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withNamedArg('--entrypoint', options.entrypoint),
             withVerbatimArg(options.customOptions),
             withArg(options.imageRef),
-            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...(toArray(options.command) || [])),
+            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...(toArray(options.command || []))),
         )();
     }
 
