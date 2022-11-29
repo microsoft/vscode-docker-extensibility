@@ -876,7 +876,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withFlagArg('--tty', options.tty),
             withDockerEnvArg(options.environmentVariables),
             withArg(options.container),
-            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...(toArray(options.command) || [])),
+            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...toArray(options.command)),
         )();
     }
 
