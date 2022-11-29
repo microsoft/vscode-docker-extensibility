@@ -62,8 +62,10 @@ export class Powershell extends Shell {
         const escape = (value: string) => `\`${value}`;
 
         return args.map((quotedArg) => {
+            // If it's a verbatim argument, return it as-is.
+            // The overwhelming majority of arguments are `ShellQuotedString`, so
+            // verbatim arguments will only show up if `withVerbatimArg` is used.
             if (typeof quotedArg === 'string') {
-                // If it's a plain string, return it as-is
                 return quotedArg;
             }
 
@@ -108,8 +110,10 @@ export class Bash extends Shell {
         const escape = (value: string) => `\\${value}`;
 
         return args.map((quotedArg) => {
+            // If it's a verbatim argument, return it as-is.
+            // The overwhelming majority of arguments are `ShellQuotedString`, so
+            // verbatim arguments will only show up if `withVerbatimArg` is used.
             if (typeof quotedArg === 'string') {
-                // If it's a plain string, return it as-is
                 return quotedArg;
             }
 

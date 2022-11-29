@@ -14,16 +14,16 @@ import {
     RestartCommandOptions,
     StartCommandOptions,
     StopCommandOptions,
-    UpCommandOptions
+    UpCommandOptions,
 } from '../../contracts/ContainerOrchestratorClient';
 import {
     CommandLineArgs,
     CommandLineCurryFn,
     composeArgs,
     withArg,
-    withExactArg,
     withFlagArg,
-    withNamedArg
+    withNamedArg,
+    withVerbatimArg,
 } from '../../utils/commandLineBuilder';
 import { stringStreamToGenerator } from '../../utils/streamToGenerator';
 import { ConfigurableClient } from '../ConfigurableClient';
@@ -97,7 +97,7 @@ export class DockerComposeClient extends ConfigurableClient implements IContaine
             withNamedArg('--scale', Object.entries(options.scale || {}).map(([service, scale]) => `${service}=${scale}`)),
             withNamedArg('--timeout', options.timeoutSeconds?.toString(10)),
             withFlagArg('--wait', options.wait),
-            withExactArg(options.customOptions),
+            withVerbatimArg(options.customOptions),
             withArg(...(options.services || [])),
         )();
     }
@@ -126,7 +126,7 @@ export class DockerComposeClient extends ConfigurableClient implements IContaine
             withNamedArg('--rmi', options.removeImages),
             withFlagArg('--volumes', options.removeVolumes),
             withNamedArg('--timeout', options.timeoutSeconds?.toString(10)),
-            withExactArg(options.customOptions),
+            withVerbatimArg(options.customOptions),
         )();
     }
 

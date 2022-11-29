@@ -85,10 +85,10 @@ import {
     CommandLineArgs,
     composeArgs,
     withArg,
-    withExactArg,
     withFlagArg,
     withNamedArg,
     withQuotedArg,
+    withVerbatimArg,
 } from "../../utils/commandLineBuilder";
 import { CommandNotSupportedError } from '../../utils/CommandNotSupportedError';
 import { byteStreamToGenerator, stringStreamToGenerator } from '../../utils/streamToGenerator';
@@ -391,7 +391,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerLabelsArg(options.labels),
             withNamedArg('--iidfile', options.imageIdFile),
             withDockerBuildArg(options.args),
-            withExactArg(options.customOptions),
+            withVerbatimArg(options.customOptions),
             withQuotedArg(options.path),
         )();
     }
@@ -830,9 +830,9 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerEnvArg(options.environmentVariables),
             withNamedArg('--env-file', options.environmentFiles),
             withNamedArg('--entrypoint', options.entrypoint),
-            withExactArg(options.customOptions),
+            withVerbatimArg(options.customOptions),
             withArg(options.imageRef),
-            typeof options.command === 'string' ? withExactArg(options.command) : withArg(...(toArray(options.command) || [])),
+            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...(toArray(options.command) || [])),
         )();
     }
 
@@ -876,7 +876,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withFlagArg('--tty', options.tty),
             withDockerEnvArg(options.environmentVariables),
             withArg(options.container),
-            typeof options.command === 'string' ? withExactArg(options.command) : withArg(...(toArray(options.command) || [])),
+            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...(toArray(options.command) || [])),
         )();
     }
 
