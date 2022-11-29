@@ -832,7 +832,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withNamedArg('--entrypoint', options.entrypoint),
             withExactArg(options.customOptions),
             withArg(options.imageRef),
-            withArg(...(toArray(options.command || []))),
+            typeof options.command === 'string' ? withExactArg(options.command) : withArg(...(toArray(options.command) || [])),
         )();
     }
 
@@ -876,7 +876,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withFlagArg('--tty', options.tty),
             withDockerEnvArg(options.environmentVariables),
             withArg(options.container),
-            withArg(...toArray(options.command)),
+            typeof options.command === 'string' ? withExactArg(options.command) : withArg(...(toArray(options.command) || [])),
         )();
     }
 
