@@ -117,7 +117,7 @@ export function isDockerInspectImageRecord(maybeImage: unknown): maybeImage is D
 export function normalizeDockerInspectImageRecord(image: DockerInspectImageRecord): InspectImagesItem {
     // This is effectively doing firstOrDefault on the RepoTags for the image. If there are any values
     // in RepoTags, the first one will be parsed and returned as the tag name for the image.
-    const iamgeNameInfo: ImageNameInfo = parseDockerLikeImageName(image.RepoTags?.[0]);
+    const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(image.RepoTags?.[0]);
 
     // Parse any environment variables defined for the image
     const environmentVariables = (image.Config?.Env || []).reduce<Record<string, string>>((evs, ev) => {
@@ -168,7 +168,7 @@ export function normalizeDockerInspectImageRecord(image: DockerInspectImageRecor
 
     return {
         id: image.Id,
-        image: iamgeNameInfo,
+        image: imageNameInfo,
         repoDigests: image.RepoDigests,
         isLocalImage,
         environmentVariables,
