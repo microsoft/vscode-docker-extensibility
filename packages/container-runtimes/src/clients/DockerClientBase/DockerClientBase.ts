@@ -98,7 +98,6 @@ import { isDockerListImageRecord, normalizeDockerListImageRecord } from "./Docke
 import { isDockerListNetworkRecord, normalizeDockerListNetworkRecord } from './DockerListNetworkRecord';
 import { isDockerVersionRecord } from "./DockerVersionRecord";
 import { isDockerVolumeRecord } from './DockerVolumeRecord';
-import { parseDockerLikeImageName } from './parseDockerLikeImageName';
 import { parseDockerLikeLabels } from './parseDockerLikeLabels';
 import { parseListFilesCommandLinuxOutput, parseListFilesCommandWindowsOutput } from './parseListFilesCommandOutput';
 import { tryParseSize } from './tryParseSize';
