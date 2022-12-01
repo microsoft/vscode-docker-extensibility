@@ -30,7 +30,6 @@ export type DockerInspectNetworkRecord = {
     Created: string;
 };
 
-// TODO: Actually test properties
 export function isDockerInspectNetworkRecord(maybeNetwork: unknown): maybeNetwork is DockerInspectNetworkRecord {
     const network = maybeNetwork as DockerInspectNetworkRecord;
 

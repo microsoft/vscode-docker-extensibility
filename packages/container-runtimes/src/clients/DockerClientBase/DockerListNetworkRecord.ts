@@ -60,11 +60,11 @@ export function isDockerListNetworkRecord(maybeNetwork: unknown): maybeNetwork i
     return true;
 }
 
-export function normalizeDockerListNetworkRecord(network: DockerListNetworkRecord, dateFormat: string): ListNetworkItem {
+export function normalizeDockerListNetworkRecord(network: DockerListNetworkRecord): ListNetworkItem {
     // Parse the labels assigned to the networks and normalize to key value pairs
     const labels = parseDockerLikeLabels(network.Labels);
 
-    const createdAt = dayjs.utc(network.CreatedAt, dateFormat).toDate();
+    const createdAt = dayjs.utc(network.CreatedAt).toDate();
 
     return {
         id: network.ID,

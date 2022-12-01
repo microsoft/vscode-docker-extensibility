@@ -5,6 +5,7 @@
 
 import { ImageNameInfo, InspectImagesItem, PortBinding } from "../../contracts/ContainerClient";
 import { dayjs } from '../../utils/dayjs';
+import { parseDockerLikeEnvironmentVariables } from "./parseDockerLikeEnvironmentVariables";
 import { parseDockerLikeImageName } from "./parseDockerLikeImageName";
 
 export type DockerInspectImageConfig = {
@@ -120,20 +121,7 @@ export function normalizeDockerInspectImageRecord(image: DockerInspectImageRecor
     const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(image.RepoTags?.[0]);
 
     // Parse any environment variables defined for the image
-    const environmentVariables = (image.Config?.Env || []).reduce<Record<string, string>>((evs, ev) => {
-        const index = ev.indexOf('=');
-        if (index > -1) {
-            const name = ev.slice(0, index);
-            const value = ev.slice(index + 1);
-
-            return {
-                ...evs,
-                [name]: value,
-            };
-        }
-
-        return evs;
-    }, {});
+    const environmentVariables = parseDockerLikeEnvironmentVariables(image.Config?.Env || []);
 
     // Parse any default ports exposed by the image
     const ports = Object.entries(image.Config?.ExposedPorts || {}).map<PortBinding>(([rawPort]) => {

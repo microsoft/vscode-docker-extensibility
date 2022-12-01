@@ -67,7 +67,7 @@ export function isDockerListContainerRecord(maybeContainer: unknown): maybeConta
     return true;
 }
 
-export function normalizeDockerListContainerRecord(container: DockerListContainerRecord, dateFormat: string, strict: boolean): ListContainersItem {
+export function normalizeDockerListContainerRecord(container: DockerListContainerRecord, strict: boolean): ListContainersItem {
     const labels = parseDockerLikeLabels(container.Labels);
 
     const ports = container.Ports
@@ -89,7 +89,7 @@ export function normalizeDockerListContainerRecord(container: DockerListContaine
         .split(',');
 
     const name = container.Names.split(',')[0].trim();
-    const createdAt = dayjs.utc(container.CreatedAt, dateFormat).toDate();
+    const createdAt = dayjs.utc(container.CreatedAt).toDate();
 
     return {
         id: container.ID,

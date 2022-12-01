@@ -6,6 +6,7 @@
 import { InspectContainersItem, InspectContainersItemMount, InspectContainersItemNetwork, PortBinding } from '../../contracts/ContainerClient';
 import { dayjs } from '../../utils/dayjs';
 import { toArray } from '../../utils/toArray';
+import { parseDockerLikeEnvironmentVariables } from './parseDockerLikeEnvironmentVariables';
 import { parseDockerLikeImageName } from './parseDockerLikeImageName';
 
 export type DockerInspectContainerPortHost = {
@@ -85,20 +86,7 @@ export function isDockerInspectContainerRecord(maybeContainer: unknown): maybeCo
 
 export function normalizeDockerInspectContainerRecord(container: DockerInspectContainerRecord): InspectContainersItem {
     // Parse the environment variables assigned to the container at runtime
-    const environmentVariables = (container.Config?.Env || []).reduce<Record<string, string>>((evs, ev) => {
-        const index = ev.indexOf('=');
-        if (index > -1) {
-            const name = ev.slice(0, index);
-            const value = ev.slice(index + 1);
-
-            return {
-                ...evs,
-                [name]: value,
-            };
-        }
-
-        return evs;
-    }, {});
+    const environmentVariables = parseDockerLikeEnvironmentVariables(container.Config?.Env || []);
 
     // Parse the networks assigned to the container and normalize to InspectContainersItemNetwork
     // records

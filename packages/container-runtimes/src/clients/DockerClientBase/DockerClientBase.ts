@@ -94,7 +94,7 @@ import { isDockerInspectImageRecord, normalizeDockerInspectImageRecord } from '.
 import { isDockerInspectNetworkRecord, normalizeDockerInspectNetworkRecord } from './DockerInspectNetworkRecord';
 import { isDockerInspectVolumeRecord, normalizeDockerInspectVolumeRecord } from './DockerInspectVolumeRecord';
 import { isDockerListContainerRecord, normalizeDockerListContainerRecord } from './DockerListContainerRecord';
-import { isDockerListImageRecord } from "./DockerListImageRecord";
+import { isDockerListImageRecord, normalizeDockerListImageRecord } from "./DockerListImageRecord";
 import { isDockerListNetworkRecord, normalizeDockerListNetworkRecord } from './DockerListNetworkRecord';
 import { isDockerVersionRecord } from "./DockerVersionRecord";
 import { isDockerVolumeRecord } from './DockerVolumeRecord';
@@ -123,11 +123,6 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * The default tag for Docker-like clients is 'latest'
      */
     public readonly defaultTag: string = 'latest';
-
-    /**
-     * Custom parsing string for the date format from list commands
-     */
-    public readonly listDateFormat: string = 'YYYY-MM-DD HH:mm:ss ZZ';
 
     //#region Information Commands
 
@@ -426,18 +421,6 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         throw new Error('Invalid image JSON');
                     }
 
-                    const createdAt = dayjs.utc(rawImage.CreatedAt, this.listDateFormat).toDate();
-                    const size = tryParseSize(rawImage.Size);
-
-                    const repositoryAndTag = `${rawImage.Repository}${rawImage.Tag ? `:${rawImage.Tag}` : ''}`;
-
-                    images.push({
-                        id: rawImage.ID,
-                        image: parseDockerLikeImageName(repositoryAndTag),
-                        // labels: {}, // TODO: image labels are conspicuously absent from Docker image listing output
-                        createdAt,
-                        size,
-                    });
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -795,7 +778,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         throw new Error('Invalid container JSON');
                     }
 
-                    containers.push(normalizeDockerListContainerRecord(rawContainer, this.listDateFormat, strict));
+                    containers.push(normalizeDockerListContainerRecord(rawContainer, strict));
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -1168,7 +1151,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                     const labels = parseDockerLikeLabels(rawVolume.Labels);
 
                     const createdAt = rawVolume.CreatedAt
-                        ? dayjs.utc(rawVolume.CreatedAt, this.listDateFormat)
+                        ? dayjs.utc(rawVolume.CreatedAt)
                         : undefined;
 
                     const size = tryParseSize(rawVolume.Size);
@@ -1396,7 +1379,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         throw new Error('Invalid volume JSON');
                     }
 
-                    networks.push(normalizeDockerListNetworkRecord(rawNetwork, this.listDateFormat));
+                    networks.push(normalizeDockerListNetworkRecord(rawNetwork));
                 } catch (err) {
                     if (strict) {
                         throw err;
