@@ -421,6 +421,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         throw new Error('Invalid image JSON');
                     }
 
+                    images.push(normalizeDockerListImageRecord(rawImage));
                 } catch (err) {
                     if (strict) {
                         throw err;
