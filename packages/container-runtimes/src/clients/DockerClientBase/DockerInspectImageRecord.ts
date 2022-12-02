@@ -5,12 +5,13 @@
 
 import { ImageNameInfo, InspectImagesItem, PortBinding } from "../../contracts/ContainerClient";
 import { dayjs } from '../../utils/dayjs';
+import { toArray } from "../../utils/toArray";
 import { parseDockerLikeEnvironmentVariables } from "./parseDockerLikeEnvironmentVariables";
 import { parseDockerLikeImageName } from "./parseDockerLikeImageName";
 
 export type DockerInspectImageConfig = {
-    Entrypoint: Array<string>;
-    Cmd: Array<string>;
+    Entrypoint?: Array<string> | string | null;
+    Cmd?: Array<string> | string | null;
     Env?: Array<string>,
     Labels?: Record<string, string> | null,
     ExposedPorts?: Record<string, unknown> | null;
@@ -28,7 +29,6 @@ export type DockerInspectImageRecord = {
     Os: string;
     Created: string;
     User?: string;
-    Raw: object;
 };
 
 function isDockerInspectImageConfig(maybeImageConfig: unknown): maybeImageConfig is DockerInspectImageConfig {
@@ -62,11 +62,11 @@ function isDockerInspectImageConfig(maybeImageConfig: unknown): maybeImageConfig
         return false;
     }
 
-    if (!Array.isArray(imageConfig.Entrypoint)) {
+    if (imageConfig.Entrypoint && !Array.isArray(imageConfig.Entrypoint) && typeof imageConfig.Entrypoint !== 'string') {
         return false;
     }
 
-    if (!Array.isArray(imageConfig.Cmd)) {
+    if (imageConfig.Cmd && !Array.isArray(imageConfig.Cmd) && typeof imageConfig.Cmd !== 'string') {
         return false;
     }
 
@@ -105,10 +105,6 @@ export function isDockerInspectImageRecord(maybeImage: unknown): maybeImage is D
     }
 
     if (typeof image.Created !== 'string') {
-        return false;
-    }
-
-    if (image.Raw === null || typeof image.Raw !== 'object') {
         return false;
     }
 
@@ -163,8 +159,8 @@ export function normalizeDockerInspectImageRecord(image: DockerInspectImageRecor
         ports,
         volumes,
         labels,
-        entrypoint: image.Config?.Entrypoint || [],
-        command: image.Config?.Cmd || [],
+        entrypoint: toArray(image.Config?.Entrypoint || []),
+        command: toArray(image.Config?.Cmd || []),
         currentDirectory: image.Config?.WorkingDir || undefined,
         architecture,
         operatingSystem: os,

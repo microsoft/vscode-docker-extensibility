@@ -67,9 +67,9 @@ export type DockerInspectContainerState = {
 };
 
 export type DockerInspectContainerRecord = {
-    ID: string;
+    Id: string;
     Name: string;
-    ImageId: string;
+    Image: string;
     Platform: string;
     Created: string;
     Mounts: Array<DockerInspectContainerMount>;
@@ -149,9 +149,9 @@ export function normalizeDockerInspectContainerRecord(container: DockerInspectCo
 
     // Return the normalized InspectContainersItem record
     return {
-        id: container.ID,
+        id: container.Id,
         name: container.Name,
-        imageId: container.ImageId,
+        imageId: container.Image,
         image: parseDockerLikeImageName(container.Config.Image),
         status: container.State?.Status,
         environmentVariables,
