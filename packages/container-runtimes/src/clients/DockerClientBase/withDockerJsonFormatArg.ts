@@ -5,4 +5,4 @@
 
 import { withNamedArg } from '../../utils/commandLineBuilder';
 
-export const withDockerJsonFormatArg = withNamedArg('--format', '{{json .}}');
+export const withDockerJsonFormatArg = withNamedArg('--format', '"{{json .}}"');
