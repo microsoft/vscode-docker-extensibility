@@ -1559,13 +1559,13 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 '/C',
                 // Path is intentionally *not* quoted--no good quoting options work, but
                 // `cd` doesn't seem to care, so cd to the path and then do dir
-                innerQuoted(`cd ${options.path} & dir /A-S /-C`)
+                innerQuoted(`cd ${options.path} & dir /A-S /-C`) as ShellQuotedString,
             ];
         } else {
             command = [
                 '/bin/sh',
                 '-c',
-                innerQuoted(`ls -lA '${options.path}'`)
+                innerQuoted(`ls -lA '${options.path}'`) as ShellQuotedString,
             ];
         }
 
@@ -1611,7 +1611,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             const command = [
                 'cmd',
                 '/C',
-                innerQuoted(`cd ${folder} & type ${file}`)
+                innerQuoted(`cd ${folder} & type ${file}`) as ShellQuotedString,
             ];
 
             return this.getExecContainerCommandArgs(
