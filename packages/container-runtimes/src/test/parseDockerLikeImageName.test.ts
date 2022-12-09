@@ -95,6 +95,14 @@ describe('parseDockerLikeImageName', () => {
                 registry: 'with-a.port:5000',
             });
 
+            expect(parseDockerLikeImageName('tldwithport:5000/library/alpine:latest')).to.deep.equal({
+                originalName: 'tldwithport:5000/library/alpine:latest',
+                image: 'library/alpine',
+                tag: 'latest',
+                digest: undefined,
+                registry: 'tldwithport:5000',
+            });
+
             expect(parseDockerLikeImageName('1.2.3.4:5000/library/alpine:latest')).to.deep.equal({
                 originalName: '1.2.3.4:5000/library/alpine:latest',
                 image: 'library/alpine',
