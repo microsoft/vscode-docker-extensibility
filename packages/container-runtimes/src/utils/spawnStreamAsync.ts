@@ -25,7 +25,7 @@ export abstract class Shell implements IShell {
         }
 
         if (os.platform() === 'win32') {
-            return new Powershell();
+            return new Cmd();
         } else {
             return new Bash();
         }
@@ -99,6 +99,32 @@ export class Powershell extends Shell {
         }
 
         return shell;
+    }
+}
+
+/** Quoting/escaping rules for Cmd shell */
+export class Cmd extends Shell {
+    public quote(args: CommandLineArgs): Array<string> {
+        const escapeQuote = (value: string) => `\\${value}`;
+        const escape = (value: string) => `^${value}`;
+
+        return args.map((quotedArg) => {
+            // If it's a verbatim argument, return it as-is.
+            // The overwhelming majority of arguments are `ShellQuotedString`, so
+            // verbatim arguments will only show up if `withVerbatimArg` is used.
+            if (typeof quotedArg === 'string') {
+                return quotedArg;
+            }
+
+            switch (quotedArg.quoting) {
+                case ShellQuoting.Escape:
+                    return quotedArg.value.replace(/[ "^&\\<>|]/g, escape);
+                case ShellQuoting.Weak:
+                    return quotedArg.value.replace(/[ "^&\\<>|]/g, escape);
+                case ShellQuoting.Strong:
+                    return `"${quotedArg.value.replace(/["]/g, escapeQuote)}"`;
+            }
+        });
     }
 }
 
