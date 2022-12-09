@@ -51,6 +51,14 @@ describe('parseDockerLikeImageName', () => {
                 registry: undefined,
             });
 
+            expect(parseDockerLikeImageName('alpine:5')).to.deep.equal({
+                originalName: 'alpine:5',
+                image: 'alpine',
+                tag: '5',
+                digest: undefined,
+                registry: undefined,
+            });
+
             expect(parseDockerLikeImageName('library/alpine:5')).to.deep.equal({
                 originalName: 'library/alpine:5',
                 image: 'library/alpine',
