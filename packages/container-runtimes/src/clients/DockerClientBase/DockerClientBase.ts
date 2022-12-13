@@ -63,6 +63,8 @@ import {
     RestartContainersCommandOptions,
     RunContainerCommandOptions,
     StartContainersCommandOptions,
+    StatPathCommandOptions,
+    StatPathItem,
     StopContainersCommandOptions,
     TagImageCommandOptions,
     UseContextCommandOptions,
@@ -1556,15 +1558,14 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             command = [
                 'cmd',
                 '/C',
-                // Path is intentionally *not* quoted--no good quoting options work, but
-                // `cd` doesn't seem to care, so cd to the path and then do dir
-                { value: `cd ${options.path} & dir /A-S /-C`, quoting: ShellQuoting.Strong }
+                { value: `dir /A-S /-C /TW "${options.path}`, quoting: ShellQuoting.Strong },
             ];
         } else {
+            const dirPath = options.path.endsWith('/') ? options.path : options.path + '/';
             command = [
                 '/bin/sh',
                 '-c',
-                { value: `ls -lA "${options.path}"`, quoting: ShellQuoting.Strong }
+                { value: `stat -c '%f %h %g %u %s %X %Y %Z %n' "${dirPath}"* "${dirPath}".*`, quoting: ShellQuoting.Strong },
             ];
         }
 
@@ -1594,6 +1595,55 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             command: this.commandName,
             args: this.getListFilesCommandArgs(options),
             parse: (output, strict) => this.parseListFilesCommandOutput(options, output, strict),
+        };
+    }
+
+    //#endregion
+
+    //#region StatPath Command
+
+    protected getStatPathCommandArgs(options: StatPathCommandOptions): CommandLineArgs {
+        let command: (string | ShellQuotedString)[];
+        if (options.operatingSystem === 'windows') {
+            command = [
+                'cmd',
+                '/C',
+                { value: `dir /A-S /-C /TW "${options.path}"`, quoting: ShellQuoting.Strong }
+            ];
+        } else {
+            command = [
+                '/bin/sh',
+                '-c',
+                { value: `stat -c '%f %h %g %u %s %X %Y %Z %n' "${options.path}"`, quoting: ShellQuoting.Strong },
+            ];
+        }
+
+        return this.getExecContainerCommandArgs(
+            {
+                container: options.container,
+                interactive: true,
+                command,
+            }
+        );
+    }
+
+    protected async parseStatPathCommandOutput(
+        options: StatPathCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<StatPathItem | undefined> {
+        if (options.operatingSystem === 'windows') {
+            return parseListFilesCommandWindowsOutput(options, output).shift();
+        } else {
+            return parseListFilesCommandLinuxOutput(options, output).shift();
+        }
+    }
+
+    async statPath(options: StatPathCommandOptions): Promise<PromiseCommandResponse<StatPathItem | undefined>> {
+        return {
+            command: this.commandName,
+            args: this.getStatPathCommandArgs(options),
+            parse: (output, strict) => this.parseStatPathCommandOutput(options, output, strict),
         };
     }
 
