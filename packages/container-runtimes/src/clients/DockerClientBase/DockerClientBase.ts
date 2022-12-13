@@ -1559,15 +1559,17 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         if (options.operatingSystem === 'windows') {
             command = [
                 'cmd',
+                '/D',
+                '/S',
                 '/C',
-                { value: `dir ${WindowsStatArguments} "${options.path}"`, quoting: ShellQuoting.Strong },
+                `dir /A-S /-C /TW "${options.path}"`,
             ];
         } else {
             const dirPath = options.path.endsWith('/') ? options.path : options.path + '/';
             command = [
                 '/bin/sh',
                 '-c',
-                { value: `stat -c '${LinuxStatArguments}' "${dirPath}"* "${dirPath}".*`, quoting: ShellQuoting.Strong },
+                { value: `stat -c '%f %h %g %u %s %X %Y %Z %n' "${dirPath}"* "${dirPath}".*`, quoting: ShellQuoting.Strong },
             ];
         }
 
@@ -1609,14 +1611,16 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         if (options.operatingSystem === 'windows') {
             command = [
                 'cmd',
+                '/D',
+                '/S',
                 '/C',
-                { value: `dir ${WindowsStatArguments} "${options.path}"`, quoting: ShellQuoting.Strong }
+                `dir /A-S /-C /TW "${options.path}"`,
             ];
         } else {
             command = [
                 '/bin/sh',
                 '-c',
-                { value: `stat -c '${LinuxStatArguments}' "${options.path}"`, quoting: ShellQuoting.Strong },
+                { value: `stat -c '%f %h %g %u %s %X %Y %Z %n' "${options.path}"`, quoting: ShellQuoting.Strong },
             ];
         }
 
@@ -1657,8 +1661,10 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         if (options.operatingSystem === 'windows') {
             const command = [
                 'cmd',
+                '/D',
+                '/S',
                 '/C',
-                { value: `type "${options.path}"`, quoting: ShellQuoting.Strong }
+                `type "${options.path}"`,
             ];
 
             return this.getExecContainerCommandArgs(
