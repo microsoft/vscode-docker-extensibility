@@ -1710,10 +1710,6 @@ export type ListFilesItem = {
      */
     path: string;
     /**
-     * The modification time of the file/directory, in milliseconds since Unix epoch
-     */
-    mtime: number;
-    /**
      * The size of the file (0 if a directory), in bytes
      */
     size: number;
@@ -1733,6 +1729,10 @@ export type ListFilesItem = {
      * The (container) gid of the user the file belongs to
      */
     gid?: number;
+    /**
+     * The modification time of the file/directory, in milliseconds since Unix epoch
+     */
+    mtime?: number;
     /**
      * The creation time of the file/directory, in milliseconds since Unix epoch
      */

@@ -115,6 +115,9 @@ import { withDockerMountsArg } from './withDockerMountsArg';
 import { withDockerNoTruncArg } from "./withDockerNoTruncArg";
 import { withDockerPortsArg } from './withDockerPortsArg';
 
+const LinuxStatArguments = '%f %h %g %u %s %X %Y %Z %n';
+const WindowsStatArguments = '/A-S /-C /TW';
+
 export abstract class DockerClientBase extends ConfigurableClient implements IContainersClient {
     /**
      * The default registry for Docker-like clients is docker.io AKA Docker Hub
@@ -1558,14 +1561,14 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             command = [
                 'cmd',
                 '/C',
-                { value: `dir /A-S /-C /TW "${options.path}`, quoting: ShellQuoting.Strong },
+                { value: `dir ${WindowsStatArguments} "${options.path}"`, quoting: ShellQuoting.Strong },
             ];
         } else {
             const dirPath = options.path.endsWith('/') ? options.path : options.path + '/';
             command = [
                 '/bin/sh',
                 '-c',
-                { value: `stat -c '%f %h %g %u %s %X %Y %Z %n' "${dirPath}"* "${dirPath}".*`, quoting: ShellQuoting.Strong },
+                { value: `stat -c '${LinuxStatArguments}' "${dirPath}"* "${dirPath}".*`, quoting: ShellQuoting.Strong },
             ];
         }
 
@@ -1608,13 +1611,13 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             command = [
                 'cmd',
                 '/C',
-                { value: `dir /A-S /-C /TW "${options.path}"`, quoting: ShellQuoting.Strong }
+                { value: `dir ${WindowsStatArguments} "${options.path}"`, quoting: ShellQuoting.Strong }
             ];
         } else {
             command = [
                 '/bin/sh',
                 '-c',
-                { value: `stat -c '%f %h %g %u %s %X %Y %Z %n' "${options.path}"`, quoting: ShellQuoting.Strong },
+                { value: `stat -c '${LinuxStatArguments}' "${options.path}"`, quoting: ShellQuoting.Strong },
             ];
         }
 
@@ -1653,14 +1656,10 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
 
     protected getReadFileCommandArgs(options: ReadFileCommandOptions): CommandLineArgs {
         if (options.operatingSystem === 'windows') {
-            // Split up the path so we can CD to the directory--to avoid the space / quoting issue
-            // Note, this still doesn't work if the filename itself contains a space
-            const folder = path.win32.dirname(options.path);
-            const file = path.win32.basename(options.path);
             const command = [
                 'cmd',
                 '/C',
-                { value: `cd ${folder} & type ${file}`, quoting: ShellQuoting.Strong }
+                { value: `type "${options.path}"`, quoting: ShellQuoting.Strong }
             ];
 
             return this.getExecContainerCommandArgs(

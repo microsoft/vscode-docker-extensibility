@@ -14,6 +14,8 @@ const DateFormats = [
     'MM/DD/YYYY hh:mm A', // Windows format
 ];
 
+const SupportedFileTypes = [vscode.FileType.Directory, vscode.FileType.File];
+
 type FileMode = {
     mode?: number;
     fileType: vscode.FileType;
@@ -42,7 +44,7 @@ export function parseListFilesCommandLinuxOutput(
         }
 
         // Ignore everything other than directories and plain files
-        if (![vscode.FileType.Directory, vscode.FileType.File].includes(fileType)) {
+        if (!SupportedFileTypes.includes(fileType)) {
             continue;
         }
 
