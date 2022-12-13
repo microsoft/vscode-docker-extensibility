@@ -84,7 +84,7 @@ export function parseListFilesCommandWindowsOutput(
         }
 
         // Ignore everything other than directories and plain files
-        if (![vscode.FileType.Directory, vscode.FileType.File].includes(fileType)) {
+        if (!SupportedFileTypes.includes(fileType)) {
             return items;
         }
 
