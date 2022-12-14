@@ -173,10 +173,15 @@ export class NoShell extends Shell {
         const windowsEscape = (value: string) => `\\${value}`;
 
         return args.map((quotedArg) => {
+            // If it's a verbatim argument, return it as-is.
+            // The overwhelming majority of arguments are `ShellQuotedString`, so
+            // verbatim arguments will only show up if `withVerbatimArg` is used.
             if (typeof quotedArg === 'string') {
                 return quotedArg;
             }
 
+            // Windows requires special quoting behavior even when running without a shell
+            // to allow us to use windowsVerbatimArguments: true
             if (this.isWindows) {
                 switch (quotedArg.quoting) {
                     case ShellQuoting.Weak:
@@ -189,6 +194,10 @@ export class NoShell extends Shell {
 
             return quotedArg.value;
         });
+    }
+
+    public override getShellOrDefault(shell?: string | boolean | undefined): string | boolean | undefined {
+        return false;
     }
 }
 
