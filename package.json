@@ -1,7 +1,6 @@
 {
     "name": "@microsoft/vscode-docker-extensibility",
     "author": "Microsoft Corporation",
-    "private": true,
     "workspaces": [
         "packages/container-runtimes",
         "packages/vscode-docker-registries"
