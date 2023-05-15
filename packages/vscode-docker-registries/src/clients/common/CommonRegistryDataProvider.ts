@@ -5,10 +5,10 @@
 
 import * as vscode from 'vscode';
 import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
-import { DefaultRegistryItem, DefaultRegistryRoot, isRegistry, isRegistryRoot, isRepository, isTag } from './Models';
+import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
 import { getContextValue } from '../../utils/contextValues';
 
-export abstract class DefaultRegistryDataProvider<T extends DefaultRegistryItem> implements RegistryDataProvider<T> {
+export abstract class CommonRegistryDataProvider<T extends CommonRegistryItem> implements RegistryDataProvider<T> {
     protected readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<T | undefined>();
     public readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
@@ -16,11 +16,11 @@ export abstract class DefaultRegistryDataProvider<T extends DefaultRegistryItem>
         if (!element) {
             return Promise.resolve([
                 {
-                    type: 'defaultregistryroot',
+                    type: 'commonregistryroot',
                     label: this.label,
                     description: this.description,
                     rootIcon: this.icon,
-                } as DefaultRegistryRoot as unknown as T,
+                } as CommonRegistryRoot,
             ]);
         } else if (isRegistryRoot(element)) {
             return Promise.resolve(this.getRegistries());
@@ -29,7 +29,7 @@ export abstract class DefaultRegistryDataProvider<T extends DefaultRegistryItem>
         } else if (isRepository(element)) {
             return Promise.resolve(this.getTags(element));
         } else {
-            throw new Error(`Unexpected element: ${element.toString()}`);
+            throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
     }
 
@@ -38,32 +38,32 @@ export abstract class DefaultRegistryDataProvider<T extends DefaultRegistryItem>
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-                contextValue: getContextValue(element, 'defaultregistryroot'), // TODO
+                contextValue: getContextValue(element, 'commonregistryroot'), // TODO
                 iconPath: element.rootIcon,
             });
         } else if (isRegistry(element)) {
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-                contextValue: getContextValue(element, 'defaultregistry'), // TODO
+                contextValue: getContextValue(element, 'commonregistry'), // TODO
                 iconPath: element.registryIcon || new vscode.ThemeIcon('briefcase'),
             });
         } else if (isRepository(element)) {
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-                contextValue: getContextValue(element, 'defaultrepository'), // TODO
+                contextValue: getContextValue(element, 'commonrepository'), // TODO
                 iconPath: new vscode.ThemeIcon('repo'),
             });
         } else if (isTag(element)) {
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
-                contextValue: getContextValue(element, 'defaulttag'), // TODO
+                contextValue: getContextValue(element, 'commontag'), // TODO
                 iconPath: new vscode.ThemeIcon('tag'),
             });
         } else {
-            throw new Error(`Unexpected element: ${element.toString()}`);
+            throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
     }
 
@@ -71,11 +71,11 @@ export abstract class DefaultRegistryDataProvider<T extends DefaultRegistryItem>
     public abstract readonly description?: string;
     public abstract readonly icon?: vscode.ThemeIcon;
 
-    public abstract getRegistries(): Promise<T[]> | T[];
-    public abstract getRepositories(registry: T): Promise<T[]> | T[];
-    public abstract getTags(repository: T): Promise<T[]> | T[];
+    public abstract getRegistries<TRegistry extends CommonRegistry>(): Promise<TRegistry[]> | TRegistry[];
+    public abstract getRepositories<TRegistry extends CommonRegistry, TRepository extends CommonRepository>(registry: TRegistry): Promise<TRepository[]> | TRepository[];
+    public abstract getTags<TRepository extends CommonRepository, TTag extends CommonTag>(repository: TRepository): Promise<TTag[]> | TTag[];
 
-    public deleteRegistry?(item: T): Promise<void>;
-    public deleteRepository?(item: T): Promise<void>;
-    public deleteTag?(item: T): Promise<void>;
+    public deleteRegistry?<TRegistry extends CommonRegistry>(item: TRegistry): Promise<void>;
+    public deleteRepository?<TRepository extends CommonRepository>(item: TRepository): Promise<void>;
+    public deleteTag?<TTag extends CommonTag>(item: TTag): Promise<void>;
 }

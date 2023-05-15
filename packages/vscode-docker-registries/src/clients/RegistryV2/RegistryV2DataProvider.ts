@@ -4,17 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { DefaultRegistryDataProvider } from '../default/DefaultRegistryDataProvider';
-import { DefaultRegistryItem } from '../default/Models';
+import { CommonRegistryDataProvider } from '../common/CommonRegistryDataProvider';
+import { CommonRegistryItem } from '../common/models';
+import { AuthenticationCallback } from './models';
 
-export interface V2RegistryItem extends DefaultRegistryItem {
-    readonly rootUri: vscode.Uri;
+export interface V2RegistryItem extends CommonRegistryItem {
+    readonly registryRootUri: vscode.Uri;
 }
 
-export abstract class RegistryV2DataProvider extends DefaultRegistryDataProvider<V2RegistryItem> {
+export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider<V2RegistryItem> {
     public constructor(
         public readonly label: string,
-        private readonly sessionCallback: (scopes: string[], options?: vscode.AuthenticationGetSessionOptions) => Promise<vscode.AuthenticationSession>,
+        private readonly authenticationCallback: AuthenticationCallback,
         public readonly description?: string,
         public readonly icon?: vscode.ThemeIcon,
     ) {
