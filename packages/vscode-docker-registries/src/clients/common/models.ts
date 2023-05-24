@@ -7,21 +7,23 @@ import * as vscode from 'vscode';
 import { RegistryItem } from '../../contracts/RegistryItem';
 
 export interface CommonRegistryItem extends RegistryItem {
-    readonly type: string;
+    readonly parent: CommonRegistryItem | undefined;
     readonly label: string;
     readonly description?: string;
 }
 
 export interface CommonRegistryRoot extends CommonRegistryItem {
-    readonly type: 'commonregistryroot';
+    readonly parent: undefined;
+    readonly type: 'commonroot';
     readonly rootIcon: vscode.ThemeIcon;
 }
 
 export function isRegistryRoot(maybeRegistryRoot: unknown): maybeRegistryRoot is CommonRegistryRoot {
-    return !!maybeRegistryRoot && typeof maybeRegistryRoot === 'object' && (maybeRegistryRoot as CommonRegistryRoot).type === 'commonregistryroot';
+    return !!maybeRegistryRoot && typeof maybeRegistryRoot === 'object' && (maybeRegistryRoot as CommonRegistryRoot).type === 'commonroot';
 }
 
 export interface CommonRegistry extends CommonRegistryItem {
+    readonly parent: CommonRegistryRoot;
     readonly type: 'commonregistry';
     readonly registryIcon?: vscode.ThemeIcon;
 }
@@ -31,6 +33,7 @@ export function isRegistry(maybeRegistry: unknown): maybeRegistry is CommonRegis
 }
 
 export interface CommonRepository extends CommonRegistryItem {
+    readonly parent: CommonRegistry;
     readonly type: 'commonrepository';
 }
 
@@ -39,6 +42,7 @@ export function isRepository(maybeRepository: unknown): maybeRepository is Commo
 }
 
 export interface CommonTag extends CommonRegistryItem {
+    readonly parent: CommonRepository;
     readonly type: 'commontag';
 }
 

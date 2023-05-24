@@ -8,32 +8,36 @@ import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
 import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
 import { getContextValue } from '../../utils/contextValues';
 
-export abstract class CommonRegistryDataProvider<T extends CommonRegistryItem> implements RegistryDataProvider<T> {
-    protected readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<T | undefined>();
+export abstract class CommonRegistryDataProvider implements RegistryDataProvider<CommonRegistryItem> {
+    protected readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<CommonRegistryItem | undefined>();
     public readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
-    public getChildren(element?: T | undefined): Promise<T[]> {
+    public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
         if (!element) {
-            return Promise.resolve([
+            return [
                 {
-                    type: 'commonregistryroot',
+                    type: 'commonroot',
                     label: this.label,
                     description: this.description,
                     rootIcon: this.icon,
                 } as CommonRegistryRoot,
-            ]);
+            ];
         } else if (isRegistryRoot(element)) {
-            return Promise.resolve(this.getRegistries());
+            return (await this.getRegistries(element)).map(registry => ({ ...registry, parent: element }));
         } else if (isRegistry(element)) {
-            return Promise.resolve(this.getRepositories(element));
+            return await this.getRepositories(element);
         } else if (isRepository(element)) {
-            return Promise.resolve(this.getTags(element));
+            return await this.getTags(element);
         } else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
     }
 
-    public getTreeItem(element: T): Promise<vscode.TreeItem> {
+    public getParent(element: CommonRegistryItem): CommonRegistryItem | undefined {
+        return element.parent;
+    }
+
+    public getTreeItem(element: CommonRegistryItem): Promise<vscode.TreeItem> {
         if (isRegistryRoot(element)) {
             return Promise.resolve({
                 ...element,
@@ -71,11 +75,14 @@ export abstract class CommonRegistryDataProvider<T extends CommonRegistryItem> i
     public abstract readonly description?: string;
     public abstract readonly icon?: vscode.ThemeIcon;
 
-    public abstract getRegistries<TRegistry extends CommonRegistry>(): Promise<TRegistry[]> | TRegistry[];
-    public abstract getRepositories<TRegistry extends CommonRegistry, TRepository extends CommonRepository>(registry: TRegistry): Promise<TRepository[]> | TRepository[];
-    public abstract getTags<TRepository extends CommonRepository, TTag extends CommonTag>(repository: TRepository): Promise<TTag[]> | TTag[];
+    public abstract getRegistries(root: CommonRegistryRoot): Promise<CommonRegistry[]> | CommonRegistry[];
+    public abstract getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> | CommonRepository[];
+    public abstract getTags(repository: CommonRepository): Promise<CommonTag[]> | CommonTag[];
 
-    public deleteRegistry?<TRegistry extends CommonRegistry>(item: TRegistry): Promise<void>;
-    public deleteRepository?<TRepository extends CommonRepository>(item: TRepository): Promise<void>;
-    public deleteTag?<TTag extends CommonTag>(item: TTag): Promise<void>;
+    public deleteRegistry?(item: CommonRegistry): Promise<void>;
+    public deleteRepository?(item: CommonRepository): Promise<void>;
+    public deleteTag?(item: CommonTag): Promise<void>;
+
+    public static onConnect?(): Promise<CommonRegistryDataProvider>;
+    public onDisconnect?(): Promise<void>;
 }

@@ -14,7 +14,9 @@
         "noImplicitReturns": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
-        "stripInternal": true
+        "stripInternal": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
     },
     "exclude": [
         "node_modules"

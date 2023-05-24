@@ -7,7 +7,7 @@
 export type RegistryItem = any | ContextValueRegistryItem;
 
 export interface ContextValueRegistryItem {
-    readonly additionalContextValues: string[];
+    additionalContextValues: string[] | undefined;
 }
 
 export function isContextValueRegistryItem(maybeContextValueRegistryItem: unknown): maybeContextValueRegistryItem is ContextValueRegistryItem {
