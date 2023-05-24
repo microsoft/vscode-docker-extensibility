@@ -31,7 +31,6 @@ export class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
         }
     }
 
-    // TODO: can I use a decorator to accomplish this instead of a whole class?
     public getRegistries(root: V2RegistryRoot): V2Registry[] {
         const registries: string[] = this.storageMemento.get(this.storageKey, []);
         return registries.map(reg => {
