@@ -14,7 +14,7 @@ export class GitHubAuthenticationProvider implements AuthenticationProvider {
     }
 
     public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
-        throw new Error('Method not implemented.');
+        throw new Error('TODO: Not implemented');
     }
 
     public async onDisconnect(): Promise<void> {

@@ -14,6 +14,7 @@ interface BasicCredentials {
 export class BasicOAuthProvider implements AuthenticationProvider {
     private oAuthEndpoint: vscode.Uri | undefined;
     private defaultScopes: string[] | undefined;
+    private _didFallback: boolean = false;
 
     public constructor(private readonly getBasicCredentials: () => BasicCredentials | Promise<BasicCredentials>) { }
 
@@ -31,12 +32,17 @@ export class BasicOAuthProvider implements AuthenticationProvider {
                 scopes: scopes,
             };
         } else {
-            throw new Error('Not implemented');
+            throw new Error('TODO: Not implemented');
         }
     }
 
-    public fallback(unauthorizedResponse: unknown /* TODO */): void {
-        throw new Error('Not implemented');
+    public fallback(wwwAuthenticateHeader: string): void {
+        this._didFallback = true;
+        throw new Error('TODO: Not implemented');
+    }
+
+    public get didFallback(): boolean {
+        return this._didFallback;
     }
 }
 

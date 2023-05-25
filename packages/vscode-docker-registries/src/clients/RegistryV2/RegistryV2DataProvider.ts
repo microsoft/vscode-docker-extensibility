@@ -30,11 +30,11 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     public abstract getRegistries(root: V2RegistryRoot): V2Registry[] | Promise<V2Registry[]>;
 
     public getRepositories(registry: V2Registry): Promise<V2Repository[]> {
-        throw new Error('Method not implemented.');
+        throw new Error('TODO: Not implemented');
     }
 
     public getTags(repository: V2Repository): Promise<V2Tag[]> {
-        throw new Error('Method not implemented.');
+        throw new Error('TODO: Not implemented');
     }
 
     public async onDisconnect(): Promise<void> {

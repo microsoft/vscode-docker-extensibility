@@ -46,7 +46,7 @@ export class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
 
     public async connectRegistry(): Promise<void> {
         // TODO
-        throw new Error('Not implemented');
+        throw new Error('TODO: Not implemented');
     }
 
     public async disconnectRegistry(registry: V2Registry): Promise<void> {
