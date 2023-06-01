@@ -10,6 +10,7 @@ import { RequestLike, httpRequest } from '../utils/httpRequest';
 
 export class BasicOAuthProvider implements AuthenticationProvider {
     private oAuthEndpoint: string | undefined;
+    private oAuthService: string | undefined;
     private defaultScopes: string[] | undefined;
     private _didFallback: boolean = false;
 
@@ -18,7 +19,7 @@ export class BasicOAuthProvider implements AuthenticationProvider {
     public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
         const { username, secret } = await this.getBasicCredentials();
 
-        if (this.oAuthEndpoint === undefined) {
+        if (this.oAuthEndpoint === undefined || this.oAuthService === undefined) {
             return {
                 id: 'basic',
                 type: 'Basic',
@@ -36,6 +37,7 @@ export class BasicOAuthProvider implements AuthenticationProvider {
                     'Authorization': `Basic ${this.getBasicAuthToken(username, secret)}`,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'grant_type': 'password',
+                    'service': this.oAuthService,
                     'scope': [...this.defaultScopes ?? [], ...scopes].join(' '),
                 },
             };
@@ -66,6 +68,7 @@ export class BasicOAuthProvider implements AuthenticationProvider {
         }
 
         this.oAuthEndpoint = match.groups.realm;
+        this.oAuthService = match.groups.service;
         this.defaultScopes = match.groups.scope.split(' ');
         this._didFallback = true;
     }
