@@ -4,15 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { GitHubAuthenticationProvider } from './GitHubAuthenticationProvider';
 import { MonolithRegistryV2DataProvider } from '../Monolith/MonolithRegistryV2DataProvider';
+import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
+
+const GitHubStorageKey = 'GitHubContainerRegistry';
 
 export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
     public constructor(storageMemento: vscode.Memento, secretStore: vscode.SecretStorage) {
         super('GitHub',
-            new GitHubAuthenticationProvider(secretStore),
+            new BasicOAuthProvider(storageMemento, secretStore, GitHubStorageKey),
             storageMemento,
-            'ConnectedGitHubRepositories',
+            GitHubStorageKey,
             undefined,
             new vscode.ThemeIcon('github')
         );

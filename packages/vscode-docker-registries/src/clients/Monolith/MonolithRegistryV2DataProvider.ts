@@ -32,7 +32,7 @@ export class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
     }
 
     public getRegistries(root: V2RegistryRoot): V2Registry[] {
-        const registries: string[] = this.storageMemento.get(this.storageKey, []);
+        const registries: string[] = this.storageMemento.get(this.connectedRegistriesStorageKey, []);
         return registries.map(reg => {
             return {
                 type: 'commonregistry',
@@ -51,9 +51,13 @@ export class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
 
     public async disconnectRegistry(registry: V2Registry): Promise<void> {
         const registries: string[] = this.storageMemento
-            .get(this.storageKey, [])
+            .get(this.connectedRegistriesStorageKey, [])
             .filter(reg => reg !== registry.label);
 
-        await this.storageMemento.update(this.storageKey, registries);
+        await this.storageMemento.update(this.connectedRegistriesStorageKey, registries);
+    }
+
+    private get connectedRegistriesStorageKey(): string {
+        return `${this.storageKey}.ConnectedRegistries`;
     }
 }
