@@ -9,7 +9,7 @@ import { RegistryV2DataProvider, V2Registry, V2RegistryRoot } from '../RegistryV
 import { CommonRegistryItem, CommonRegistryRoot } from '../common/models';
 import { ContextValueRegistryItem } from '../../contracts/RegistryItem';
 
-export class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
+export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
     protected constructor(
         label: string,
         authenticationProvider: AuthenticationProvider,

@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
 import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
 import { getContextValue } from '../../utils/contextValues';
+import { LoginInformation } from '../../contracts/LoginInformation';
 
 export abstract class CommonRegistryDataProvider implements RegistryDataProvider<CommonRegistryItem> {
     protected readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<CommonRegistryItem | undefined>();
@@ -78,6 +79,8 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public abstract getRegistries(root: CommonRegistryRoot): Promise<CommonRegistry[]> | CommonRegistry[];
     public abstract getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> | CommonRepository[];
     public abstract getTags(repository: CommonRepository): Promise<CommonTag[]> | CommonTag[];
+
+    public getLoginInformation?(item: CommonRegistryItem): Promise<LoginInformation> | LoginInformation;
 
     public deleteRegistry?(item: CommonRegistry): Promise<void>;
     public deleteRepository?(item: CommonRepository): Promise<void>;
