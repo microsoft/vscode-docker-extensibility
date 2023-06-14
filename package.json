@@ -4,5 +4,11 @@
     "workspaces": [
         "packages/container-runtimes",
         "packages/vscode-docker-registries"
-    ]
+    ],
+    "scripts": {
+        "lint": "npm run -ws lint",
+        "build": "npm run -ws build",
+        "package": "npm run -ws package",
+        "test": "npm run -ws test"
+    }
 }
