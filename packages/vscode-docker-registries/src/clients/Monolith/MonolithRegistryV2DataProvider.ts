@@ -27,7 +27,7 @@ export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvi
             return (await super.getChildren(element))
                 .map(registry => ({ ...registry as CommonRegistryRoot, additionalContextValues: ['monolith'] } as CommonRegistryRoot & ContextValueRegistryItem));
         } else {
-            return super.getChildren();
+            return super.getChildren(element);
         }
     }
 
