@@ -6,6 +6,7 @@
 import * as vscode from 'vscode';
 import { MonolithRegistryV2DataProvider } from '../Monolith/MonolithRegistryV2DataProvider';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
+import { V2Registry, V2Repository } from '../RegistryV2/RegistryV2DataProvider';
 
 const GitHubStorageKey = 'GitHubContainerRegistry';
 
@@ -18,5 +19,17 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
             undefined,
             new vscode.ThemeIcon('github')
         );
+    }
+
+    public override async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
+        // TODO
+        return [
+            {
+                registryRootUri: registry.registryRootUri,
+                label: 'bwateratmsft/dotnet-accelerator',
+                parent: registry,
+                type: 'commonrepository',
+            }
+        ];
     }
 }

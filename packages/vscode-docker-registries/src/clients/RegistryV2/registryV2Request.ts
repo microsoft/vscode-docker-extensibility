@@ -48,7 +48,8 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
         method: options.method,
     };
 
-    await signRequest(request, options.authenticationProvider, options.scopes);
+    const auth = await options.authenticationProvider.getSession(options.scopes);
+    request.headers['Authorization'] = `${auth.type} ${auth.accessToken}`;
 
     const response = await httpRequest(uri.toString(), request);
 
@@ -64,9 +65,4 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
         headers: response.headers,
         body: response.headers['Content-Length'] ? await response.json() as T : undefined,
     };
-}
-
-async function signRequest(request: RequestLike, authenticationProvider: AuthenticationProvider, scopes: string[]): Promise<void> {
-    const auth = await authenticationProvider.getSession(scopes);
-    request.headers['Authorization'] = `${auth.type} ${auth.accessToken}`;
 }
