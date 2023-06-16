@@ -10,13 +10,27 @@
                 "$tsc-watch"
             ],
             "group": {
-                "kind": "build",
-                "isDefault": true
+                "kind": "build"
             },
             "presentation": {
                 "reveal": "never"
             },
             "isBackground": true
+        },
+        {
+            "type": "npm",
+            "script": "watch",
+            "path": "packages/vscode-docker-registries-extension",
+            "problemMatcher": "$ts-webpack-watch",
+            "isBackground": true,
+            "presentation": {
+                "reveal": "never",
+                "group": "watchers"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "tsc-watch: vscode-docker-registries",

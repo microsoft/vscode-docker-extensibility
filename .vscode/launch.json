@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-docker-registries-extension"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/packages/vscode-docker-registries-extension/dist/**/*.js"
+            ],
+            "preLaunchTask": "${defaultBuildTask}"
+        },
+        {
             "name": "Container runtime tests",
             "request": "launch",
             "runtimeArgs": [

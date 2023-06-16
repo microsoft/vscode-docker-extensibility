@@ -3,7 +3,8 @@
     "author": "Microsoft Corporation",
     "workspaces": [
         "packages/container-runtimes",
-        "packages/vscode-docker-registries"
+        "packages/vscode-docker-registries",
+        "packages/vscode-docker-registries-extension"
     ],
     "scripts": {
         "lint": "npm run -ws lint",
