@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { CommonRegistryDataProvider } from '../common/CommonRegistryDataProvider';
 import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag } from '../common/models';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
+import { LoginInformation } from '../../contracts/BasicCredentials';
 
 export interface V2RegistryItem extends CommonRegistryItem {
     readonly registryRootUri: vscode.Uri;
@@ -34,6 +35,10 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     }
 
     public getTags(repository: V2Repository): Promise<V2Tag[]> {
+        throw new Error('TODO: Not implemented');
+    }
+
+    public getLoginInformation(): LoginInformation {
         throw new Error('TODO: Not implemented');
     }
 

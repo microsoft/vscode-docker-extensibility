@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
 import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
 import { getContextValue } from '../../utils/contextValues';
-import { LoginInformation } from '../../contracts/LoginInformation';
+import { LoginInformation } from '../../contracts/BasicCredentials';
 
 export abstract class CommonRegistryDataProvider implements RegistryDataProvider<CommonRegistryItem> {
     protected readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<CommonRegistryItem | undefined>();
