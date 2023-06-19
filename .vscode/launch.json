@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Container runtime tests",
+            "name": "Container client tests",
             "request": "launch",
             "runtimeArgs": [
                 "test",
-                "--workspace=packages/container-runtimes"
+                "--workspace=packages/vscode-container-client"
             ],
             "runtimeExecutable": "npm",
             "skipFiles": [

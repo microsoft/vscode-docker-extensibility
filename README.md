@@ -1,8 +1,8 @@
 ## Extensibility Packages for Docker extension for VS Code
 This repository contains several extensibility packages for the Docker extension for VS Code.
 
-### [container-runtimes](https://github.com/microsoft/vscode-docker-extensibility/tree/main/packages/container-runtimes)
-Library support for multiple container runtimes.
+### [vscode-container-client](https://github.com/microsoft/vscode-docker-extensibility/tree/main/packages/vscode-container-client)
+Library support for communicating with Docker.
 
 ### [vscode-docker-registries](https://github.com/microsoft/vscode-docker-extensibility/tree/main/packages/vscode-docker-registries)
 Unified container registry provider model.

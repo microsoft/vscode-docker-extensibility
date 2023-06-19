@@ -3,7 +3,7 @@
         "typescript"
     ],
     "eslint.workingDirectories": [
-        "./packages/container-runtimes",
+        "./packages/vscode-container-client",
         "./packages/vscode-docker-registries"
     ],
     "files.trimTrailingWhitespace": true,
