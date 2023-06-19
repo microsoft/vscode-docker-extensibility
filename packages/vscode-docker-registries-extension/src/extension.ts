@@ -13,6 +13,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let treeView: vscode.TreeView<unknown>;
 	context.subscriptions.push(treeView = vscode.window.createTreeView('dockerRegistries2', { treeDataProvider: urtdp }));
+
+	return {
+		memento: {
+			globalState: context.globalState,
+			workspaceState: context.workspaceState,
+		}
+	};
 }
 
 // This method is called when your extension is deactivated
