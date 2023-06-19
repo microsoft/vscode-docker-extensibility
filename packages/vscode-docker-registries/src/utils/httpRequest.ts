@@ -30,6 +30,8 @@ export async function httpRequest<T>(url: string, request: RequestLike): Promise
     return {
         ...response,
         headers: headers,
+        status: response.status,
+        statusText: response.statusText,
         json: response.json.bind(response),
     };
 }

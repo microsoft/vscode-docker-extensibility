@@ -59,7 +59,7 @@ export class BasicOAuthProvider implements AuthenticationProvider {
     }
 
     public fallback(wwwAuthenticateHeader: string): void {
-        const wwwAuthenticateHeaderRegex = /Bearer\s+realm="(?<realm>[^"]+)",\s+service="(?<service>[^"]+)",\s+scope="(?<scope>[^"]+)"/i;
+        const wwwAuthenticateHeaderRegex = /Bearer\s+realm="(?<realm>[^"]+)",\s*service="(?<service>[^"]+)",\s*scope="(?<scope>[^"]+)"/i;
 
         const match = wwwAuthenticateHeaderRegex.exec(wwwAuthenticateHeader);
 
