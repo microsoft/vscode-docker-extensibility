@@ -5,33 +5,33 @@
 
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
-import { RegistryV2DataProvider, V2Registry, V2RegistryRoot } from '../RegistryV2/RegistryV2DataProvider';
-import { CommonRegistryItem, CommonRegistryRoot } from '../common/models';
+import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '../RegistryV2/RegistryV2DataProvider';
 import { ContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
     protected constructor(
+        registryRootUri: vscode.Uri,
+        icon: vscode.ThemeIcon,
         label: string,
         authenticationProvider: AuthenticationProvider,
-        private readonly storageMemento: vscode.Memento,
-        private readonly storageKey: string,
-        description?: string,
-        icon?: vscode.ThemeIcon
+        protected readonly storageMemento: vscode.Memento,
+        protected readonly storageKey: string,
+        description?: string
     ) {
-        super(label, authenticationProvider, description, icon);
+        super(registryRootUri, icon, label, authenticationProvider, description);
     }
 
-    public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
+    public override async getChildren(element?: V2RegistryItem | undefined): Promise<V2RegistryItem[]> {
         if (!element) {
             // Add to the context value to note that this is a monolithic registry
             return (await super.getChildren(element))
-                .map(registry => ({ ...registry as CommonRegistryRoot, additionalContextValues: ['monolith'] } as CommonRegistryRoot & ContextValueRegistryItem));
+                .map(registry => ({ ...registry as V2RegistryRoot, additionalContextValues: ['monolith'] } as V2RegistryItem & ContextValueRegistryItem));
         } else {
-            return super.getChildren(element);
+            return super.getChildren(element) as Promise<V2RegistryItem[]>;
         }
     }
 
-    public getRegistries(root: V2RegistryRoot): V2Registry[] {
+    public async getRegistries(root: V2RegistryRoot): Promise<V2Registry[]> {
         const registries: string[] = this.storageMemento.get(this.connectedRegistriesStorageKey, []);
         return registries.map(reg => {
             return {

@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { RegistryItem } from '../../contracts/RegistryItem';
+import { ContextValueRegistryItem, RegistryItem } from '../../contracts/RegistryItem';
 
-export interface CommonRegistryItem extends RegistryItem {
+export interface CommonRegistryItem extends RegistryItem, ContextValueRegistryItem {
     readonly parent: CommonRegistryItem | undefined;
     readonly label: string;
     readonly description?: string;

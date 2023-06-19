@@ -21,6 +21,10 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         super();
     }
 
+    public getRoot(): CommonRegistryRoot {
+        throw new Error('TODO: Not implemented');
+    }
+
     public async getRegistries(root: CommonRegistryRoot): Promise<CommonRegistry[]> {
         throw new Error('TODO: Not implemented');
     }

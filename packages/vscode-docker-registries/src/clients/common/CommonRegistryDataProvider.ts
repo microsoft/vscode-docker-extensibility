@@ -15,14 +15,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
 
     public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
         if (!element) {
-            return [
-                {
-                    type: 'commonroot',
-                    label: this.label,
-                    description: this.description,
-                    rootIcon: this.icon,
-                } as CommonRegistryRoot,
-            ];
+            return [await this.getRoot()];
         } else if (isRegistryRoot(element)) {
             return (await this.getRegistries(element)).map(registry => ({ ...registry, parent: element }));
         } else if (isRegistry(element)) {
@@ -76,6 +69,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public abstract readonly description?: string;
     public abstract readonly icon?: vscode.ThemeIcon;
 
+    public abstract getRoot(): Promise<CommonRegistryRoot> | CommonRegistryRoot;
     public abstract getRegistries(root: CommonRegistryRoot): Promise<CommonRegistry[]> | CommonRegistry[];
     public abstract getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> | CommonRepository[];
     public abstract getTags(repository: CommonRepository): Promise<CommonTag[]> | CommonTag[];

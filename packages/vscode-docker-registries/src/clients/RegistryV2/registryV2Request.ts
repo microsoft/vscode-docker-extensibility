@@ -12,6 +12,7 @@ export interface RegistryV2RequestOptions {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     registryRootUri: vscode.Uri;
     path: string[];
+    query?: Record<string, string>;
     scopes: string[];
     throwOnFailure?: boolean;
     authenticationProvider: AuthenticationProvider;
@@ -42,16 +43,20 @@ export async function registryV2Request<T>(options: RegistryV2RequestOptions): P
 }
 
 async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): Promise<RegistryV2Response<T>> {
-    const uri = vscode.Uri.joinPath(options.registryRootUri, ...options.path);
+    const query = new URLSearchParams(options.query);
+    const uri = vscode.Uri.joinPath(options.registryRootUri, ...options.path).with({ query: query.toString() });
+
     const request: RequestLike = {
-        headers: {},
+        headers: {
+            'Accept': 'application/json',
+        },
         method: options.method,
     };
 
     const auth = await options.authenticationProvider.getSession(options.scopes);
     request.headers['Authorization'] = `${auth.type} ${auth.accessToken}`;
 
-    const response = await httpRequest(uri.toString(), request);
+    const response = await httpRequest(uri.toString(true), request);
 
     if (options.throwOnFailure && (response.status < 200 || response.status >= 300)) {
         throw new Error(vscode.l10n.t('Request to {0} failed with response {1}: {2}', uri.toString(), response.status, response.statusText));
@@ -63,6 +68,6 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
         succeeded: response.status >= 200 && response.status < 300,
         uri: uri,
         headers: response.headers,
-        body: response.headers['Content-Length'] ? await response.json() as T : undefined,
+        body: (response.headers['content-length'] || response.headers['transfer-encoding'] === 'chunked') ? await response.json() as T : undefined,
     };
 }

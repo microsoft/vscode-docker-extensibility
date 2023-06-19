@@ -7,9 +7,9 @@
 export type RegistryItem = any | ContextValueRegistryItem;
 
 export interface ContextValueRegistryItem {
-    additionalContextValues: string[] | undefined;
+    additionalContextValues?: string[] | undefined;
 }
 
 export function isContextValueRegistryItem(maybeContextValueRegistryItem: unknown): maybeContextValueRegistryItem is ContextValueRegistryItem {
-    return !!maybeContextValueRegistryItem && typeof maybeContextValueRegistryItem === 'object' && Array.isArray((maybeContextValueRegistryItem as ContextValueRegistryItem).additionalContextValues);
+    return !!maybeContextValueRegistryItem && typeof maybeContextValueRegistryItem === 'object' && 'additionalContextValues' in maybeContextValueRegistryItem;
 }

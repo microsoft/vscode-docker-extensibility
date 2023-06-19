@@ -21,12 +21,23 @@ export type V2Tag = CommonTag & V2RegistryItem;
 
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public constructor(
+        protected readonly registryRootUri: vscode.Uri,
+        public readonly icon: vscode.ThemeIcon,
         public readonly label: string,
-        private readonly authenticationProvider: AuthenticationProvider,
+        protected readonly authenticationProvider: AuthenticationProvider,
         public readonly description?: string,
-        public readonly icon?: vscode.ThemeIcon,
     ) {
         super();
+    }
+
+    public getRoot(): V2RegistryRoot {
+        return {
+            registryRootUri: this.registryRootUri,
+            label: this.label,
+            type: 'commonroot',
+            parent: undefined,
+            rootIcon: this.icon,
+        };
     }
 
     public abstract getRegistries(root: V2RegistryRoot): V2Registry[] | Promise<V2Registry[]>;
