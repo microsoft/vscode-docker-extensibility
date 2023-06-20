@@ -61,4 +61,8 @@ export class UnifiedRegistryTreeDataProvider implements vscode.TreeDataProvider<
     public registerProvider(provider: RegistryDataProvider<unknown>): void {
         this.providers.push(provider);
     }
+
+    public refresh(): void {
+        this.onDidChangeTreeDataEmitter.fire(undefined);
+    }
 }

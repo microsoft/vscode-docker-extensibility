@@ -12,7 +12,22 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [],
+    "commands": [
+      {
+        "title": "Refresh Registries V2",
+        "icon": "$(refresh)",
+        "command": "dockerRegistries2.refreshRegistries"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "when": "view == dockerRegistries2",
+          "command": "dockerRegistries2.refreshRegistries",
+          "group": "navigation@0"
+        }
+      ]
+    },
     "views": {
       "dockerView": [
         {

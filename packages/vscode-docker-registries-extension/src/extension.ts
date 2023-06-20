@@ -14,6 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
 	let treeView: vscode.TreeView<unknown>;
 	context.subscriptions.push(treeView = vscode.window.createTreeView('dockerRegistries2', { treeDataProvider: urtdp }));
 
+	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.refreshRegistries', () => urtdp.refresh()));
+
 	return {
 		memento: {
 			globalState: context.globalState,
