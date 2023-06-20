@@ -15,7 +15,7 @@ export interface CommonRegistryItem extends RegistryItem, ContextValueRegistryIt
 export interface CommonRegistryRoot extends CommonRegistryItem {
     readonly parent: undefined;
     readonly type: 'commonroot';
-    readonly rootIcon: vscode.ThemeIcon;
+    readonly rootIcon: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon;
 }
 
 export function isRegistryRoot(maybeRegistryRoot: unknown): maybeRegistryRoot is CommonRegistryRoot {

@@ -53,7 +53,7 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
         method: options.method,
     };
 
-    const auth = await options.authenticationProvider.getSession(options.scopes);
+    const auth = await options.authenticationProvider.getSession(options.scopes, undefined);
     request.headers['Authorization'] = `${auth.type} ${auth.accessToken}`;
 
     const response = await httpRequest(uri.toString(true), request);

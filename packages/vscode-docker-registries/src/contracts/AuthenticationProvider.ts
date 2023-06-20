@@ -5,9 +5,7 @@
 
 import * as vscode from 'vscode';
 
-export type AuthenticationCallback = (scopes: string[], options?: vscode.AuthenticationGetSessionOptions) => Promise<vscode.AuthenticationSession & { type: string }>;
-
 export interface AuthenticationProvider {
-    getSession: AuthenticationCallback;
-    onDisconnect?(): Promise<void>;
+    getSession<TOptions extends vscode.AuthenticationGetSessionOptions | undefined = vscode.AuthenticationGetSessionOptions>(scopes: string[], options: TOptions): Promise<vscode.AuthenticationSession & { type: string }>;
+    removeSession?(sessionId?: string): Promise<void>;
 }

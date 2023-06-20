@@ -88,4 +88,12 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
 
         return results;
     }
+
+    public connect(): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+
+    public disconnect(): Promise<void> {
+        return (this.authenticationProvider as BasicOAuthProvider).removeSession();
+    }
 }

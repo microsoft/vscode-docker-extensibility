@@ -3,41 +3,148 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DockerHubAuthProvider } from '../../auth/DockerHubAuthProvider';
 import { LoginInformation } from '../../contracts/BasicCredentials';
+import { httpRequest } from '../../utils/httpRequest';
 import { CommonRegistryDataProvider } from '../common/CommonRegistryDataProvider';
 import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag } from '../common/models';
 
 import * as vscode from 'vscode';
 
+const DockerHubUrl = 'https://hub.docker.com/';
+
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly label: string = 'Docker Hub';
     public readonly description: undefined;
-    public readonly icon: undefined; // TODO
+    public readonly icon = { light: 'resources/light/docker.svg', dark: 'resources/dark/docker.svg' };
 
     public constructor(
-        private readonly authenticationProvider: vscode.AuthenticationProvider,
+        private readonly authenticationProvider: DockerHubAuthProvider,
         private readonly storageMemento: vscode.Memento,
     ) {
         super();
     }
 
     public getRoot(): CommonRegistryRoot {
-        throw new Error('TODO: Not implemented');
+        return {
+            label: this.label,
+            rootIcon: this.icon,
+            parent: undefined,
+            type: 'commonroot',
+        };
     }
 
     public async getRegistries(root: CommonRegistryRoot): Promise<CommonRegistry[]> {
-        throw new Error('TODO: Not implemented');
+        const orgsAndNamespaces = new Set<string>();
+
+        (await this.getOrganizations()).forEach(org => orgsAndNamespaces.add(org));
+        (await this.getNamespaces()).forEach(namespace => orgsAndNamespaces.add(namespace));
+
+        const results: CommonRegistry[] = [];
+
+        const sortedOrgsAndNamespaces = Array.from(orgsAndNamespaces).sort();
+
+        for (const orgOrNamespace of sortedOrgsAndNamespaces) {
+            results.push({
+                label: orgOrNamespace,
+                parent: root,
+                type: 'commonregistry',
+            });
+        }
+
+        return results;
     }
 
     public async getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> {
-        throw new Error('TODO: Not implemented');
+        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+            .with({ path: `v2/repositories/${registry.label}` });
+
+        const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+            }
+        });
+
+        const results: CommonRepository[] = [];
+
+        for (const repository of (await response.json()).results) {
+            results.push({
+                label: `${registry.label}/${repository.name}`,
+                parent: registry,
+                type: 'commonrepository',
+            });
+        }
+
+        return results;
     }
 
     public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
-        throw new Error('TODO: Not implemented');
+        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+            .with({ path: `v2/repositories/${repository.label}/tags` });
+
+        const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+            }
+        });
+
+        const results: CommonTag[] = [];
+
+        for (const tag of (await response.json()).results) {
+            results.push({
+                label: tag.name,
+                parent: repository,
+                type: 'commontag',
+            });
+        }
+
+        return results;
     }
 
-    public getLoginInformation(): LoginInformation {
-        throw new Error('TODO: Not implemented');
+    public async getLoginInformation(): Promise<LoginInformation> {
+        const creds = await this.authenticationProvider.getBasicCredentials();
+        return {
+            server: DockerHubUrl,
+            username: creds.username,
+            secret: creds.secret,
+        };
+    }
+
+    public connect(): Promise<void> {
+        throw new Error('TODO: Method not implemented.');
+    }
+
+    public disconnect(): Promise<void> {
+        throw new Error('TODO: Method not implemented.');
+    }
+
+    private async getNamespaces(): Promise<string[]> {
+        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+            .with({ path: `v2/repositories/namespaces` });
+
+        const response = await httpRequest<{ namespaces: string[] }>(requestUrl.toString(), {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+            }
+        });
+
+        return (await response.json()).namespaces || [];
+    }
+
+    private async getOrganizations(): Promise<string[]> {
+        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+            .with({ path: `v2/user/orgs` });
+
+        const response = await httpRequest<{ results: [{ orgname: string }] }>(requestUrl.toString(), {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+            }
+        });
+
+        return (await response.json()).results.map(org => org.orgname) || [];
     }
 }

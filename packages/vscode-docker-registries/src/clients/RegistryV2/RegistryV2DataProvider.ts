@@ -92,9 +92,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         throw new Error('TODO: Not implemented');
     }
 
-    public async onDisconnect(): Promise<void> {
-        if (this.authenticationProvider.onDisconnect) {
-            return await this.authenticationProvider.onDisconnect();
-        }
-    }
+    public abstract connect(): Promise<void>;
+    public abstract disconnect(): Promise<void>;
 }

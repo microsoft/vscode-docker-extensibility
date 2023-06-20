@@ -6,9 +6,12 @@
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from "../contracts/AuthenticationProvider";
 
+export interface ACROAuthOptions extends vscode.AuthenticationGetSessionOptions {
+    readonly service: vscode.Uri;
+}
 
 export class ACROAuthProvider implements AuthenticationProvider {
-    public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
+    public async getSession<ACROAuthOptions>(scopes: string[], options?: ACROAuthOptions): Promise<vscode.AuthenticationSession & { type: string }> {
         throw new Error('TODO: Not implemented');
     }
 }
