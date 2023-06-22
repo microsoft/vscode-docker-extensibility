@@ -34,7 +34,6 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
                 {
                     registryRootUri: root.registryRootUri,
                     label: trackedRegistry,
-                    parent: root,
                     type: 'commonregistry',
                 }
             );
@@ -80,7 +79,6 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
                 results.push({
                     registryRootUri: registry.registryRootUri,
                     label: repository,
-                    parent: registry,
                     type: 'commonrepository',
                 });
             }

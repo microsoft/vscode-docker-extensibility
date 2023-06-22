@@ -35,7 +35,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             registryRootUri: this.registryRootUri,
             label: this.label,
             type: 'commonroot',
-            parent: undefined,
             rootIcon: this.icon,
         };
     }
@@ -57,7 +56,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             results.push({
                 registryRootUri: registry.registryRootUri,
                 label: repository,
-                parent: registry,
                 type: 'commonrepository',
             });
         }
@@ -80,7 +78,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             results.push({
                 registryRootUri: repository.registryRootUri,
                 label: tag,
-                parent: repository,
                 type: 'commontag',
             });
         }

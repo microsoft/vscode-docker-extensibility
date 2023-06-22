@@ -29,7 +29,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         return {
             label: this.label,
             rootIcon: this.icon,
-            parent: undefined,
             type: 'commonroot',
         };
     }
@@ -47,7 +46,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         for (const orgOrNamespace of sortedOrgsAndNamespaces) {
             results.push({
                 label: orgOrNamespace,
-                parent: root,
                 type: 'commonregistry',
             });
         }
@@ -71,7 +69,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         for (const repository of (await response.json()).results) {
             results.push({
                 label: `${registry.label}/${repository.name}`,
-                parent: registry,
                 type: 'commonrepository',
             });
         }
@@ -95,7 +92,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         for (const tag of (await response.json()).results) {
             results.push({
                 label: tag.name,
-                parent: repository,
                 type: 'commontag',
             });
         }

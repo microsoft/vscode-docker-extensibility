@@ -17,7 +17,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
         if (!element) {
             return [await this.getRoot()];
         } else if (isRegistryRoot(element)) {
-            return (await this.getRegistries(element)).map(registry => ({ ...registry, parent: element }));
+            return (await this.getRegistries(element));
         } else if (isRegistry(element)) {
             return await this.getRepositories(element);
         } else if (isRepository(element)) {
@@ -25,10 +25,6 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
         } else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
-    }
-
-    public getParent(element: CommonRegistryItem): CommonRegistryItem | undefined {
-        return element.parent;
     }
 
     public getTreeItem(element: CommonRegistryItem): Promise<vscode.TreeItem> {

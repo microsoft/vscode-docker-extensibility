@@ -36,7 +36,6 @@ export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvi
         return registries.map(reg => {
             return {
                 type: 'commonregistry',
-                parent: root,
                 registryRootUri: root.registryRootUri,
                 label: reg,
                 additionalContextValues: ['monolithregistry'],

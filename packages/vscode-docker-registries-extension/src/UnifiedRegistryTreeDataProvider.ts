@@ -1,4 +1,4 @@
-import { RegistryDataProvider } from '@microsoft/vscode-docker-registries/lib/contracts/RegistryDataProvider';
+import { RegistryDataProvider } from '@microsoft/vscode-docker-registries';
 import * as vscode from 'vscode';
 
 interface UnifiedRegistryItem<T> {
