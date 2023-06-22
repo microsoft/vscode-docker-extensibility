@@ -8,13 +8,15 @@ import { UnifiedRegistryTreeDataProvider } from './UnifiedRegistryTreeDataProvid
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	const urtdp = new UnifiedRegistryTreeDataProvider();
+	const urtdp = new UnifiedRegistryTreeDataProvider(context.globalState);
 	urtdp.registerProvider(new GitHubRegistryDataProvider(context.globalState, context.secrets));
 
 	let treeView: vscode.TreeView<unknown>;
 	context.subscriptions.push(treeView = vscode.window.createTreeView('dockerRegistries2', { treeDataProvider: urtdp }));
 
 	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.refreshRegistries', () => urtdp.refresh()));
+	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.connectRegistry', () => urtdp.connectRegistry()));
+	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.disconnectRegistry', (item) => urtdp.disconnectRegistry(item)));
 
 	return {
 		memento: {

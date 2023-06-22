@@ -17,6 +17,16 @@
         "title": "Refresh Registries V2",
         "icon": "$(refresh)",
         "command": "dockerRegistries2.refreshRegistries"
+      },
+      {
+        "title": "Connect Registry V2",
+        "icon": "$(plug)",
+        "command": "dockerRegistries2.connectRegistry"
+      },
+      {
+        "title": "Disconnect Registry V2",
+        "icon": "$(debug-disconnect)",
+        "command": "dockerRegistries2.disconnectRegistry"
       }
     ],
     "menus": {
@@ -26,10 +36,17 @@
           "command": "dockerRegistries2.refreshRegistries",
           "group": "navigation@0"
         }
+      ],
+      "view/item/context": [
+        {
+          "when": "view == dockerRegistries2 && viewItem =~ /commonregistryroot/i",
+          "command": "dockerRegistries2.disconnectRegistry",
+          "group": "destructive@0"
+        }
       ]
     },
     "views": {
-      "dockerView": [
+      "explorer": [
         {
           "id": "dockerRegistries2",
           "name": "Docker Registries (v2)"
