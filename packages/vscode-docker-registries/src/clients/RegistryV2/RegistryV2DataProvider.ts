@@ -22,10 +22,7 @@ export type V2Tag = CommonTag & V2RegistryItem;
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public constructor(
         protected readonly registryRootUri: vscode.Uri,
-        public readonly icon: vscode.ThemeIcon,
-        public readonly label: string,
         protected readonly authenticationProvider: AuthenticationProvider,
-        public readonly description?: string,
     ) {
         super();
     }
@@ -35,7 +32,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             registryRootUri: this.registryRootUri,
             label: this.label,
             type: 'commonroot',
-            rootIcon: this.icon,
+            icon: this.icon,
         };
     }
 
@@ -85,8 +82,12 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         return results;
     }
 
-    public getLoginInformation(): LoginInformation {
-        throw new Error('TODO: Not implemented');
+    public getLoginInformation(): Promise<LoginInformation> {
+        if (this.authenticationProvider.getLoginInformation) {
+            return this.authenticationProvider.getLoginInformation();
+        }
+
+        throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', this.authenticationProvider));
     }
 
     public abstract connect(): Promise<void>;

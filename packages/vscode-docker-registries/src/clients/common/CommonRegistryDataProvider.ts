@@ -33,14 +33,14 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
                 contextValue: getContextValue(element, 'commonregistryroot'), // TODO
-                iconPath: element.rootIcon,
+                iconPath: element.icon,
             });
         } else if (isRegistry(element)) {
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
                 contextValue: getContextValue(element, 'commonregistry'), // TODO
-                iconPath: element.registryIcon || new vscode.ThemeIcon('briefcase'),
+                iconPath: element.icon || new vscode.ThemeIcon('briefcase'),
             });
         } else if (isRepository(element)) {
             return Promise.resolve({
@@ -61,6 +61,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
         }
     }
 
+    public abstract readonly id: string;
     public abstract readonly label: string;
     public abstract readonly description?: string;
     public abstract readonly icon?: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon;

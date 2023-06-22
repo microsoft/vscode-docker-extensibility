@@ -12,15 +12,17 @@ import { registryV2Request } from '../RegistryV2/registryV2Request';
 const GitHubStorageKey = 'GitHubContainerRegistry';
 
 export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
+    public readonly id: string = 'vscode-docker.github';
+    public readonly label: string = vscode.l10n.t('GitHub');
+    public readonly description: string = vscode.l10n.t('GitHub Container Registry');
+    public readonly icon: vscode.ThemeIcon = new vscode.ThemeIcon('github');
+
     public constructor(storageMemento: vscode.Memento, secretStore: vscode.SecretStorage) {
         super(
             vscode.Uri.parse('https://ghcr.io'),
-            new vscode.ThemeIcon('github'),
-            'GitHub',
             new BasicOAuthProvider(storageMemento, secretStore, GitHubStorageKey),
             storageMemento,
             GitHubStorageKey,
-            undefined,
         );
     }
 

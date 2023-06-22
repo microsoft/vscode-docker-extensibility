@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 const DockerHubUrl = 'https://hub.docker.com/';
 
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
+    public readonly id: string = 'vscode-docker.dockerhub';
     public readonly label: string = 'Docker Hub';
     public readonly description: undefined;
     public readonly icon = { light: 'resources/light/docker.svg', dark: 'resources/dark/docker.svg' };
@@ -28,7 +29,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public getRoot(): CommonRegistryRoot {
         return {
             label: this.label,
-            rootIcon: this.icon,
+            icon: this.icon,
             type: 'commonroot',
         };
     }

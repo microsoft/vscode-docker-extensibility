@@ -8,12 +8,12 @@ import { ContextValueRegistryItem, RegistryItem } from '../../contracts/Registry
 
 export interface CommonRegistryItem extends RegistryItem, ContextValueRegistryItem {
     readonly label: string;
+    readonly icon?: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon
     readonly description?: string;
 }
 
 export interface CommonRegistryRoot extends CommonRegistryItem {
     readonly type: 'commonroot';
-    readonly rootIcon: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon;
 }
 
 export function isRegistryRoot(maybeRegistryRoot: unknown): maybeRegistryRoot is CommonRegistryRoot {
@@ -22,7 +22,6 @@ export function isRegistryRoot(maybeRegistryRoot: unknown): maybeRegistryRoot is
 
 export interface CommonRegistry extends CommonRegistryItem {
     readonly type: 'commonregistry';
-    readonly registryIcon?: vscode.ThemeIcon;
 }
 
 export function isRegistry(maybeRegistry: unknown): maybeRegistry is CommonRegistry {

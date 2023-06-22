@@ -58,8 +58,14 @@ export class UnifiedRegistryTreeDataProvider implements vscode.TreeDataProvider<
         return element.parent;
     }
 
-    public registerProvider(provider: RegistryDataProvider<unknown>): void {
+    public registerProvider(provider: RegistryDataProvider<unknown>): vscode.Disposable {
         this.providers.push(provider);
+
+        return {
+            dispose: () => {
+                this.providers.unshift(provider);
+            }
+        };
     }
 
     public refresh(): void {
