@@ -11,10 +11,10 @@ import { LoginInformation } from '../../contracts/BasicCredentials';
 import { registryV2Request } from './registryV2Request';
 
 export interface V2RegistryItem extends CommonRegistryItem {
-    readonly registryRootUri: vscode.Uri;
+    readonly registryUri: vscode.Uri;
 }
 
-export type V2RegistryRoot = CommonRegistryRoot & V2RegistryItem;
+export type V2RegistryRoot = CommonRegistryRoot;
 export type V2Registry = CommonRegistry & V2RegistryItem;
 export type V2Repository = CommonRepository & V2RegistryItem;
 export type V2Tag = CommonTag & V2RegistryItem;
@@ -29,20 +29,20 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
     public getRoot(): V2RegistryRoot {
         return {
-            registryRootUri: this.registryRootUri,
+            parent: undefined,
             label: this.label,
             type: 'commonroot',
             icon: this.icon,
         };
     }
 
-    public abstract getRegistries(root: V2RegistryRoot): V2Registry[] | Promise<V2Registry[]>;
+    public abstract getRegistries(root: V2RegistryRoot | V2RegistryItem): V2Registry[] | Promise<V2Registry[]>;
 
     public async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
         const catalogResponse = await registryV2Request<{ repositories: string[] }>({
             authenticationProvider: this.authenticationProvider,
             method: 'GET',
-            registryRootUri: registry.registryRootUri,
+            registryUri: registry.registryUri,
             path: ['v2', '_catalog'],
             scopes: ['registry:catalog:*']
         });
@@ -51,7 +51,8 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
         for (const repository of catalogResponse.body?.repositories || []) {
             results.push({
-                registryRootUri: registry.registryRootUri,
+                parent: registry,
+                registryUri: registry.registryUri,
                 label: repository,
                 type: 'commonrepository',
             });
@@ -64,7 +65,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         const tagsResponse = await registryV2Request<{ tags: string[] }>({
             authenticationProvider: this.authenticationProvider,
             method: 'GET',
-            registryRootUri: repository.registryRootUri,
+            registryUri: repository.registryUri,
             path: ['v2', repository.label, 'tags', 'list'],
             scopes: [`repository:${repository.label}:'pull'`]
         });
@@ -73,7 +74,8 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
         for (const tag of tagsResponse.body?.tags || []) {
             results.push({
-                registryRootUri: repository.registryRootUri,
+                parent: repository,
+                registryUri: repository.registryUri,
                 label: tag,
                 type: 'commontag',
             });
@@ -89,7 +91,4 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', this.authenticationProvider));
     }
-
-    public abstract connect(): Promise<void>;
-    public abstract disconnect(): Promise<void>;
 }

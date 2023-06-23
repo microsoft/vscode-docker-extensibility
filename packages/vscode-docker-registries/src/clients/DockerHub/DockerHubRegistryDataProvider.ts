@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 const DockerHubUrl = 'https://hub.docker.com/';
 
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
-    public readonly id: string = 'vscode-docker.dockerhub';
+    public readonly id: string = 'vscode-docker.dockerHub';
     public readonly label: string = 'Docker Hub';
     public readonly description: undefined;
     public readonly icon = { light: 'resources/light/docker.svg', dark: 'resources/dark/docker.svg' };
@@ -28,6 +28,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
     public getRoot(): CommonRegistryRoot {
         return {
+            parent: undefined,
             label: this.label,
             icon: this.icon,
             type: 'commonroot',
@@ -46,6 +47,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
         for (const orgOrNamespace of sortedOrgsAndNamespaces) {
             results.push({
+                parent: root,
                 label: orgOrNamespace,
                 type: 'commonregistry',
             });
@@ -69,6 +71,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
         for (const repository of (await response.json()).results) {
             results.push({
+                parent: registry,
                 label: `${registry.label}/${repository.name}`,
                 type: 'commonrepository',
             });
@@ -92,6 +95,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
         for (const tag of (await response.json()).results) {
             results.push({
+                parent: repository,
                 label: tag.name,
                 type: 'commontag',
             });
@@ -107,14 +111,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
             username: creds.username,
             secret: creds.secret,
         };
-    }
-
-    public connect(): Promise<void> {
-        throw new Error('TODO: Method not implemented.');
-    }
-
-    public disconnect(): Promise<void> {
-        throw new Error('TODO: Method not implemented.');
     }
 
     private async getNamespaces(): Promise<string[]> {

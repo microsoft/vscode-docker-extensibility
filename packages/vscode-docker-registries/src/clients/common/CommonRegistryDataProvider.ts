@@ -67,7 +67,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public abstract readonly icon?: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon;
 
     public abstract getRoot(): Promise<CommonRegistryRoot> | CommonRegistryRoot;
-    public abstract getRegistries(root: CommonRegistryRoot): Promise<CommonRegistry[]> | CommonRegistry[];
+    public abstract getRegistries(root: CommonRegistryRoot | CommonRegistryItem): Promise<CommonRegistry[]> | CommonRegistry[];
     public abstract getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> | CommonRepository[];
     public abstract getTags(repository: CommonRepository): Promise<CommonTag[]> | CommonTag[];
 
@@ -76,7 +76,4 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public deleteRegistry?(item: CommonRegistry): Promise<void>;
     public deleteRepository?(item: CommonRepository): Promise<void>;
     public deleteTag?(item: CommonTag): Promise<void>;
-
-    public abstract connect(): Promise<void>;
-    public abstract disconnect(): Promise<void>;
 }

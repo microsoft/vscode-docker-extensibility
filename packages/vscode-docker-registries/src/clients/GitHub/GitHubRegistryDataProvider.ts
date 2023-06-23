@@ -12,7 +12,7 @@ import { registryV2Request } from '../RegistryV2/registryV2Request';
 const GitHubStorageKey = 'GitHubContainerRegistry';
 
 export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
-    public readonly id: string = 'vscode-docker.github';
+    public readonly id: string = 'vscode-docker.githubContainerRegistry';
     public readonly label: string = vscode.l10n.t('GitHub');
     public readonly description: string = vscode.l10n.t('GitHub Container Registry');
     public readonly icon: vscode.ThemeIcon = new vscode.ThemeIcon('github');
@@ -34,7 +34,8 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
         for (const trackedRegistry of trackedRegistries) {
             results.push(
                 {
-                    registryRootUri: root.registryRootUri,
+                    parent: root,
+                    registryUri: root.registryUri,
                     label: trackedRegistry,
                     type: 'commonregistry',
                 }
@@ -60,7 +61,7 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
             const catalogResponse = await registryV2Request<{ repositories: string[] }>({
                 authenticationProvider: this.authenticationProvider,
                 method: 'GET',
-                registryRootUri: registry.registryRootUri,
+                registryUri: registry.registryUri,
                 path: ['v2', '_catalog'],
                 query: {
                     n: '100',
@@ -79,7 +80,8 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
                 }
 
                 results.push({
-                    registryRootUri: registry.registryRootUri,
+                    parent: registry,
+                    registryUri: registry.registryUri,
                     label: repository,
                     type: 'commonrepository',
                 });
@@ -87,13 +89,5 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
         } while (!foundAllInSearch);
 
         return results;
-    }
-
-    public connect(): Promise<void> {
-        throw new Error('Method not implemented.');
-    }
-
-    public disconnect(): Promise<void> {
-        return (this.authenticationProvider as BasicOAuthProvider).removeSession();
     }
 }
