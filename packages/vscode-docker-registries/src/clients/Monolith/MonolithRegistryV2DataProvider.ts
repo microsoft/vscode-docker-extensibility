@@ -22,38 +22,39 @@ export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvi
         if (!element) {
             // Add to the context value to note that this is a monolithic registry
             return (await super.getChildren(element))
-                .map(registry => ({ ...registry as V2RegistryRoot, additionalContextValues: ['monolith'] } as V2RegistryItem & ContextValueRegistryItem));
+                .map(registry => ({ ...registry as V2RegistryRoot, registryUri: this.registryRootUri, additionalContextValues: ['monolith'] } as V2RegistryItem & ContextValueRegistryItem));
         } else {
             return super.getChildren(element) as Promise<V2RegistryItem[]>;
         }
     }
 
     public async getRegistries(root: V2RegistryRoot): Promise<V2Registry[]> {
-        const registries: string[] = this.storageMemento.get(this.connectedRegistriesStorageKey, []);
+        const registries: string[] = this.storageMemento.get(this.trackedRegistriesStorageKey, []);
         return registries.map(reg => {
             return {
                 type: 'commonregistry',
-                registryRootUri: root.registryRootUri,
+                registryUri: root.registryUri,
                 label: reg,
                 additionalContextValues: ['monolithregistry'],
             } as V2Registry & ContextValueRegistryItem;
         });
     }
 
-    public async connectRegistry(): Promise<void> {
+    public async trackPseudoRegistry(): Promise<void> {
         // TODO
         throw new Error('TODO: Not implemented');
     }
 
-    public async disconnectRegistry(registry: V2Registry): Promise<void> {
+    public async untrackPseudoRegistry(registry: V2Registry): Promise<void> {
         const registries: string[] = this.storageMemento
-            .get(this.connectedRegistriesStorageKey, [])
+            .get(this.trackedRegistriesStorageKey, [])
             .filter(reg => reg !== registry.label);
 
-        await this.storageMemento.update(this.connectedRegistriesStorageKey, registries);
+        await this.storageMemento.update(this.trackedRegistriesStorageKey, registries);
+        this.onDidChangeTreeDataEmitter.fire(registry.parent);
     }
 
-    private get connectedRegistriesStorageKey(): string {
-        return `${this.storageKey}.ConnectedRegistries`;
+    private get trackedRegistriesStorageKey(): string {
+        return `${this.storageKey}.TrackedRegistries`;
     }
 }
