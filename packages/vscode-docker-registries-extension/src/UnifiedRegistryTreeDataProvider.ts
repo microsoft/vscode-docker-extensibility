@@ -85,7 +85,7 @@ export class UnifiedRegistryTreeDataProvider implements vscode.TreeDataProvider<
         this.onDidChangeTreeDataEmitter.fire(undefined);
     }
 
-    public async connectRegistry(): Promise<void> {
+    public async connectRegistryProvider(): Promise<void> {
         const picks: (vscode.QuickPickItem & { provider: RegistryDataProvider<unknown> })[] = [];
         const connectedProviderIds = this.storageMemento.get<string[]>(ConnectedRegistryProvidersKey, []);
 
@@ -101,7 +101,7 @@ export class UnifiedRegistryTreeDataProvider implements vscode.TreeDataProvider<
             });
         }
 
-        const picked = await vscode.window.showQuickPick(picks, { placeHolder: 'Select a registry to connect to' });
+        const picked = await vscode.window.showQuickPick(picks, { placeHolder: vscode.l10n.t('Select a registry provider to use') });
 
         if (!picked) {
             return;
@@ -112,10 +112,11 @@ export class UnifiedRegistryTreeDataProvider implements vscode.TreeDataProvider<
         this.refresh();
     }
 
-    public async disconnectRegistry(item: UnifiedRegistryItem<never>): Promise<void> {
-        const connectedProviderIds = this.storageMemento.get<string[]>(ConnectedRegistryProvidersKey, []);
-        connectedProviderIds.splice(connectedProviderIds.indexOf(item.provider.id), 1);
-        await this.storageMemento.update(ConnectedRegistryProvidersKey, connectedProviderIds);
+    public async disconnectRegistryProvider(item: UnifiedRegistryItem<never>): Promise<void> {
+        const newConnectedProviderIds = this.storageMemento
+            .get<string[]>(ConnectedRegistryProvidersKey, [])
+            .filter(cpi => cpi !== item.provider.id);
+        await this.storageMemento.update(ConnectedRegistryProvidersKey, newConnectedProviderIds);
         this.refresh();
     }
 }
