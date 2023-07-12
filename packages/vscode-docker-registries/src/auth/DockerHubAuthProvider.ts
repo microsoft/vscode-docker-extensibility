@@ -6,6 +6,8 @@
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from '../contracts/AuthenticationProvider';
 import { BasicCredentials } from '../contracts/BasicCredentials';
+import { DockerHubUrl } from '../clients/DockerHub/DockerHubRegistryDataProvider';
+import { httpRequest } from '../utils/httpRequest';
 
 const StorageKey = 'DockerHub';
 
@@ -18,8 +20,20 @@ export class DockerHubAuthProvider implements AuthenticationProvider {
         const creds = await this.getBasicCredentials();
 
         if (!this.#token || options?.forceNewSession) {
-            this.#token = 'TODO';
-            throw new Error('TODO: Not implemented');
+            const requestUrl = vscode.Uri.parse(DockerHubUrl)
+                .with({ path: `v2/users/login` });
+
+            const response = await httpRequest<{ token: string }>(requestUrl.toString(), {
+                method: 'POST',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: creds.username,
+                    password: creds.secret,
+                })
+            });
+
+            this.#token = (await response.json()).token;
         }
 
         return {

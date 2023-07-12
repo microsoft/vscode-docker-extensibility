@@ -11,19 +11,23 @@ import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag } from 
 
 import * as vscode from 'vscode';
 
-const DockerHubUrl = 'https://hub.docker.com/';
+export const DockerHubUrl = 'https://hub.docker.com/';
 
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly id: string = 'vscode-docker.dockerHub';
     public readonly label: string = 'Docker Hub';
     public readonly description: undefined;
-    public readonly icon = { light: 'resources/light/docker.svg', dark: 'resources/dark/docker.svg' };
+    public readonly icon: { light: vscode.Uri, dark: vscode.Uri };
 
-    public constructor(
-        private readonly authenticationProvider: DockerHubAuthProvider,
-        private readonly storageMemento: vscode.Memento,
-    ) {
+    private readonly authenticationProvider: DockerHubAuthProvider;
+
+    public constructor(extensionContext: vscode.ExtensionContext) {
         super();
+        this.authenticationProvider = new DockerHubAuthProvider(extensionContext.globalState, extensionContext.secrets);
+        this.icon = {
+            light: vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'light', 'docker.svg'),
+            dark: vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'dark', 'docker.svg'),
+        };
     }
 
     public getRoot(): CommonRegistryRoot {
