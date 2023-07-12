@@ -7,6 +7,7 @@ import { VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureau
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '@microsoft/vscode-docker-registries';
 import { CommonRegistryItem, isRegistryRoot } from '@microsoft/vscode-docker-registries/lib/clients/common/models';
 import * as vscode from 'vscode';
+import { ACROAuthProvider } from './ACROAuthProvider';
 
 interface AzureSubscriptionRegistryItem extends V2RegistryItem {
     readonly parent: V2RegistryRoot;
@@ -25,6 +26,10 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     public readonly description = vscode.l10n.t('Azure Container Registry');
 
     private readonly subscriptionProvider = new VSCodeAzureSubscriptionProvider();
+
+    public constructor(private readonly extensionContext: vscode.ExtensionContext) {
+        super(new ACROAuthProvider());
+    }
 
     public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
         if (isRegistryRoot(element)) {
@@ -58,14 +63,14 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         this.subscriptionProvider.dispose();
     }
 
-    getRegistries(subscriptionItem: AzureSubscriptionRegistryItem): V2Registry[] | Promise<V2Registry[]> {
+    public async getRegistries(subscriptionItem: AzureSubscriptionRegistryItem): Promise<V2Registry[]> {
         return [
             {
                 parent: subscriptionItem,
                 type: 'commonregistry',
                 registryUri: vscode.Uri.parse('https://bwateracr.azurecr.io'),
                 label: 'bwateracr.azurecr.io',
-                // icon: TODO
+                icon: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureRegistry.svg'),
             }
         ];
     }
