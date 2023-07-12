@@ -3,20 +3,20 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
+import { AzureSubscription, VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '@microsoft/vscode-docker-registries';
-import { CommonRegistryItem, isRegistryRoot } from '@microsoft/vscode-docker-registries/lib/clients/common/models';
+import { CommonRegistryItem, isRegistryRoot } from '@microsoft/vscode-docker-registries/lib/clients/Common/models';
 import * as vscode from 'vscode';
 import { ACROAuthProvider } from './ACROAuthProvider';
 
 interface AzureSubscriptionRegistryItem extends V2RegistryItem {
     readonly parent: V2RegistryRoot;
-    readonly subscriptionId: string;
+    readonly subscription: AzureSubscription;
     readonly type: 'azuresubscription';
 }
 
 function isAzureSubscriptionRegistryItem(item: unknown): item is AzureSubscriptionRegistryItem {
-    return !!item && typeof item === 'object' && 'subscriptionId' in item;
+    return !!item && typeof item === 'object' && 'subscription' in item;
 }
 
 export class AzureRegistryDataProvider extends RegistryV2DataProvider implements vscode.Disposable {
@@ -45,12 +45,11 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
             return subscriptions.map(sub => {
                 return {
                     parent: element,
-                    registryRootUri: element.registryRootUri,
                     label: sub.name,
                     type: 'azuresubscription',
-                    subscriptionId: sub.subscriptionId,
+                    subscription: sub,
                     additionalContextValues: ['azuresubscription']
-                };
+                } as AzureSubscriptionRegistryItem;
             });
         } else if (isAzureSubscriptionRegistryItem(element)) {
             return await this.getRegistries(element);
@@ -73,5 +72,18 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
                 icon: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureRegistry.svg'),
             }
         ];
+    }
+
+    public override getTreeItem(element: CommonRegistryItem): Promise<vscode.TreeItem> {
+        if (isAzureSubscriptionRegistryItem(element)) {
+            return Promise.resolve({
+                label: element.label,
+                collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+                contextValue: 'azuresubscription',
+                iconPath: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureSubscription.svg'),
+            });
+        } else {
+            return super.getTreeItem(element);
+        }
     }
 }
