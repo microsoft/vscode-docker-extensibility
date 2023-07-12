@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { AuthenticationProvider } from "../contracts/AuthenticationProvider";
+import { AuthenticationProvider } from "@microsoft/vscode-docker-registries/src/contracts/AuthenticationProvider";
 
 export interface ACROAuthOptions extends vscode.AuthenticationGetSessionOptions {
     readonly service: vscode.Uri;
