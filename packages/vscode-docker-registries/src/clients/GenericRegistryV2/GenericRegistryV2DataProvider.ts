@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem } from '../RegistryV2/RegistryV2DataProvider';
-import { CommonRegistryRoot } from '../common/models';
+import { CommonRegistryRoot } from '../Common/models';
 
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public readonly id = 'vscode-docker.genericRegistryV2DataProvider';

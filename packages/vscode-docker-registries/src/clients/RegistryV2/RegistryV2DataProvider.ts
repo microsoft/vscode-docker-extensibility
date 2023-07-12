@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { CommonRegistryDataProvider } from '../common/CommonRegistryDataProvider';
-import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag } from '../common/models';
+import { CommonRegistryDataProvider } from '../Common/CommonRegistryDataProvider';
+import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag } from '../Common/models';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import { registryV2Request } from './registryV2Request';

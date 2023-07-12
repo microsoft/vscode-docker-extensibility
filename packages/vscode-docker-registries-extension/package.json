@@ -30,6 +30,12 @@
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "dockerRegistries2.disconnectRegistry",
+          "when": "false"
+        }
+      ],
       "view/title": [
         {
           "when": "view == dockerRegistries2",

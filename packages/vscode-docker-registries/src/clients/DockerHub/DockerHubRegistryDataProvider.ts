@@ -6,8 +6,8 @@
 import { DockerHubAuthProvider } from '../../auth/DockerHubAuthProvider';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import { httpRequest } from '../../utils/httpRequest';
-import { CommonRegistryDataProvider } from '../common/CommonRegistryDataProvider';
-import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag } from '../common/models';
+import { CommonRegistryDataProvider } from '../Common/CommonRegistryDataProvider';
+import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag } from '../Common/models';
 
 import * as vscode from 'vscode';
 
