@@ -21,7 +21,6 @@ export type V2Tag = CommonTag & V2RegistryItem;
 
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public constructor(
-        protected readonly registryRootUri: vscode.Uri,
         protected readonly authenticationProvider: AuthenticationProvider,
     ) {
         super();

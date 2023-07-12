@@ -10,12 +10,12 @@ import { ContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
     protected constructor(
-        registryRootUri: vscode.Uri,
+        protected readonly registryRootUri: vscode.Uri,
         authenticationProvider: AuthenticationProvider,
         protected readonly storageMemento: vscode.Memento,
         protected readonly storageKey: string,
     ) {
-        super(registryRootUri, authenticationProvider);
+        super(authenticationProvider);
     }
 
     public override async getChildren(element?: V2RegistryItem | undefined): Promise<V2RegistryItem[]> {

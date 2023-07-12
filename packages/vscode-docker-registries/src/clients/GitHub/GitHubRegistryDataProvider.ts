@@ -17,11 +17,11 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
     public readonly description: string = vscode.l10n.t('GitHub Container Registry');
     public readonly icon: vscode.ThemeIcon = new vscode.ThemeIcon('github');
 
-    public constructor(storageMemento: vscode.Memento, secretStore: vscode.SecretStorage) {
+    public constructor(extensionContext: vscode.ExtensionContext) {
         super(
             vscode.Uri.parse('https://ghcr.io'),
-            new BasicOAuthProvider(storageMemento, secretStore, GitHubStorageKey),
-            storageMemento,
+            new BasicOAuthProvider(extensionContext.globalState, extensionContext.secrets, GitHubStorageKey),
+            extensionContext.globalState,
             GitHubStorageKey,
         );
     }
