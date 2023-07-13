@@ -10,7 +10,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public readonly id = 'vscode-docker.genericRegistryV2DataProvider';
     public readonly label = 'Generic Registry V2';
     public readonly description: undefined;
-    public readonly icon = { light: 'resources/light/docker.svg', dark: 'resources/dark/docker.svg' };
+    public readonly iconPath = { light: 'resources/light/docker.svg', dark: 'resources/dark/docker.svg' };
 
     public async getRegistries(root: CommonRegistryRoot | V2RegistryItem): Promise<V2Registry[]> {
         throw new Error('Method not implemented.');

@@ -31,7 +31,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             parent: undefined,
             label: this.label,
             type: 'commonroot',
-            icon: this.icon,
+            iconPath: this.iconPath,
         };
     }
 

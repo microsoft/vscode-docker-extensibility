@@ -15,7 +15,7 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
     public readonly id: string = 'vscode-docker.githubContainerRegistry';
     public readonly label: string = vscode.l10n.t('GitHub');
     public readonly description: string = vscode.l10n.t('GitHub Container Registry');
-    public readonly icon: vscode.ThemeIcon = new vscode.ThemeIcon('github');
+    public readonly iconPath: vscode.ThemeIcon = new vscode.ThemeIcon('github');
 
     public constructor(extensionContext: vscode.ExtensionContext) {
         super(

@@ -17,14 +17,14 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly id: string = 'vscode-docker.dockerHub';
     public readonly label: string = 'Docker Hub';
     public readonly description: undefined;
-    public readonly icon: { light: vscode.Uri, dark: vscode.Uri };
+    public readonly iconPath: { light: vscode.Uri, dark: vscode.Uri };
 
     private readonly authenticationProvider: DockerHubAuthProvider;
 
     public constructor(extensionContext: vscode.ExtensionContext) {
         super();
         this.authenticationProvider = new DockerHubAuthProvider(extensionContext.globalState, extensionContext.secrets);
-        this.icon = {
+        this.iconPath = {
             light: vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'light', 'docker.svg'),
             dark: vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'dark', 'docker.svg'),
         };
@@ -34,7 +34,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         return {
             parent: undefined,
             label: this.label,
-            icon: this.icon,
+            iconPath: this.iconPath,
             type: 'commonroot',
         };
     }
