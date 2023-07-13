@@ -6,8 +6,9 @@
 import * as vscode from 'vscode';
 import { MonolithRegistryV2DataProvider } from '../Monolith/MonolithRegistryV2DataProvider';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
-import { V2Registry, V2RegistryRoot, V2Repository } from '../RegistryV2/RegistryV2DataProvider';
+import { V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository } from '../RegistryV2/RegistryV2DataProvider';
 import { registryV2Request } from '../RegistryV2/registryV2Request';
+import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 
 const GitHubStorageKey = 'GitHubContainerRegistry';
 
@@ -17,10 +18,9 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
     public readonly description: string = vscode.l10n.t('GitHub Container Registry');
     public readonly iconPath: vscode.ThemeIcon = new vscode.ThemeIcon('github');
 
-    public constructor(extensionContext: vscode.ExtensionContext) {
+    public constructor(private readonly extensionContext: vscode.ExtensionContext) {
         super(
             vscode.Uri.parse('https://ghcr.io'),
-            new BasicOAuthProvider(extensionContext.globalState, extensionContext.secrets, GitHubStorageKey),
             extensionContext.globalState,
             GitHubStorageKey,
         );
@@ -59,7 +59,7 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
 
         do {
             const catalogResponse = await registryV2Request<{ repositories: string[] }>({
-                authenticationProvider: this.authenticationProvider,
+                authenticationProvider: this.getAuthenticationProvider(registry),
                 method: 'GET',
                 registryUri: registry.registryUri,
                 path: ['v2', '_catalog'],
@@ -89,5 +89,9 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
         } while (!foundAllInSearch);
 
         return results;
+    }
+
+    protected override getAuthenticationProvider(element: V2RegistryItem): AuthenticationProvider {
+        return new BasicOAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets, GitHubStorageKey);
     }
 }

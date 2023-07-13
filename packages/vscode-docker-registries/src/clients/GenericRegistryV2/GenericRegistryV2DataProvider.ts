@@ -5,6 +5,7 @@
 
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem } from '../RegistryV2/RegistryV2DataProvider';
 import { CommonRegistryRoot } from '../Common/models';
+import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public readonly id = 'vscode-docker.genericRegistryV2DataProvider';
@@ -13,6 +14,10 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public readonly iconPath = { light: 'resources/light/docker.svg', dark: 'resources/dark/docker.svg' };
 
     public async getRegistries(root: CommonRegistryRoot | V2RegistryItem): Promise<V2Registry[]> {
+        throw new Error('Method not implemented.');
+    }
+
+    protected override getAuthenticationProvider(element: V2RegistryItem): AuthenticationProvider {
         throw new Error('Method not implemented.');
     }
 }

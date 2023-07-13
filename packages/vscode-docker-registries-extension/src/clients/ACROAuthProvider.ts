@@ -11,7 +11,21 @@ export interface ACROAuthOptions extends vscode.AuthenticationGetSessionOptions 
 }
 
 export class ACROAuthProvider implements AuthenticationProvider {
+    public constructor(private readonly registryUri: vscode.Uri) { }
+
     public async getSession<ACROAuthOptions>(scopes: string[], options?: ACROAuthOptions): Promise<vscode.AuthenticationSession & { type: string }> {
+        throw new Error('TODO: Not implemented');
+    }
+
+    private async getOAuthTokenFromRefreshToken(): Promise<string> {
+        throw new Error('TODO: Not implemented');
+    }
+
+    private async getRefreshTokenFromAccessToken(): Promise<string> {
+        throw new Error('TODO: Not implemented');
+    }
+
+    private async getAccessToken(): Promise<string> {
         throw new Error('TODO: Not implemented');
     }
 }

@@ -4,18 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '../RegistryV2/RegistryV2DataProvider';
 import { ContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
     protected constructor(
         protected readonly registryRootUri: vscode.Uri,
-        authenticationProvider: AuthenticationProvider,
         protected readonly storageMemento: vscode.Memento,
         protected readonly storageKey: string,
     ) {
-        super(authenticationProvider);
+        super();
     }
 
     public override async getChildren(element?: V2RegistryItem | undefined): Promise<V2RegistryItem[]> {

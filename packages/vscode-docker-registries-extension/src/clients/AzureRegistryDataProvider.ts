@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { Registry as AcrRegistry } from '@azure/arm-containerregistry';
 import { AzureSubscription, VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '@microsoft/vscode-docker-registries';
 import { CommonRegistryItem, isRegistryRoot } from '@microsoft/vscode-docker-registries/lib/clients/Common/models';
@@ -22,13 +23,13 @@ function isAzureSubscriptionRegistryItem(item: unknown): item is AzureSubscripti
 export class AzureRegistryDataProvider extends RegistryV2DataProvider implements vscode.Disposable {
     public readonly id = 'vscode-docker.azureContainerRegistry';
     public readonly label = vscode.l10n.t('Azure');
-    public readonly icon = new vscode.ThemeIcon('azure');
+    public readonly iconPath = new vscode.ThemeIcon('azure');
     public readonly description = vscode.l10n.t('Azure Container Registry');
 
     private readonly subscriptionProvider = new VSCodeAzureSubscriptionProvider();
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
-        super(new ACROAuthProvider());
+        super();
     }
 
     public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
@@ -63,15 +64,24 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     }
 
     public async getRegistries(subscriptionItem: AzureSubscriptionRegistryItem): Promise<V2Registry[]> {
-        return [
-            {
+        // TODO: replace this with `createAzureClient`
+        const acrClient = new (await import('@azure/arm-containerregistry')).ContainerRegistryManagementClient(subscriptionItem.subscription.credential, subscriptionItem.subscription.subscriptionId);
+
+        const registries: AcrRegistry[] = [];
+
+        for await (const registry of acrClient.registries.list()) {
+            registries.push(registry);
+        }
+
+        return registries.map(registry => {
+            return {
                 parent: subscriptionItem,
                 type: 'commonregistry',
-                registryUri: vscode.Uri.parse('https://bwateracr.azurecr.io'),
-                label: 'bwateracr.azurecr.io',
-                icon: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureRegistry.svg'),
-            }
-        ];
+                registryUri: vscode.Uri.parse(`https://${registry.loginServer}`),
+                label: registry.name!,
+                iconPath: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureRegistry.svg'),
+            } as V2Registry;
+        });
     }
 
     public override getTreeItem(element: CommonRegistryItem): Promise<vscode.TreeItem> {
@@ -80,10 +90,14 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
                 label: element.label,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
                 contextValue: 'azuresubscription',
-                iconPath: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureSubscription.svg'),
+                iconPath: new vscode.ThemeIcon('key'), // TODO: replace with Azure subscription icon
             });
         } else {
             return super.getTreeItem(element);
         }
+    }
+
+    protected override getAuthenticationProvider(element: V2RegistryItem): ACROAuthProvider {
+        return new ACROAuthProvider(element.registryUri);
     }
 }
