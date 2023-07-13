@@ -88,7 +88,7 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
-    "@azure/arm-resources": "^5.2.0",
+    "@azure/arm-containerregistry": "^10.1.0",
     "@azure/arm-subscriptions": "^5.1.0",
     "@microsoft/vscode-azext-azureauth": "^1.0.0"
   }
