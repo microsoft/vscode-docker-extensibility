@@ -6,14 +6,16 @@
 import * as vscode from 'vscode';
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '../RegistryV2/RegistryV2DataProvider';
 import { ContextValueRegistryItem } from '../../contracts/RegistryItem';
+import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 
 export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
     protected constructor(
+        authenticationProvider: AuthenticationProvider<never>,
         protected readonly registryRootUri: vscode.Uri,
         protected readonly storageMemento: vscode.Memento,
         protected readonly storageKey: string,
     ) {
-        super();
+        super(authenticationProvider);
     }
 
     public override async getChildren(element?: V2RegistryItem | undefined): Promise<V2RegistryItem[]> {

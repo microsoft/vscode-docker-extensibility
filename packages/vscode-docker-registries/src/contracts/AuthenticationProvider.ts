@@ -6,8 +6,8 @@
 import * as vscode from 'vscode';
 import { LoginInformation } from './BasicCredentials';
 
-export interface AuthenticationProvider {
-    getSession<TOptions extends vscode.AuthenticationGetSessionOptions | undefined = vscode.AuthenticationGetSessionOptions>(scopes: string[], options: TOptions): Promise<vscode.AuthenticationSession & { type: string }>;
+export interface AuthenticationProvider<TOptions extends vscode.AuthenticationGetSessionOptions | undefined> {
+    getSession(scopes: string[], options: TOptions): Promise<vscode.AuthenticationSession & { type: string }>;
     removeSession?(sessionId?: string): Promise<void>;
 
     getLoginInformation?(): Promise<LoginInformation>;

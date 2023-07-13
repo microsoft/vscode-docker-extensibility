@@ -20,6 +20,12 @@ export type V2Repository = CommonRepository & V2RegistryItem;
 export type V2Tag = CommonTag & V2RegistryItem;
 
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
+    public constructor(
+        protected readonly authenticationProvider: AuthenticationProvider<never>,
+    ) {
+        super();
+    }
+
     public getRoot(): V2RegistryRoot {
         return {
             parent: undefined,
@@ -33,7 +39,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
     public async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
         const catalogResponse = await registryV2Request<{ repositories: string[] }>({
-            authenticationProvider: this.getAuthenticationProvider(registry),
+            authenticationProvider: this.authenticationProvider,
             method: 'GET',
             registryUri: registry.registryUri,
             path: ['v2', '_catalog'],
@@ -56,7 +62,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
     public async getTags(repository: V2Repository): Promise<V2Tag[]> {
         const tagsResponse = await registryV2Request<{ tags: string[] }>({
-            authenticationProvider: this.getAuthenticationProvider(repository),
+            authenticationProvider: this.authenticationProvider,
             method: 'GET',
             registryUri: repository.registryUri,
             path: ['v2', repository.label, 'tags', 'list'],
@@ -77,14 +83,11 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         return results;
     }
 
-    public getLoginInformation(item: V2RegistryItem): Promise<LoginInformation> {
-        const authenticationProvider = this.getAuthenticationProvider(item);
-        if (authenticationProvider.getLoginInformation) {
-            return authenticationProvider.getLoginInformation();
+    public getLoginInformation(): Promise<LoginInformation> {
+        if (this.authenticationProvider.getLoginInformation) {
+            return this.authenticationProvider.getLoginInformation();
         }
 
-        throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', authenticationProvider));
+        throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', this.authenticationProvider));
     }
-
-    protected abstract getAuthenticationProvider(element: V2RegistryItem): AuthenticationProvider;
 }

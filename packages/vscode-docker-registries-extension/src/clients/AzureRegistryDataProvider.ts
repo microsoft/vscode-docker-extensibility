@@ -29,7 +29,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     private readonly subscriptionProvider = new VSCodeAzureSubscriptionProvider();
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
-        super();
+        super(new ACROAuthProvider());
     }
 
     public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
@@ -95,9 +95,5 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         } else {
             return super.getTreeItem(element);
         }
-    }
-
-    protected override getAuthenticationProvider(element: V2RegistryItem): ACROAuthProvider {
-        return new ACROAuthProvider(element.registryUri);
     }
 }

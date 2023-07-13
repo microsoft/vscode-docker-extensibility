@@ -11,7 +11,8 @@ import { httpRequest } from '../utils/httpRequest';
 
 const StorageKey = 'DockerHub';
 
-export class DockerHubAuthProvider implements AuthenticationProvider {
+export class DockerHubAuthProvider implements AuthenticationProvider<vscode.AuthenticationGetSessionOptions | undefined> {
+    // TODO: this token expires after a month, should we refresh it?
     #token: string | undefined;
 
     public constructor(private readonly storageMemento: vscode.Memento, private readonly secretStorage: vscode.SecretStorage) { }

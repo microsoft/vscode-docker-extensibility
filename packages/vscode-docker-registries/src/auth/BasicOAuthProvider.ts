@@ -12,7 +12,7 @@ export interface BasicOAuthOptions extends vscode.AuthenticationGetSessionOption
     readonly service: vscode.Uri;
 }
 
-export class BasicOAuthProvider implements AuthenticationProvider {
+export class BasicOAuthProvider<TOptions extends BasicOAuthOptions> implements AuthenticationProvider<TOptions | undefined> {
     private oAuthEndpoint: string | undefined;
     private oAuthService: string | undefined;
     private defaultScopes: string[] | undefined;
@@ -20,7 +20,7 @@ export class BasicOAuthProvider implements AuthenticationProvider {
 
     public constructor(private readonly storageMemento: vscode.Memento, private readonly secretStorage: vscode.SecretStorage, private readonly storageKey: string) { }
 
-    public async getSession<BasicOAuthOptions>(scopes: string[], options: BasicOAuthOptions): Promise<vscode.AuthenticationSession & { type: string }> {
+    public async getSession(scopes: string[], options?: TOptions): Promise<vscode.AuthenticationSession & { type: string }> {
         const { username, secret } = await this.getBasicCredentials();
 
         if (this.oAuthEndpoint === undefined || this.oAuthService === undefined) {
@@ -107,6 +107,6 @@ export class BasicOAuthProvider implements AuthenticationProvider {
     }
 }
 
-export function isBasicOAuthProvider(maybeProvider: unknown): maybeProvider is BasicOAuthProvider {
+export function isBasicOAuthProvider(maybeProvider: unknown): maybeProvider is BasicOAuthProvider<never> {
     return maybeProvider instanceof BasicOAuthProvider;
 }
