@@ -5,16 +5,23 @@
 
 import type { Registry as AcrRegistry } from '@azure/arm-containerregistry';
 import { AzureSubscription, VSCodeAzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
-import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '@microsoft/vscode-docker-registries';
+import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository, V2Tag } from '@microsoft/vscode-docker-registries';
 import { CommonRegistryItem, isRegistryRoot } from '@microsoft/vscode-docker-registries/lib/clients/Common/models';
 import * as vscode from 'vscode';
 import { ACROAuthProvider } from './ACROAuthProvider';
 
-interface AzureSubscriptionRegistryItem extends V2RegistryItem {
+interface AzureRegistryItem extends V2RegistryItem {
+    readonly registryUri: vscode.Uri;
+    readonly subscription: AzureSubscription;
+}
+
+type AzureRegistryRoot = V2RegistryRoot;
+interface AzureSubscriptionRegistryItem extends CommonRegistryItem {
     readonly parent: V2RegistryRoot;
     readonly subscription: AzureSubscription;
     readonly type: 'azuresubscription';
 }
+type AzureRegistry = V2Registry & AzureRegistryItem;
 
 function isAzureSubscriptionRegistryItem(item: unknown): item is AzureSubscriptionRegistryItem {
     return !!item && typeof item === 'object' && 'subscription' in item;
@@ -63,7 +70,8 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         this.subscriptionProvider.dispose();
     }
 
-    public async getRegistries(subscriptionItem: AzureSubscriptionRegistryItem): Promise<V2Registry[]> {
+    public async getRegistries(subscriptionItem: CommonRegistryItem): Promise<AzureRegistry[]> {
+        subscriptionItem = subscriptionItem as AzureSubscriptionRegistryItem;
         // TODO: replace this with `createAzureClient`
         const acrClient = new (await import('@azure/arm-containerregistry')).ContainerRegistryManagementClient(subscriptionItem.subscription.credential, subscriptionItem.subscription.subscriptionId);
 
@@ -80,7 +88,8 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
                 registryUri: vscode.Uri.parse(`https://${registry.loginServer}`),
                 label: registry.name!,
                 iconPath: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureRegistry.svg'),
-            } as V2Registry;
+                subscription: subscriptionItem.subscription,
+            } as AzureRegistry;
         });
     }
 

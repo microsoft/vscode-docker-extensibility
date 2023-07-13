@@ -16,6 +16,7 @@ export interface RegistryV2RequestOptions {
     scopes: string[];
     throwOnFailure?: boolean;
     authenticationProvider: AuthenticationProvider<vscode.AuthenticationGetSessionOptions | undefined>;
+    sessionOptions?: vscode.AuthenticationGetSessionOptions;
 }
 
 export interface RegistryV2Response<T> {
@@ -53,7 +54,7 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
         method: options.method,
     };
 
-    const auth = await options.authenticationProvider.getSession(options.scopes, /*TODO*/ undefined);
+    const auth = await options.authenticationProvider.getSession(options.scopes, options.sessionOptions);
     request.headers['Authorization'] = `${auth.type} ${auth.accessToken}`;
 
     const response = await httpRequest(uri.toString(true), request);
