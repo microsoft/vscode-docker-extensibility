@@ -43,7 +43,11 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             method: 'GET',
             registryUri: registry.registryUri,
             path: ['v2', '_catalog'],
-            scopes: ['registry:catalog:*']
+            scopes: ['registry:catalog:*'],
+            sessionOptions: {
+                // ... TODO
+
+            }
         });
 
         const results: V2Repository[] = [];
@@ -90,4 +94,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', this.authenticationProvider));
     }
+
+    protected abstract getSessionOptions(item: V2RegistryItem);
 }
