@@ -21,7 +21,7 @@ export type V2Tag = CommonTag & V2RegistryItem;
 
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public constructor(
-        protected readonly authenticationProvider: AuthenticationProvider<never>,
+        protected readonly authenticationProvider: AuthenticationProvider<vscode.AuthenticationGetSessionOptions | undefined>,
     ) {
         super();
     }
@@ -44,10 +44,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             registryUri: registry.registryUri,
             path: ['v2', '_catalog'],
             scopes: ['registry:catalog:*'],
-            sessionOptions: {
-                // ... TODO
-
-            }
+            sessionOptions: this.getSessionOptions?.(registry),
         });
 
         const results: V2Repository[] = [];
@@ -70,7 +67,8 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             method: 'GET',
             registryUri: repository.registryUri,
             path: ['v2', repository.label, 'tags', 'list'],
-            scopes: [`repository:${repository.label}:'pull'`]
+            scopes: [`repository:${repository.label}:pull`],
+            sessionOptions: this.getSessionOptions?.(repository),
         });
 
         const results: V2Tag[] = [];
@@ -87,13 +85,13 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         return results;
     }
 
-    public getLoginInformation(): Promise<LoginInformation> {
+    public getLoginInformation(item: V2RegistryItem): Promise<LoginInformation> {
         if (this.authenticationProvider.getLoginInformation) {
-            return this.authenticationProvider.getLoginInformation();
+            return this.authenticationProvider.getLoginInformation(this.getSessionOptions?.(item));
         }
 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', this.authenticationProvider));
     }
 
-    protected abstract getSessionOptions(item: V2RegistryItem);
+    protected abstract getSessionOptions?(item: V2RegistryItem): vscode.AuthenticationGetSessionOptions | undefined;
 }

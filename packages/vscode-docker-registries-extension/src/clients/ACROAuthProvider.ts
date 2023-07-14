@@ -19,7 +19,7 @@ export class ACROAuthProvider implements AuthenticationProvider<ACROAuthOptions>
     public constructor() { }
 
     public async getSession(scopes: string[], options: ACROAuthOptions): Promise<vscode.AuthenticationSession & { type: string }> {
-        const accessToken = await this.getAccessToken(scopes, options.subscription);
+        const accessToken = await this.getAccessToken(options.subscription);
 
         let refreshToken: string;
         if (this.refreshTokenCache.has(options.service.toString())) {
@@ -29,31 +29,51 @@ export class ACROAuthProvider implements AuthenticationProvider<ACROAuthOptions>
             this.refreshTokenCache.set(options.service.toString(), refreshToken);
         }
 
-        const oauthToken = await this.getOAuthTokenFromRefreshToken(refreshToken, options.service, options.subscription);
+        const oauthToken = await this.getOAuthTokenFromRefreshToken(refreshToken, options.service, scopes.join(' '), options.subscription);
+        const { sub, jti } = this.parseToken(oauthToken);
 
         return {
-            id: 'TODO',
+            id: jti,
             type: 'Bearer',
             accessToken: oauthToken,
             account: {
-                label: 'TODO',
-                id: 'TODO',
+                label: sub,
+                id: sub,
             },
             scopes: scopes,
         };
     }
 
-    private async getOAuthTokenFromRefreshToken(refreshToken: string, loginServer: vscode.Uri, subscription: AzureSubscription): Promise<string> {
+    private parseToken(accessToken: string): { sub: string, jti: string } {
+        const tokenParts = accessToken.split('.');
+        const tokenBody = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString('utf8'));
+        return {
+            sub: tokenBody.sub,
+            jti: tokenBody.jti,
+        };
+    }
+
+    private async getOAuthTokenFromRefreshToken(refreshToken: string, loginServer: vscode.Uri, scope: string, subscription: AzureSubscription): Promise<string> {
         const requestUrl = loginServer.with({ path: '/oauth2/token' });
 
         const requestBody = new URLSearchParams({
             /* eslint-disable @typescript-eslint/naming-convention */
             grant_type: 'refresh_token',
-
-
+            refresh_token: refreshToken,
+            service: loginServer.authority,
+            scope: scope,
         });
 
-        throw new Error('TODO: Not implemented');
+        const response = await httpRequest<{ access_token: string }>(requestUrl.toString(), {
+            method: 'POST',
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            body: requestBody,
+        });
+
+        return (await response.json()).access_token;
     }
 
     private async getRefreshTokenFromAccessToken(accessToken: string, loginServer: vscode.Uri, subscription: AzureSubscription): Promise<string> {
@@ -63,7 +83,7 @@ export class ACROAuthProvider implements AuthenticationProvider<ACROAuthOptions>
             /* eslint-disable @typescript-eslint/naming-convention */
             grant_type: 'access_token',
             access_token: accessToken,
-            service: loginServer.toString(),
+            service: loginServer.authority,
             tenant: subscription.tenantId,
             /* eslint-enable @typescript-eslint/naming-convention */
         });
@@ -71,15 +91,18 @@ export class ACROAuthProvider implements AuthenticationProvider<ACROAuthOptions>
         // eslint-disable-next-line @typescript-eslint/naming-convention
         const response = await httpRequest<{ refresh_token: string }>(requestUrl.toString(), {
             method: 'POST',
-            headers: {},
-            body: requestBody
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            body: requestBody,
         });
 
-        throw new Error('TODO: Not implemented');
+        return (await response.json()).refresh_token;
     }
 
-    private async getAccessToken(scopes: string[], subscription: AzureSubscription): Promise<string> {
-        const token = await subscription.credential.getToken(scopes);
+    private async getAccessToken(subscription: AzureSubscription): Promise<string> {
+        const token = await subscription.credential.getToken([]);
         return token!.token;
     }
 }

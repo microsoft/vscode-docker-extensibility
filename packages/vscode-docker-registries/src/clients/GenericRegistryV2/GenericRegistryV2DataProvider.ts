@@ -15,4 +15,6 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public async getRegistries(root: CommonRegistryRoot | V2RegistryItem): Promise<V2Registry[]> {
         throw new Error('Method not implemented.');
     }
+
+    protected override getSessionOptions = undefined;
 }

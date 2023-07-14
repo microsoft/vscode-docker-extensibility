@@ -10,5 +10,5 @@ export interface AuthenticationProvider<TOptions extends vscode.AuthenticationGe
     getSession(scopes: string[], options: TOptions): Promise<vscode.AuthenticationSession & { type: string }>;
     removeSession?(sessionId?: string): Promise<void>;
 
-    getLoginInformation?(): Promise<LoginInformation>;
+    getLoginInformation?(options: TOptions): Promise<LoginInformation>;
 }
