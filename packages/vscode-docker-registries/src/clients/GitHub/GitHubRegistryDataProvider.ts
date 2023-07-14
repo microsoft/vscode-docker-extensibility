@@ -90,6 +90,4 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
 
         return results;
     }
-
-    protected override getSessionOptions = undefined;
 }

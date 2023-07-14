@@ -8,7 +8,7 @@ import { AzureSubscription, VSCodeAzureSubscriptionProvider } from '@microsoft/v
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository, V2Tag } from '@microsoft/vscode-docker-registries';
 import { CommonRegistryItem, isRegistryRoot } from '@microsoft/vscode-docker-registries/lib/clients/Common/models';
 import * as vscode from 'vscode';
-import { ACROAuthOptions, ACROAuthProvider } from './ACROAuthProvider';
+import { ACROAuthProvider } from './ACROAuthProvider';
 
 interface AzureRegistryItem extends V2RegistryItem {
     readonly subscription: AzureSubscription;
@@ -24,8 +24,6 @@ function isAzureSubscriptionRegistryItem(item: unknown): item is AzureSubscripti
 }
 
 type AzureRegistry = V2Registry & AzureRegistryItem;
-type AzureRepository = V2Repository & AzureRegistryItem;
-type AzureTag = V2Tag & AzureRegistryItem;
 
 export class AzureRegistryDataProvider extends RegistryV2DataProvider implements vscode.Disposable {
     public readonly id = 'vscode-docker.azureContainerRegistry';
@@ -34,9 +32,10 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     public readonly description = vscode.l10n.t('Azure Container Registry');
 
     private readonly subscriptionProvider = new VSCodeAzureSubscriptionProvider();
+    private readonly authenticationProviders = new Map<string, ACROAuthProvider>();
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
-        super(new ACROAuthProvider());
+        super();
     }
 
     public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
@@ -97,7 +96,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
                 label: registry.name!,
                 iconPath: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureRegistry.svg'),
                 subscription: subscriptionItem.subscription,
-            } as AzureRegistry;
+            };
         });
     }
 
@@ -114,10 +113,14 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         }
     }
 
-    protected override getSessionOptions(item: AzureRegistryItem): ACROAuthOptions {
-        return {
-            service: item.registryUri,
-            subscription: item.subscription,
-        };
+    protected override getAuthenticationProvider(item: AzureRegistryItem): ACROAuthProvider {
+        const service = item.registryUri.authority;
+
+        if (!this.authenticationProviders.has(service)) {
+            const provider = new ACROAuthProvider(item.registryUri, item.subscription);
+            this.authenticationProviders.set(service, provider);
+        }
+
+        return this.authenticationProviders.get(service)!;
     }
 }

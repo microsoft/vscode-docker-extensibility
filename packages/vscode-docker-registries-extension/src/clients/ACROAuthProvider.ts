@@ -6,30 +6,30 @@
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from "@microsoft/vscode-docker-registries/src/contracts/AuthenticationProvider";
 import { AzureSubscription } from '@microsoft/vscode-azext-azureauth';
-import { BasicOAuthOptions, httpRequest } from '@microsoft/vscode-docker-registries';
-import { log } from 'console';
+import { httpRequest } from '@microsoft/vscode-docker-registries';
 
-export interface ACROAuthOptions extends BasicOAuthOptions {
-    readonly subscription: AzureSubscription;
-}
+// export interface ACROAuthOptions extends BasicOAuthOptions {
+//     readonly subscription: AzureSubscription;
+// }
 
-export class ACROAuthProvider implements AuthenticationProvider<ACROAuthOptions> {
+export class ACROAuthProvider implements AuthenticationProvider {
     private refreshTokenCache = new Map<string, string>();
 
-    public constructor() { }
+    public constructor(private readonly registryUri: vscode.Uri, private readonly subscription: AzureSubscription) { }
 
-    public async getSession(scopes: string[], options: ACROAuthOptions): Promise<vscode.AuthenticationSession & { type: string }> {
-        const accessToken = await this.getAccessToken(options.subscription);
+    public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
+        const accessToken = await this.getAccessToken(this.subscription);
+        const service = this.registryUri.authority;
 
         let refreshToken: string;
-        if (this.refreshTokenCache.has(options.service.toString())) {
-            refreshToken = this.refreshTokenCache.get(options.service.toString())!;
+        if (!options?.forceNewSession && this.refreshTokenCache.has(service)) {
+            refreshToken = this.refreshTokenCache.get(service)!;
         } else {
-            refreshToken = await this.getRefreshTokenFromAccessToken(accessToken, options.service, options.subscription);
-            this.refreshTokenCache.set(options.service.toString(), refreshToken);
+            refreshToken = await this.getRefreshTokenFromAccessToken(accessToken, this.registryUri, this.subscription);
+            this.refreshTokenCache.set(service, refreshToken);
         }
 
-        const oauthToken = await this.getOAuthTokenFromRefreshToken(refreshToken, options.service, scopes.join(' '), options.subscription);
+        const oauthToken = await this.getOAuthTokenFromRefreshToken(refreshToken, this.registryUri, scopes.join(' '), this.subscription);
         const { sub, jti } = this.parseToken(oauthToken);
 
         return {
@@ -53,14 +53,14 @@ export class ACROAuthProvider implements AuthenticationProvider<ACROAuthOptions>
         };
     }
 
-    private async getOAuthTokenFromRefreshToken(refreshToken: string, loginServer: vscode.Uri, scope: string, subscription: AzureSubscription): Promise<string> {
-        const requestUrl = loginServer.with({ path: '/oauth2/token' });
+    private async getOAuthTokenFromRefreshToken(refreshToken: string, registryUri: vscode.Uri, scope: string, subscription: AzureSubscription): Promise<string> {
+        const requestUrl = registryUri.with({ path: '/oauth2/token' });
 
         const requestBody = new URLSearchParams({
             /* eslint-disable @typescript-eslint/naming-convention */
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
-            service: loginServer.authority,
+            service: registryUri.authority,
             scope: scope,
         });
 
@@ -76,14 +76,14 @@ export class ACROAuthProvider implements AuthenticationProvider<ACROAuthOptions>
         return (await response.json()).access_token;
     }
 
-    private async getRefreshTokenFromAccessToken(accessToken: string, loginServer: vscode.Uri, subscription: AzureSubscription): Promise<string> {
-        const requestUrl = loginServer.with({ path: '/oauth2/exchange' });
+    private async getRefreshTokenFromAccessToken(accessToken: string, registryUri: vscode.Uri, subscription: AzureSubscription): Promise<string> {
+        const requestUrl = registryUri.with({ path: '/oauth2/exchange' });
 
         const requestBody = new URLSearchParams({
             /* eslint-disable @typescript-eslint/naming-convention */
             grant_type: 'access_token',
             access_token: accessToken,
-            service: loginServer.authority,
+            service: registryUri.authority,
             tenant: subscription.tenantId,
             /* eslint-enable @typescript-eslint/naming-convention */
         });

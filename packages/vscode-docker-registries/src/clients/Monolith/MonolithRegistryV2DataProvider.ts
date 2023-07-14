@@ -10,12 +10,12 @@ import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 
 export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvider {
     protected constructor(
-        authenticationProvider: AuthenticationProvider<never>,
+        protected readonly authenticationProvider: AuthenticationProvider<never>,
         protected readonly registryRootUri: vscode.Uri,
         protected readonly storageMemento: vscode.Memento,
         protected readonly storageKey: string,
     ) {
-        super(authenticationProvider);
+        super();
     }
 
     public override async getChildren(element?: V2RegistryItem | undefined): Promise<V2RegistryItem[]> {
@@ -52,6 +52,10 @@ export abstract class MonolithRegistryV2DataProvider extends RegistryV2DataProvi
 
         await this.storageMemento.update(this.trackedRegistriesStorageKey, registries);
         this.onDidChangeTreeDataEmitter.fire(registry.parent);
+    }
+
+    protected override getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never> {
+        return this.authenticationProvider;
     }
 
     private get trackedRegistriesStorageKey(): string {

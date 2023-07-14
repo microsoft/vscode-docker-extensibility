@@ -20,12 +20,6 @@ export type V2Repository = CommonRepository & V2RegistryItem;
 export type V2Tag = CommonTag & V2RegistryItem;
 
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
-    public constructor(
-        protected readonly authenticationProvider: AuthenticationProvider<vscode.AuthenticationGetSessionOptions | undefined>,
-    ) {
-        super();
-    }
-
     public getRoot(): V2RegistryRoot {
         return {
             parent: undefined,
@@ -39,12 +33,11 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
     public async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
         const catalogResponse = await registryV2Request<{ repositories: string[] }>({
-            authenticationProvider: this.authenticationProvider,
+            authenticationProvider: this.getAuthenticationProvider(registry),
             method: 'GET',
             registryUri: registry.registryUri,
             path: ['v2', '_catalog'],
             scopes: ['registry:catalog:*'],
-            sessionOptions: this.getSessionOptions?.(registry),
         });
 
         const results: V2Repository[] = [];
@@ -63,12 +56,11 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
     public async getTags(repository: V2Repository): Promise<V2Tag[]> {
         const tagsResponse = await registryV2Request<{ tags: string[] }>({
-            authenticationProvider: this.authenticationProvider,
+            authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
             registryUri: repository.registryUri,
             path: ['v2', repository.label, 'tags', 'list'],
             scopes: [`repository:${repository.label}:pull`],
-            sessionOptions: this.getSessionOptions?.(repository),
         });
 
         const results: V2Tag[] = [];
@@ -86,12 +78,13 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     }
 
     public getLoginInformation(item: V2RegistryItem): Promise<LoginInformation> {
-        if (this.authenticationProvider.getLoginInformation) {
-            return this.authenticationProvider.getLoginInformation(this.getSessionOptions?.(item));
+        const authenticationProvider = this.getAuthenticationProvider(item);
+        if (authenticationProvider.getLoginInformation) {
+            return authenticationProvider.getLoginInformation();
         }
 
-        throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', this.authenticationProvider));
+        throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', authenticationProvider));
     }
 
-    protected abstract getSessionOptions?(item: V2RegistryItem): vscode.AuthenticationGetSessionOptions | undefined;
+    protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;
 }

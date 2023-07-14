@@ -11,13 +11,13 @@ import { httpRequest } from '../utils/httpRequest';
 
 const StorageKey = 'DockerHub';
 
-export class DockerHubAuthProvider implements AuthenticationProvider<vscode.AuthenticationGetSessionOptions | undefined> {
+export class DockerHubAuthProvider implements AuthenticationProvider {
     // TODO: this token expires after a month, should we actually refresh it?
     #token: string | undefined;
 
     public constructor(private readonly storageMemento: vscode.Memento, private readonly secretStorage: vscode.SecretStorage) { }
 
-    public async getSession(scopes: string[], options: vscode.AuthenticationGetSessionOptions | undefined): Promise<vscode.AuthenticationSession & { type: string }> {
+    public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
         const creds = await this.getBasicCredentials();
 
         if (!this.#token || options?.forceNewSession) {
