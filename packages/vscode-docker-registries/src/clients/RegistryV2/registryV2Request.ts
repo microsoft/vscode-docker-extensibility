@@ -15,7 +15,7 @@ export interface RegistryV2RequestOptions {
     query?: Record<string, string>;
     scopes: string[];
     throwOnFailure?: boolean;
-    authenticationProvider: AuthenticationProvider<vscode.AuthenticationGetSessionOptions | undefined>;
+    authenticationProvider: AuthenticationProvider<vscode.AuthenticationGetSessionOptions>;
     sessionOptions?: vscode.AuthenticationGetSessionOptions;
 }
 

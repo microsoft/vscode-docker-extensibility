@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-import { DockerHubRegistryDataProvider, GitHubRegistryDataProvider } from '@microsoft/vscode-docker-registries';
+import { DockerHubRegistryDataProvider, GenericRegistryV2DataProvider, GitHubRegistryDataProvider } from '@microsoft/vscode-docker-registries';
 import { UnifiedRegistryTreeDataProvider } from './UnifiedRegistryTreeDataProvider';
 import { AzureRegistryDataProvider } from './clients/AzureRegistryDataProvider';
 
@@ -13,6 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
 	urtdp.registerProvider(new GitHubRegistryDataProvider(context));
 	urtdp.registerProvider(new DockerHubRegistryDataProvider(context));
 	urtdp.registerProvider(new AzureRegistryDataProvider(context));
+	urtdp.registerProvider(new GenericRegistryV2DataProvider(context));
 
 	let treeView: vscode.TreeView<unknown>;
 	context.subscriptions.push(treeView = vscode.window.createTreeView('dockerRegistries2', { treeDataProvider: urtdp }));
