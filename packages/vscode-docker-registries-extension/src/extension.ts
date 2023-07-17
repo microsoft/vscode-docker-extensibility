@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { DockerHubRegistryDataProvider, GenericRegistryV2DataProvider, GitHubRegistryDataProvider } from '@microsoft/vscode-docker-registries';
 import { UnifiedRegistryTreeDataProvider } from './UnifiedRegistryTreeDataProvider';
 import { AzureRegistryDataProvider } from './clients/Azure/AzureRegistryDataProvider';
+import { GitLabRegistryDataProvider } from './clients/GitLab/GitLabRegistryDataProvider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -14,6 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
 	urtdp.registerProvider(new DockerHubRegistryDataProvider(context));
 	urtdp.registerProvider(new AzureRegistryDataProvider(context));
 	urtdp.registerProvider(new GenericRegistryV2DataProvider(context));
+	urtdp.registerProvider(new GitLabRegistryDataProvider(context));
 
 	let treeView: vscode.TreeView<unknown>;
 	context.subscriptions.push(treeView = vscode.window.createTreeView('dockerRegistries2', { treeDataProvider: urtdp }));
