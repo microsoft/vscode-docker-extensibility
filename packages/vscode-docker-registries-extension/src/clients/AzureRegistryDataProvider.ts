@@ -32,7 +32,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     public readonly description = vscode.l10n.t('Azure Container Registry');
 
     private readonly subscriptionProvider = new VSCodeAzureSubscriptionProvider();
-    private readonly authenticationProviders = new Map<string, ACROAuthProvider>();
+    private readonly authenticationProviders = new Map<string, ACROAuthProvider>(); // The tree items are too short-lived to store the associated auth provider so keep a cache
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
         super();
@@ -114,13 +114,13 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     }
 
     protected override getAuthenticationProvider(item: AzureRegistryItem): ACROAuthProvider {
-        const service = item.registryUri.authority;
+        const registryString = item.registryUri.toString();
 
-        if (!this.authenticationProviders.has(service)) {
+        if (!this.authenticationProviders.has(registryString)) {
             const provider = new ACROAuthProvider(item.registryUri, item.subscription);
-            this.authenticationProviders.set(service, provider);
+            this.authenticationProviders.set(registryString, provider);
         }
 
-        return this.authenticationProviders.get(service)!;
+        return this.authenticationProviders.get(registryString)!;
     }
 }

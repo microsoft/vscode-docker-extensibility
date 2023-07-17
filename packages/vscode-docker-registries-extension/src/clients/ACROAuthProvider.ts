@@ -19,14 +19,14 @@ export class ACROAuthProvider implements AuthenticationProvider {
 
     public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
         const accessToken = await this.getAccessToken(this.subscription);
-        const service = this.registryUri.authority;
+        const registryString = this.registryUri.toString();
 
         let refreshToken: string;
-        if (!options?.forceNewSession && this.refreshTokenCache.has(service)) {
-            refreshToken = this.refreshTokenCache.get(service)!;
+        if (!options?.forceNewSession && this.refreshTokenCache.has(registryString)) {
+            refreshToken = this.refreshTokenCache.get(registryString)!;
         } else {
             refreshToken = await this.getRefreshTokenFromAccessToken(accessToken, this.registryUri, this.subscription);
-            this.refreshTokenCache.set(service, refreshToken);
+            this.refreshTokenCache.set(registryString, refreshToken);
         }
 
         const oauthToken = await this.getOAuthTokenFromRefreshToken(refreshToken, this.registryUri, scopes.join(' '), this.subscription);
