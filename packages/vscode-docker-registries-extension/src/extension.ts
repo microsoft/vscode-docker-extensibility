@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 
 import { DockerHubRegistryDataProvider, GenericRegistryV2DataProvider, GitHubRegistryDataProvider } from '@microsoft/vscode-docker-registries';
 import { UnifiedRegistryTreeDataProvider } from './UnifiedRegistryTreeDataProvider';
-import { AzureRegistryDataProvider } from './clients/AzureRegistryDataProvider';
+import { AzureRegistryDataProvider } from './clients/Azure/AzureRegistryDataProvider';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
