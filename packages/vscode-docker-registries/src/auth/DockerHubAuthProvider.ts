@@ -5,17 +5,18 @@
 
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from '../contracts/AuthenticationProvider';
-import { BasicCredentials } from '../contracts/BasicCredentials';
+import { LoginInformation } from '../contracts/BasicCredentials';
 import { DockerHubUrl } from '../clients/DockerHub/DockerHubRegistryDataProvider';
 import { httpRequest } from '../utils/httpRequest';
+import { BasicAuthProvider } from './BasicAuthProvider';
 
-const StorageKey = 'DockerHub';
-
-export class DockerHubAuthProvider implements AuthenticationProvider {
-    // TODO: this token expires after a month, should we actually refresh it?
+export class DockerHubAuthProvider extends BasicAuthProvider implements AuthenticationProvider {
+    // TODO: this token expires after a month, should we bother to actually refresh it?
     #token: string | undefined;
 
-    public constructor(private readonly storageMemento: vscode.Memento, private readonly secretStorage: vscode.SecretStorage) { }
+    public constructor(storageMemento: vscode.Memento, secretStorage: vscode.SecretStorage) {
+        super(storageMemento, secretStorage, 'DockerHub');
+    }
 
     public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
         const creds = await this.getBasicCredentials();
@@ -49,24 +50,13 @@ export class DockerHubAuthProvider implements AuthenticationProvider {
         };
     }
 
-    public async getBasicCredentials(): Promise<BasicCredentials> {
-        const username = this.storageMemento.get<string>(`${StorageKey}.username`);
-        const secret = await this.secretStorage.get(`${StorageKey}.secret`);
-
-        if (!username) {
-            throw new Error(vscode.l10n.t('Could not load username for {0}', StorageKey));
-        } else if (secret === undefined || secret === null) {
-            // An empty string is allowed as a secret (but obviously not advisable)
-            throw new Error(vscode.l10n.t('Could not load secret for {0}', StorageKey));
-        }
+    public async getLoginInformation?(): Promise<LoginInformation> {
+        const credentials = await this.getBasicCredentials();
 
         return {
-            username,
-            secret,
+            server: 'docker.io',
+            username: credentials.username,
+            secret: credentials.secret,
         };
-    }
-
-    public async removeSession(sessionId: string): Promise<void> {
-        throw new Error('TODO: Method not implemented.');
     }
 }

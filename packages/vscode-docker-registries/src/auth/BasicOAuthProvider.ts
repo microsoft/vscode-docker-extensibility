@@ -5,16 +5,19 @@
 
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from '../contracts/AuthenticationProvider';
-import { BasicCredentials } from '../contracts/BasicCredentials';
 import { RequestLike, httpRequest } from '../utils/httpRequest';
+import { BasicAuthProvider } from './BasicAuthProvider';
+import { LoginInformation } from '../contracts/BasicCredentials';
 
-export class BasicOAuthProvider implements AuthenticationProvider {
+export class BasicOAuthProvider extends BasicAuthProvider implements AuthenticationProvider {
     private oAuthEndpoint: string | undefined;
     private oAuthService: string | undefined;
     private defaultScopes: string[] | undefined;
     private _didFallback: boolean = false;
 
-    public constructor(private readonly storageMemento: vscode.Memento, private readonly secretStorage: vscode.SecretStorage, private readonly storageKey: string) { }
+    public constructor(storageMemento: vscode.Memento, secretStorage: vscode.SecretStorage, private readonly registryUri: vscode.Uri) {
+        super(storageMemento, secretStorage, registryUri.toString());
+    }
 
     public async getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession & { type: string }> {
         const { username, secret } = await this.getBasicCredentials();
@@ -58,10 +61,6 @@ export class BasicOAuthProvider implements AuthenticationProvider {
         }
     }
 
-    public async removeSession(sessionId?: string): Promise<void> {
-        throw new Error('TODO: Method not implemented.');
-    }
-
     public fallback(wwwAuthenticateHeader: string): void {
         const wwwAuthenticateHeaderRegex = /Bearer\s+realm="(?<realm>[^"]+)",\s*service="(?<service>[^"]+)",\s*scope="(?<scope>[^"]+)"/i;
 
@@ -81,20 +80,13 @@ export class BasicOAuthProvider implements AuthenticationProvider {
         return this._didFallback;
     }
 
-    public async getBasicCredentials(): Promise<BasicCredentials> {
-        const username = this.storageMemento.get<string>(`${this.storageKey}.username`);
-        const secret = await this.secretStorage.get(`${this.storageKey}.secret`);
-
-        if (!username) {
-            throw new Error(vscode.l10n.t('Could not load username for {0}', this.storageKey));
-        } else if (secret === undefined || secret === null) {
-            // An empty string is allowed as a secret (but obviously not advisable)
-            throw new Error(vscode.l10n.t('Could not load secret for {0}', this.storageKey));
-        }
+    public async getLoginInformation(): Promise<LoginInformation> {
+        const credentials = await this.getBasicCredentials();
 
         return {
-            username,
-            secret,
+            server: this.registryUri.toString(),
+            username: credentials.username,
+            secret: credentials.secret,
         };
     }
 

@@ -10,6 +10,7 @@ import { V2Registry, V2RegistryRoot, V2Repository } from '../RegistryV2/Registry
 import { registryV2Request } from '../RegistryV2/registryV2Request';
 
 const GitHubStorageKey = 'GitHubContainerRegistry';
+const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
 
 export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
     public readonly id: string = 'vscode-docker.githubContainerRegistry';
@@ -19,8 +20,8 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
         super(
-            new BasicOAuthProvider(extensionContext.globalState, extensionContext.secrets, GitHubStorageKey),
-            vscode.Uri.parse('https://ghcr.io'),
+            new BasicOAuthProvider(extensionContext.globalState, extensionContext.secrets, GitHubContainerRegistryUri),
+            GitHubContainerRegistryUri,
             extensionContext.globalState,
             GitHubStorageKey,
         );
