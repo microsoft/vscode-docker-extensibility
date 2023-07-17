@@ -106,7 +106,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
                 label: element.label,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
                 contextValue: 'azuresubscription',
-                iconPath: new vscode.ThemeIcon('key'), // TODO: replace with Azure subscription icon
+                iconPath: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureSubscription.svg'),
             });
         } else {
             return super.getTreeItem(element);
