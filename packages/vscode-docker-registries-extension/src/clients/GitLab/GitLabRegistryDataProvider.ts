@@ -6,7 +6,9 @@
 import * as vscode from 'vscode';
 import { BasicOAuthProvider, CommonRegistryDataProvider, ResponseLike, httpRequest } from '@microsoft/vscode-docker-registries';
 import { CommonRegistryRoot, CommonRegistryItem, CommonRegistry, CommonRepository, CommonTag } from '@microsoft/vscode-docker-registries/lib/clients/Common/models';
+import { GitLabAuthProvider } from './GitLabAuthProvider';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const GitLabBaseUrl = vscode.Uri.parse('https://gitlab.com/');
 
 export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
@@ -15,13 +17,13 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly iconPath: vscode.Uri;
     public readonly description = vscode.l10n.t('GitLab Container Registry');
 
-    private readonly authenticationProvider: BasicOAuthProvider;
+    private readonly authenticationProvider: GitLabAuthProvider;
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
         super();
 
         this.iconPath = vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'gitlab.svg');
-        this.authenticationProvider = new BasicOAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets, GitLabBaseUrl);
+        this.authenticationProvider = new GitLabAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets);
     }
 
     public getRoot(): CommonRegistryRoot {
@@ -71,7 +73,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
     private async httpRequest<TResponse>(requestUrl: vscode.Uri): Promise<ResponseLike<TResponse>> {
         const session = await this.authenticationProvider.getSession([]);
-        return await httpRequest<TResponse>(requestUrl.toString(), {
+        return await httpRequest<TResponse>(requestUrl.toString(true), {
             headers: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'PRIVATE-TOKEN': session.accessToken,

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+export * from './auth/BasicAuthProvider';
 export * from './auth/BasicOAuthProvider';
 export * from './clients/RegistryV2/RegistryV2DataProvider';
 export * from './clients/Common/CommonRegistryDataProvider';
