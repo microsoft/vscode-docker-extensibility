@@ -4,55 +4,44 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { MonolithRegistryV2DataProvider } from '../Monolith/MonolithRegistryV2DataProvider';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
-import { V2Registry, V2RegistryRoot, V2Repository } from '../RegistryV2/RegistryV2DataProvider';
+import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository } from '../RegistryV2/RegistryV2DataProvider';
 import { registryV2Request } from '../RegistryV2/registryV2Request';
+import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
+import { httpRequest } from '../../utils/httpRequest';
 
-const GitHubStorageKey = 'GitHubContainerRegistry';
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
 
-export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
+export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
     public readonly id: string = 'vscode-docker.githubContainerRegistry';
     public readonly label: string = vscode.l10n.t('GitHub');
     public readonly description: string = vscode.l10n.t('GitHub Container Registry');
     public readonly iconPath: vscode.ThemeIcon = new vscode.ThemeIcon('github');
 
+    private readonly authenticationProvider: BasicOAuthProvider;
+
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
-        super(
-            new BasicOAuthProvider(extensionContext.globalState, extensionContext.secrets, GitHubContainerRegistryUri),
-            GitHubContainerRegistryUri,
-            extensionContext.globalState,
-            GitHubStorageKey,
-        );
+        super();
+
+        this.authenticationProvider = new BasicOAuthProvider(extensionContext.globalState, extensionContext.secrets, GitHubContainerRegistryUri);
     }
 
     public override async getRegistries(root: V2RegistryRoot): Promise<V2Registry[]> {
-        const trackedRegistries = this.storageMemento.get<string[]>(`${GitHubStorageKey}.TrackedRegistries`, []);
+        const organizations = await this.getOrganizations();
 
-        const results: V2Registry[] = [];
-
-        for (const trackedRegistry of trackedRegistries) {
-            results.push(
-                {
-                    parent: root,
-                    registryUri: root.registryUri,
-                    label: trackedRegistry,
-                    type: 'commonregistry',
-                }
-            );
-        }
-
-        return results;
+        return organizations.map(org => (
+            {
+                parent: root,
+                registryUri: GitHubContainerRegistryUri,
+                label: org,
+                type: 'commonregistry',
+            }
+        ));
     }
 
+    // TODO: GitHub's catalog endpoint uses standard paging, so this could be simplified to call super.getRepositories with just the added query parameter for the last repository name
     public override async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
-        let originalSearchString: string;
-        if (/\//i.test(registry.label)) {
-            originalSearchString = registry.label.substring(0, registry.label.length - 1);
-        } else {
-            originalSearchString = registry.label + '/';
-        }
+        const originalSearchString = registry.label + '/';
 
         const results: V2Repository[] = [];
         let nextSearchString = originalSearchString;
@@ -71,7 +60,6 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
                 scopes: ['registry:catalog:*']
             });
 
-
             for (const repository of catalogResponse.body?.repositories || []) {
                 if (!repository.startsWith(originalSearchString)) {
                     foundAllInSearch = true;
@@ -88,6 +76,33 @@ export class GitHubRegistryDataProvider extends MonolithRegistryV2DataProvider {
                 });
             }
         } while (!foundAllInSearch);
+
+        return results;
+    }
+
+    protected getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never> {
+        return this.authenticationProvider;
+    }
+
+    private async getOrganizations(): Promise<string[]> {
+        const results: string[] = [];
+
+        const creds = await this.authenticationProvider.getBasicCredentials();
+        results.push(creds.username);
+
+        const requestUrl = vscode.Uri.parse('https://api.github.com/user/orgs');
+        const response = await httpRequest<{ login: string }[]>(requestUrl.toString(), {
+            headers: {
+                'Accept': 'application/vnd.github+json',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Authorization': `Bearer ${creds.secret}`
+            }
+        });
+
+        for (const org of await response.json()) {
+            results.push(org.login);
+        }
 
         return results;
     }
