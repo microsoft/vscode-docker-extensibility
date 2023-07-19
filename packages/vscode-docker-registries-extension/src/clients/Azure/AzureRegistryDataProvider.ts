@@ -43,7 +43,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
             if (!await this.subscriptionProvider.isSignedIn()) {
                 // TODO: show a node for sign in
                 await this.subscriptionProvider.signIn();
-                this.onDidChangeTreeDataEmitter.fire(element);
+                this.onDidChangeTreeDataEmitter.fire(element); // TODO: this fires too fast, need a "fire soon" analogue
                 return [];
             }
 

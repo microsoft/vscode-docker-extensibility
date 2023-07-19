@@ -14,4 +14,7 @@ export interface RegistryDataProvider<T extends RegistryItem> extends vscode.Tre
     readonly iconPath?: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon;
 
     getLoginInformation?(item: T): Promise<LoginInformation> | LoginInformation;
+
+    onConnect?(): Promise<void>;
+    onDisconnect?(): Promise<void>;
 }
