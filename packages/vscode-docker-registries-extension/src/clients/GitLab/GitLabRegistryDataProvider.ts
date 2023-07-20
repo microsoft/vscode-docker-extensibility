@@ -11,6 +11,18 @@ import { GitLabAuthProvider } from './GitLabAuthProvider';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const GitLabBaseUrl = vscode.Uri.parse('https://gitlab.com/');
 
+interface GitLabRepository extends CommonRepository {
+    repositoryId: number;
+}
+
+interface GitLabRegistry extends CommonRegistry {
+    projectId: number;
+}
+
+interface GitLabTag extends CommonTag {
+    createdAt: string;
+}
+
 export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly id: string = 'vscode-gitlab.gitLabContainerRegistry';
     public readonly label: string = vscode.l10n.t('GitLab');
@@ -36,8 +48,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         };
     }
 
-    public async getRegistries(root: CommonRegistryItem | CommonRegistryRoot): Promise<CommonRegistry[]> {
-        const results: CommonRegistry[] = [];
+    public async getRegistries(root: CommonRegistryItem | CommonRegistryRoot): Promise<GitLabRegistry[]> {
+        const results: GitLabRegistry[] = [];
 
         let nextLink: string | undefined = undefined;
 
@@ -65,8 +77,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         return results;
     }
 
-    public async getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> {
-        const results: CommonRepository[] = [];
+    public async getRepositories(registry: GitLabRegistry): Promise<GitLabRepository[]> {
+        const results: GitLabRepository[] = [];
 
         let nextLink: string | undefined = undefined;
 
@@ -82,13 +94,13 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
             // TODO: get next link from response
 
-            for (const project of await response.json()) {
+            for (const repository of await response.json()) {
                 results.push({
                     // GitLab returns an empty repository name, if the project's namespace is the same as the repository
-                    label: project.name || registry.label,
+                    label: repository.name || registry.label,
                     parent: registry,
                     type: 'commonrepository',
-                    repositoryId: project.id,
+                    repositoryId: repository.id,
                 });
 
             }
@@ -97,8 +109,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         return results;
     }
 
-    public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
-        const results: CommonTag[] = [];
+    public async getTags(repository: CommonRepository): Promise<GitLabTag[]> {
+        const results: GitLabTag[] = [];
 
         let nextLink: string | undefined = undefined;
 
@@ -114,21 +126,20 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
             // TODO: get next link from responsee
 
-            for (const project of await response.json()) {
+            for (const tag of await response.json()) {
                 results.push({
-                    label: project.name,
+                    label: tag.name,
                     parent: repository,
-                    type: 'commontag'
-
+                    type: 'commontag',
+                    createdAt: await this.getTagDetails(tag.name, repository) //TODO: make this show up in the UI
                 });
-                // TODO: add time created logic
             }
         } while (!!nextLink);
 
         return results;
     }
 
-    private async getTagDetails(tag: string, repository: CommonRepository): Promise<ITagDetails> {
+    private async getTagDetails(tag: string, repository: CommonRepository): Promise<string> {
         const url = `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags/${tag}`;
         const requestUrl = GitLabBaseUrl.with(
             {
@@ -137,8 +148,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         );
 
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        const response = await this.httpRequest<ITagDetails>(requestUrl);
-        return response.json();
+        const response = await this.httpRequest<{ created_at: string }>(requestUrl);
+        return (await response.json()).created_at;
     }
 
     private async httpRequest<TResponse>(requestUrl: vscode.Uri): Promise<ResponseLike<TResponse>> {
@@ -150,9 +161,4 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
             }
         });
     }
-}
-
-interface ITagDetails {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    created_at: string;
 }
