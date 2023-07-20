@@ -10,7 +10,6 @@ export * from './clients/Common/CommonRegistryDataProvider';
 export * from './clients/DockerHub/DockerHubRegistryDataProvider';
 export * from './clients/GenericRegistryV2/GenericRegistryV2DataProvider';
 export * from './clients/GitHub/GitHubRegistryDataProvider';
-export * from './clients/Monolith/MonolithRegistryV2DataProvider';
 export * from './contracts/AuthenticationProvider';
 export * from './contracts/BasicCredentials';
 export * from './contracts/DockerExtension';
