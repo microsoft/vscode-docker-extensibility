@@ -16,6 +16,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly label: string = vscode.l10n.t('GitLab');
     public readonly iconPath: vscode.Uri;
     public readonly description = vscode.l10n.t('GitLab Container Registry');
+    private readonly PageSize = 100;
 
     private readonly authenticationProvider: GitLabAuthProvider;
 
@@ -42,11 +43,11 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
         do {
             const requestUrl = nextLink || GitLabBaseUrl.with(
-                { path: 'api/v4/projects', query: 'simple=true&membership=true&per_page=100' }
+                { path: 'api/v4/projects', query: `simple=true&membership=true&per_page=${this.PageSize}` }
             );
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const response = await this.httpRequest<{ path_with_namespace: string }[]>(requestUrl);
+            const response = await this.httpRequest<{ path_with_namespace: string, id: number }[]>(requestUrl);
 
             // TODO: get next link from response
             // TODO: validate paging
@@ -55,6 +56,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                 results.push({
                     label: project.path_with_namespace,
                     parent: root,
+                    projectId: project.id,
                     type: 'commonregistry',
                 });
             }
@@ -64,11 +66,79 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     public async getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> {
-        throw new Error('Method not implemented.');
+        const results: CommonRepository[] = [];
+
+        let nextLink: string | undefined = undefined;
+
+        do {
+            const requestUrl = nextLink || GitLabBaseUrl.with(
+                {
+                    path: `api/v4/projects/${registry.projectId}/registry/repositories`, query: `simple=true&membership=true&per_page=${this.PageSize}`
+                }
+            );
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const response = await this.httpRequest<{ name: string, id: number }[]>(requestUrl);
+
+            // TODO: get next link from response
+
+            for (const project of await response.json()) {
+                results.push({
+                    // GitLab returns an empty repository name, if the project's namespace is the same as the repository
+                    label: project.name || registry.label,
+                    parent: registry,
+                    type: 'commonrepository',
+                    repositoryId: project.id,
+                });
+
+            }
+        } while (!!nextLink);
+
+        return results;
     }
 
     public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
-        throw new Error('Method not implemented.');
+        const results: CommonTag[] = [];
+
+        let nextLink: string | undefined = undefined;
+
+        do {
+            const requestUrl = nextLink || GitLabBaseUrl.with(
+                {
+                    path: `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags`, query: `simple=true&membership=true&per_page=${this.PageSize}`
+                }
+            );
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const response = await this.httpRequest<{ name: string }[]>(requestUrl);
+
+            // TODO: get next link from responsee
+
+            for (const project of await response.json()) {
+                results.push({
+                    label: project.name,
+                    parent: repository,
+                    type: 'commontag'
+
+                });
+                // TODO: add time created logic
+            }
+        } while (!!nextLink);
+
+        return results;
+    }
+
+    private async getTagDetails(tag: string, repository: CommonRepository): Promise<ITagDetails> {
+        const url = `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags/${tag}`;
+        const requestUrl = GitLabBaseUrl.with(
+            {
+                path: `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags`
+            }
+        );
+
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const response = await this.httpRequest<ITagDetails>(requestUrl);
+        return response.json();
     }
 
     private async httpRequest<TResponse>(requestUrl: vscode.Uri): Promise<ResponseLike<TResponse>> {
@@ -80,4 +150,9 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
             }
         });
     }
+}
+
+interface ITagDetails {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    created_at: string;
 }
