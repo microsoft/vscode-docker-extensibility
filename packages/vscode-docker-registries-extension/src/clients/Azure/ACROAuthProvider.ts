@@ -53,7 +53,7 @@ export class ACROAuthProvider implements AuthenticationProvider {
         };
     }
 
-    private async getOAuthTokenFromRefreshToken(refreshToken: string, registryUri: vscode.Uri, scope: string, subscription: AzureSubscription): Promise<string> {
+    private async getOAuthTokenFromRefreshToken(refreshToken: string, registryUri: vscode.Uri, scopes: string, subscription: AzureSubscription): Promise<string> {
         const requestUrl = registryUri.with({ path: '/oauth2/token' });
 
         const requestBody = new URLSearchParams({
@@ -61,7 +61,7 @@ export class ACROAuthProvider implements AuthenticationProvider {
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
             service: registryUri.authority,
-            scope: scope,
+            scope: scopes,
         });
 
         const response = await httpRequest<{ access_token: string }>(requestUrl.toString(), {
@@ -102,6 +102,8 @@ export class ACROAuthProvider implements AuthenticationProvider {
     }
 
     private async getAccessToken(subscription: AzureSubscription): Promise<string> {
+        // Registry scopes, i.e. those passed to `getSession()`, are not valid for acquiring this
+        // access token--instead, those only need to be passed to `getOAuthTokenFromRefreshToken()`
         const token = await subscription.credential.getToken([]);
         return token!.token;
     }
