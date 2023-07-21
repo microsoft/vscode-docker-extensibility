@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { BasicOAuthProvider, CommonRegistryDataProvider, ResponseLike, httpRequest } from '@microsoft/vscode-docker-registries';
+import { BasicOAuthProvider, CommonRegistryDataProvider, ResponseLike, httpRequest, RegistryWizardContext, RegistryWizard, RegistryWizardUsernamePromptStep, RegistryWizardSecretPromptStep, BasicCredentials } from '@microsoft/vscode-docker-registries';
 import { CommonRegistryRoot, CommonRegistryItem, CommonRegistry, CommonRepository, CommonTag } from '@microsoft/vscode-docker-registries/lib/clients/Common/models';
 import { GitLabAuthProvider } from './GitLabAuthProvider';
 
@@ -34,9 +34,36 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
         super();
-
         this.iconPath = vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'gitlab.svg');
         this.authenticationProvider = new GitLabAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets);
+    }
+
+    public async onConnect(): Promise<void> {
+        const wizardContext: RegistryWizardContext = {
+            usernamePrompt: vscode.l10n.t('GitLab Username'),
+            secretPrompt: vscode.l10n.t('GitLab Personal Access Token'),
+        };
+
+        const wizard = new RegistryWizard(
+            wizardContext,
+            [
+                new RegistryWizardUsernamePromptStep(),
+                new RegistryWizardSecretPromptStep(),
+            ],
+            new vscode.CancellationTokenSource()
+        );
+
+        await wizard.prompt();
+        const credentials: BasicCredentials = {
+            username: wizardContext.username || '',
+            secret: wizardContext.secret || '',
+        };
+
+        this.authenticationProvider.storeBasicCredentials(credentials);
+    }
+
+    public async onDisconnect(): Promise<void> {
+        this.authenticationProvider.clearBasicCredentials();
     }
 
     public getRoot(): CommonRegistryRoot {
