@@ -27,9 +27,14 @@ export abstract class BasicAuthProvider implements AuthenticationProvider {
         };
     }
 
-    public async removeSession(sessionId: string): Promise<void> {
+    public async removeSession(): Promise<void> {
         await this.secretStorage.delete(`BasicAuthProvider.${this.storageSubKey}.secret`);
         await this.storageMemento.update(`BasicAuthProvider.${this.storageSubKey}.username`, undefined);
+    }
+
+    public async storeBasicCredentials(credential: BasicCredentials): Promise<void> {
+        await this.storageMemento.update(`BasicAuthProvider.${this.storageSubKey}.username`, credential.username);
+        await this.secretStorage.store(`BasicAuthProvider.${this.storageSubKey}.secret`, credential.secret);
     }
 
     public abstract getSession(scopes: string[], options?: vscode.AuthenticationGetSessionOptions | undefined): Promise<vscode.AuthenticationSession & { type: string; }>;

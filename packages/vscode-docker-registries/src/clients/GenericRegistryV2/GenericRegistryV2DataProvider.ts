@@ -37,6 +37,14 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         });
     }
 
+    public async onConnect(): Promise<void> {
+        //TODO: call addTrackedRegistry
+    }
+
+    public async onDisconnect(): Promise<void> {
+        //TODO: call removeTrackedRegistry
+    }
+
     protected override getAuthenticationProvider(item: V2RegistryItem): BasicOAuthProvider {
         const registry = item.registryUri.toString();
 

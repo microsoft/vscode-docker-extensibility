@@ -16,3 +16,6 @@ export * from './contracts/DockerExtension';
 export * from './contracts/RegistryDataProvider';
 export * from './contracts/RegistryItem';
 export * from './utils/httpRequest';
+export * from './wizard/RegistryWizard';
+export * from './wizard/RegistryWizardContext';
+export * from './wizard/RegistryWizardPromptStep';

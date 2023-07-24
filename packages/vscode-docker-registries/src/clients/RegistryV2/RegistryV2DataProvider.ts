@@ -71,6 +71,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 registryUri: repository.registryUri,
                 label: tag,
                 type: 'commontag',
+                createdAt: '', // TODO: Get this from the API
             });
         }
 
