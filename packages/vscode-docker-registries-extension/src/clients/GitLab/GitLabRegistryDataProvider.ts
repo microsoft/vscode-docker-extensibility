@@ -19,10 +19,6 @@ interface GitLabRepository extends CommonRepository {
     repositoryId: number;
 }
 
-interface GitLabTag extends CommonTag {
-    createdAt: string;
-}
-
 export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly id: string = 'vscode-gitlab.gitLabContainerRegistry';
     public readonly label: string = vscode.l10n.t('GitLab');
@@ -136,8 +132,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         return results;
     }
 
-    public async getTags(repository: CommonRepository): Promise<GitLabTag[]> {
-        const results: GitLabTag[] = [];
+    public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
+        const results: CommonTag[] = [];
 
         let nextLink: string | undefined = undefined;
 
@@ -167,10 +163,9 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     private async getTagDetails(tag: string, repository: CommonRepository): Promise<string> {
-        const url = `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags/${tag}`;
         const requestUrl = GitLabBaseUrl.with(
             {
-                path: `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags`
+                path: `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags/${tag}`
             }
         );
 
