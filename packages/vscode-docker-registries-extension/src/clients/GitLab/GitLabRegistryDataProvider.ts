@@ -11,12 +11,12 @@ import { GitLabAuthProvider } from './GitLabAuthProvider';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const GitLabBaseUrl = vscode.Uri.parse('https://gitlab.com/');
 
-interface GitLabRepository extends CommonRepository {
-    repositoryId: number;
-}
-
 interface GitLabRegistry extends CommonRegistry {
     projectId: number;
+}
+
+interface GitLabRepository extends CommonRepository {
+    repositoryId: number;
 }
 
 interface GitLabTag extends CommonTag {

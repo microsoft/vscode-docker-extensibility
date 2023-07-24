@@ -10,7 +10,7 @@ export async function showInputBox(options: RegistryWizardPromptStepOptions): Pr
     const disposables: Disposable[] = [];
     try {
         const inputBox: InputBox = window.createInputBox();
-        inputBox.password = options?.isSecretStep ?? false;
+        inputBox.password = !!options?.isSecretStep;
         inputBox.title = options?.prompt ?? '';
 
         disposables.push(inputBox);

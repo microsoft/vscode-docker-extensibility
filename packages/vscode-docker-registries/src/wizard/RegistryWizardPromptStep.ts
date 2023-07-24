@@ -24,7 +24,7 @@ export class RegistryWizardUsernamePromptStep<T extends RegistryWizardContext> e
     }
 
     public shouldPrompt(wizardContext: T): boolean {
-        return !!wizardContext.usernamePrompt;
+        return !!wizardContext.usernamePrompt && !wizardContext.username;
     }
 }
 
@@ -32,7 +32,8 @@ export class RegistryWizardSecretPromptStep<T extends RegistryWizardContext> ext
     public async prompt(wizardContext: T): Promise<void> {
         wizardContext.secret = await showInputBox({ isSecretStep: true, prompt: wizardContext.secretPrompt || l10n.t('Enter your password') });
     }
+
     public shouldPrompt(wizardContext: T): boolean {
-        return !!wizardContext.secretPrompt;
+        return !!wizardContext.secretPrompt && !wizardContext.secret;
     }
 }
