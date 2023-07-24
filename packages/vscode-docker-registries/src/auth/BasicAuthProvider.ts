@@ -27,7 +27,7 @@ export abstract class BasicAuthProvider implements AuthenticationProvider {
         };
     }
 
-    public async clearBasicCredentials(): Promise<void> {
+    public async removeSession(): Promise<void> {
         await this.secretStorage.delete(`BasicAuthProvider.${this.storageSubKey}.secret`);
         await this.storageMemento.update(`BasicAuthProvider.${this.storageSubKey}.username`, undefined);
     }

@@ -50,7 +50,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                 new RegistryWizardUsernamePromptStep(),
                 new RegistryWizardSecretPromptStep(),
             ],
-            new vscode.CancellationTokenSource()
+            new vscode.CancellationTokenSource().token
         );
 
         await wizard.prompt();
@@ -63,7 +63,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     public async onDisconnect(): Promise<void> {
-        this.authenticationProvider.clearBasicCredentials();
+        this.authenticationProvider.removeSession();
     }
 
     public getRoot(): CommonRegistryRoot {
