@@ -10,6 +10,8 @@ import { GitLabAuthProvider } from './GitLabAuthProvider';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const GitLabBaseUrl = vscode.Uri.parse('https://gitlab.com/');
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const GitLabPageSize = 100;
 
 interface GitLabRegistry extends CommonRegistry {
     projectId: number;
@@ -24,8 +26,6 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly label: string = vscode.l10n.t('GitLab');
     public readonly iconPath: vscode.Uri;
     public readonly description = vscode.l10n.t('GitLab Container Registry');
-    private readonly PageSize = 100;
-
     private readonly authenticationProvider: GitLabAuthProvider;
 
     public constructor(private readonly extensionContext: vscode.ExtensionContext) {
@@ -78,7 +78,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
         do {
             const requestUrl = nextLink || GitLabBaseUrl.with(
-                { path: 'api/v4/projects', query: `simple=true&membership=true&per_page=${this.PageSize}` }
+                { path: 'api/v4/projects', query: `simple=true&membership=true&per_page=${GitLabPageSize}` }
             );
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -108,7 +108,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         do {
             const requestUrl = nextLink || GitLabBaseUrl.with(
                 {
-                    path: `api/v4/projects/${registry.projectId}/registry/repositories`, query: `simple=true&membership=true&per_page=${this.PageSize}`
+                    path: `api/v4/projects/${registry.projectId}/registry/repositories`, query: `simple=true&membership=true&per_page=${GitLabPageSize}`
                 }
             );
 
@@ -140,7 +140,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         do {
             const requestUrl = nextLink || GitLabBaseUrl.with(
                 {
-                    path: `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags`, query: `simple=true&membership=true&per_page=${this.PageSize}`
+                    path: `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags`, query: `simple=true&membership=true&per_page=${GitLabPageSize}`
                 }
             );
 
