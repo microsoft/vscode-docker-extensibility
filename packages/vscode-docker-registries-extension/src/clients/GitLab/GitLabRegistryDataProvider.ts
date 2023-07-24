@@ -14,11 +14,11 @@ const GitLabBaseUrl = vscode.Uri.parse('https://gitlab.com/');
 const GitLabPageSize = 100;
 
 interface GitLabRegistry extends CommonRegistry {
-    projectId: number;
+    readonly projectId: number;
 }
 
 interface GitLabRepository extends CommonRepository {
-    repositoryId: number;
+    readonly repositoryId: number;
 }
 
 export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
