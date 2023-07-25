@@ -89,7 +89,6 @@
   },
   "dependencies": {
     "@azure/arm-containerregistry": "^10.1.0",
-    "@azure/arm-subscriptions": "^5.1.0",
     "@microsoft/vscode-azext-azureauth": "^1.0.0"
   }
 }
