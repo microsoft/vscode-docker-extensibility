@@ -7,6 +7,9 @@ import * as vscode from 'vscode';
 import { RegistryV2DataProvider, V2Registry, V2RegistryItem } from '../RegistryV2/RegistryV2DataProvider';
 import { CommonRegistryRoot } from '../Common/models';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
+import { GenericRegistryV2WizardContext, GenericRegistryV2WizardPromptStep } from './GenericRegistryV2WizardPromptStep';
+import { RegistryWizard } from '../../wizard/RegistryWizard';
+import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 
 const GenericV2StorageKey = 'GenericV2ContainerRegistry';
 const TrackedRegistriesKey = `${GenericV2StorageKey}.TrackedRegistries`;
@@ -38,7 +41,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     }
 
     public async onConnect(): Promise<void> {
-        //TODO: call addTrackedRegistry
+        await this.addTrackedRegistry();
     }
 
     public async onDisconnect(): Promise<void> {
@@ -57,11 +60,49 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         return this.authenticationProviders.get(registry)!;
     }
 
-    private addTrackedRegistry(): void {
-        //const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
+    private async addTrackedRegistry(): Promise<void> {
+        const wizardContext: GenericRegistryV2WizardContext = {
+            registryPrompt: vscode.l10n.t('Registry URL'), // TODO: change prompt
+            usernamePrompt: vscode.l10n.t('Registry Username'), // TODO: change prompt
+            secretPrompt: vscode.l10n.t('Registry Personal Access Token'), // TODO: change prompt
+        };
 
-        // TODO
-        throw new Error('Method not implemented.');
+        const wizard = new RegistryWizard(
+            wizardContext,
+            [
+                new GenericRegistryV2WizardPromptStep(),
+                new RegistryWizardUsernamePromptStep(),
+                new RegistryWizardSecretPromptStep(),
+            ],
+            new vscode.CancellationTokenSource().token
+        );
+
+        await wizard.prompt();
+
+        if (!wizardContext.registryUri) {
+            throw new Error('Registry URL is invalid');
+        }
+
+        const registryUriString = wizardContext.registryUri.toString();
+
+        // store registry url in memento
+        const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
+        const index = trackedRegistryStrings.findIndex(r => r === registryUriString);
+        if (index > -1) { // if found, throw error
+            throw new Error('Registry already exists'); //TODO: localize and see if there is a better way to handle this
+        }
+        trackedRegistryStrings.push(registryUriString);
+        void this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
+
+        // store credentials in auth provider
+        const authProvider = new BasicOAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets, wizardContext.registryUri);
+        await authProvider.storeBasicCredentials(
+            {
+                username: wizardContext.username || '',
+                secret: wizardContext.secret || '',
+            }
+        );
+        this.authenticationProviders.set(registryUriString, authProvider);
     }
 
     private removeTrackedRegistry(registry: V2Registry): void {
@@ -71,5 +112,6 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
             trackedRegistryStrings.splice(index, 1);
             void this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
         }
+        this.authenticationProviders.delete(registry.registryUri.toString());
     }
 }

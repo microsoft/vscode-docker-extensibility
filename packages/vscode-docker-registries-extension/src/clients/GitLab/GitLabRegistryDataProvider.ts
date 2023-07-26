@@ -36,8 +36,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
     public async onConnect(): Promise<void> {
         const wizardContext: RegistryWizardContext = {
-            usernamePrompt: vscode.l10n.t('GitLab Username'),
-            secretPrompt: vscode.l10n.t('GitLab Personal Access Token'),
+            usernamePrompt: vscode.l10n.t('GitLab Username'), // TODO: change prompt
+            secretPrompt: vscode.l10n.t('GitLab Personal Access Token'), // TODO: change prompt
         };
 
         const wizard = new RegistryWizard(
