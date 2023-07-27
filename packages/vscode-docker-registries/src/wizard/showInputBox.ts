@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationError, Disposable, InputBox, window } from 'vscode';
+import { Disposable, InputBox, window } from 'vscode';
 import { RegistryWizardPromptStepOptions } from "./RegistryWizardPromptStep";
 
 export async function showInputBox(options: RegistryWizardPromptStepOptions): Promise<string> {
@@ -23,7 +23,7 @@ export async function showInputBox(options: RegistryWizardPromptStepOptions): Pr
                     resolve(inputBox.value);
                 }),
                 inputBox.onDidHide(() => {
-                    reject(new CancellationError());
+                    reject();
                 })
             );
         });
