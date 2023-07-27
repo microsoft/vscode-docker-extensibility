@@ -23,6 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.refreshRegistries', () => urtdp.refresh()));
 	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.connectRegistry', () => urtdp.connectRegistryProvider()));
 	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.disconnectRegistry', (item) => urtdp.disconnectRegistryProvider(item)));
+	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.disconnectGenericV2Registry', (item) => urtdp.disconnectRegistryProvider(item)));
 
 	return {
 		memento: {

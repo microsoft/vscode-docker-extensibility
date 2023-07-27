@@ -10,7 +10,7 @@ export interface GenericRegistryV2WizardContext extends RegistryWizardContext {
 
 export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2WizardContext> extends RegistryWizardPromptStep<T> {
     public async prompt(wizardContext: T): Promise<void> {
-        const url = await showInputBox({ isSecretStep: false, prompt: wizardContext.usernamePrompt || '' });
+        const url = await showInputBox({ isSecretStep: false, prompt: wizardContext.registryPrompt || '' });
         wizardContext.registryUri = Uri.parse(url);
     }
 

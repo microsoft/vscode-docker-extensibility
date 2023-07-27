@@ -27,6 +27,11 @@
         "title": "Disconnect Registry V2",
         "icon": "$(debug-disconnect)",
         "command": "dockerRegistries2.disconnectRegistry"
+      },
+      {
+        "title": "Disconnect Generic V2 Registry",
+        "icon": "$(debug-disconnect)",
+        "command": "dockerRegistries2.disconnectGenericV2Registry"
       }
     ],
     "menus": {
@@ -45,8 +50,13 @@
       ],
       "view/item/context": [
         {
-          "when": "view == dockerRegistries2 && viewItem =~ /commonregistryroot/i",
+          "when": "view == dockerRegistries2 && viewItem =~ /commonregistryroot/i && !(viewItem =~ /genericregistryrootv2/i)",
           "command": "dockerRegistries2.disconnectRegistry",
+          "group": "destructive@0"
+        },
+        {
+          "when": "view == dockerRegistries2 && viewItem =~ /genericregistryv2/i",
+          "command": "dockerRegistries2.disconnectGenericV2Registry",
           "group": "destructive@0"
         }
       ]
