@@ -154,7 +154,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                     label: tag.name,
                     parent: repository,
                     type: 'commontag',
-                    createdAt: await this.getTagDetails(tag.name, repository) //TODO: make this show up in the UI
+                    // createdAt: await this.getTagDetails(tag.name, repository) //TODO: make this show up in the UI
                 });
             }
         } while (!!nextLink);

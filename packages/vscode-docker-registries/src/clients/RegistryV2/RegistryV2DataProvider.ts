@@ -19,6 +19,18 @@ export type V2Registry = CommonRegistry & V2RegistryItem;
 export type V2Repository = CommonRepository & V2RegistryItem;
 export type V2Tag = CommonTag & V2RegistryItem;
 
+interface ManifestHistory {
+    v1Compatibility: string; // stringified ManifestHistoryV1Compatibility
+}
+
+interface ManifestHistoryV1Compatibility {
+    created: string;
+}
+
+interface Manifest {
+    history: ManifestHistory[];
+}
+
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public getRoot(): V2RegistryRoot {
         return {
@@ -71,7 +83,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 registryUri: repository.registryUri,
                 label: tag,
                 type: 'commontag',
-                createdAt: '', // TODO: Get this from the API
+                // createdAt: await this.getTagDetails(repository, tag),
             });
         }
 
@@ -85,6 +97,23 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         }
 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', authenticationProvider));
+    }
+
+    private async getTagDetails(repository: V2Repository, tag: string): Promise<string> {
+        const manifestResponse = await registryV2Request<Manifest>({
+            authenticationProvider: this.getAuthenticationProvider(repository),
+            method: 'GET',
+            registryUri: repository.registryUri,
+            path: ['v2', repository.label, 'manifests', `${tag}`],
+            scopes: [`repository:${repository.label}:pull`],
+        });
+
+        if (!manifestResponse.body) {
+            return '';
+        }
+
+        const history = <ManifestHistoryV1Compatibility>JSON.parse(manifestResponse.body.history[0].v1Compatibility);
+        return history.created;
     }
 
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;

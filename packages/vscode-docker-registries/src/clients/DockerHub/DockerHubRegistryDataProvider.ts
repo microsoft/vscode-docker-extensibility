@@ -102,7 +102,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 parent: repository,
                 label: tag.name,
                 type: 'commontag',
-                createdAt: '', // TODO: get this from the API
+                // createdAt: '', // TODO: get this from the API
             });
         }
 
