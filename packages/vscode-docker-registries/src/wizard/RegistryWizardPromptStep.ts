@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { InputBoxOptions, l10n } from "vscode";
+import { l10n } from "vscode";
 import { RegistryWizardContext } from "./RegistryWizardContext";
 import { showInputBox } from "./showInputBox";
 
 
-export interface RegistryWizardPromptStepOptions extends InputBoxOptions {
+export interface RegistryWizardPromptStepOptions {
     isSecretStep?: boolean;
     prompt: string;
+    validateInput?(value: string): string | undefined | Thenable<string | undefined>;
 }
 
 export abstract class RegistryWizardPromptStep<T extends RegistryWizardContext> {
