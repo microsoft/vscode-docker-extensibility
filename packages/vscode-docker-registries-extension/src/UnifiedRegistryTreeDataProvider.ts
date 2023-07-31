@@ -111,8 +111,8 @@ export class UnifiedRegistryTreeDataProvider implements vscode.TreeDataProvider<
             provider = picked.provider;
         }
 
-        await provider?.onConnect?.();
         if (!connectedProviderIds.includes(provider.id)) {
+            await provider?.onConnect?.();
             const connectedProviderIdsSet: Set<string> = new Set(connectedProviderIds);
             connectedProviderIdsSet.add(provider.id);
             await this.storageMemento.update(ConnectedRegistryProvidersKey, Array.from(connectedProviderIdsSet));

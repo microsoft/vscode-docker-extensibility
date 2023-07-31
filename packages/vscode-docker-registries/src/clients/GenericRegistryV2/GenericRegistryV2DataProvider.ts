@@ -114,14 +114,18 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     }
 
     public removeTrackedRegistry(registry: GenericV2RegistryItem): void {
+        // remove registry url from list of tracked registries
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
         const index = trackedRegistryStrings.findIndex(r => r === registry.registryUri.toString());
         if (index !== -1) {
             trackedRegistryStrings.splice(index, 1);
             void this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
         }
-        this.authenticationProviders.delete(registry.registryUri.toString());
 
-        // TODO: if this is the last registry, remove the root node
+        // remove credentials from auth provider
+        this.authenticationProviders.delete(registry.registryUri.toString());
+        void this.authenticationProviders.get(registry.registryUri.toString())?.removeSession();
+
+        // TODO: check if the map of auth providers is empty, if so, remove the root from the tree
     }
 }

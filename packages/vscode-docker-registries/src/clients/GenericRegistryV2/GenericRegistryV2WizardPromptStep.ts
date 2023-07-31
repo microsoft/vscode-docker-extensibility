@@ -31,22 +31,23 @@ export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2Wizard
     private validateUrl(value: string): string | undefined {
         if (!value) {
             return l10n.t('URL cannot be empty.');
-        } else {
-            let protocol: string | undefined;
-            let host: string | undefined;
-            try {
-                const uri = new URL(value);
-                protocol = uri.protocol;
-                host = uri.host;
-            } catch {
-                // ignore
-            }
-
-            if (!protocol || !host) {
-                return l10n.t('Please enter a valid URL');
-            } else {
-                return undefined;
-            }
         }
+
+        let authority: string | undefined;
+        let scheme: string | undefined;
+
+        try {
+            const uri = Uri.parse(value);
+            scheme = uri.scheme;
+            authority = uri.authority;
+        } catch {
+            return l10n.t('Please enter a valid URL');
+        }
+
+        if (!authority || !scheme) {
+            return l10n.t('Please enter a valid URL');
+        }
+
+        return undefined;
     }
 }
