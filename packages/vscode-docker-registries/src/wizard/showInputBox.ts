@@ -16,6 +16,7 @@ export async function showInputBox(options: RegistryWizardPromptStepOptions): Pr
 
         inputBox.password = !!options.isSecretStep;
         inputBox.title = options.prompt ?? '';
+        inputBox.ignoreFocusOut = true;
 
         let latestValidation: Promise<InputBoxValidationResult> = options.validateInput ? Promise.resolve(options.validateInput(inputBox.value)) : Promise.resolve('');
         return await new Promise<string>((resolve, reject): void => {
@@ -30,8 +31,18 @@ export async function showInputBox(options: RegistryWizardPromptStepOptions): Pr
                         }
                     }
                 }),
-                inputBox.onDidAccept(() => {
-                    resolve(inputBox.value);
+                inputBox.onDidAccept(async () => {
+                    // Run final validation and resolve if value passes
+                    inputBox.enabled = false;
+                    inputBox.busy = true;
+                    const validateInputResult: InputBoxValidationResult = await latestValidation;
+                    if (!validateInputResult) {
+                        resolve(inputBox.value);
+                    } else {
+                        inputBox.validationMessage = validateInputResult;
+                    }
+                    inputBox.enabled = true;
+                    inputBox.busy = false;
                 }),
                 inputBox.onDidHide(() => {
                     reject(new CancellationError());

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Uri } from 'vscode';
+import { Uri, l10n } from 'vscode';
 import { RegistryWizardPromptStep, RegistryWizardPromptStepOptions } from '../../wizard/RegistryWizardPromptStep';
 import { showInputBox } from '../../wizard/showInputBox';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
@@ -28,13 +28,25 @@ export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2Wizard
         return !!wizardContext.registryPrompt && !wizardContext.registryUri;
     }
 
-    private validateUrl(url: string): string | undefined {
-        try {
-            Uri.parse(url, true);
-        } catch (error: unknown) {
-            return 'Invalid URL';
-        }
+    private validateUrl(value: string): string | undefined {
+        if (!value) {
+            return l10n.t('URL cannot be empty.');
+        } else {
+            let protocol: string | undefined;
+            let host: string | undefined;
+            try {
+                const uri = new URL(value);
+                protocol = uri.protocol;
+                host = uri.host;
+            } catch {
+                // ignore
+            }
 
-        return undefined; // the value is valid
+            if (!protocol || !host) {
+                return l10n.t('Please enter a valid URL');
+            } else {
+                return undefined;
+            }
+        }
     }
 }
