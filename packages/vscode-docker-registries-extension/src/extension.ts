@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dockerRegistries2.addTrackedGenericV2Registry', async () => {
 			await genericRegistryV2DataProvider.addTrackedRegistry();
-			urtdp.updateRegistryProvider(genericRegistryV2DataProvider);
+			urtdp.connectRegistryProvider(genericRegistryV2DataProvider);
 		})
 	);
 
