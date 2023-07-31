@@ -31,7 +31,12 @@
       {
         "title": "Disconnect Generic V2 Registry",
         "icon": "$(debug-disconnect)",
-        "command": "dockerRegistries2.disconnectGenericV2Registry"
+        "command": "dockerRegistries2.removeTrackedGenericV2Registry"
+      },
+      {
+        "title": "Connect Generic V2 Registry",
+        "icon": "$(plug)",
+        "command": "dockerRegistries2.addTrackedGenericV2Registry"
       }
     ],
     "menus": {
@@ -56,7 +61,7 @@
         },
         {
           "when": "view == dockerRegistries2 && viewItem =~ /genericregistryv2/i",
-          "command": "dockerRegistries2.disconnectGenericV2Registry",
+          "command": "dockerRegistries2.removeTrackedGenericV2Registry",
           "group": "destructive@0"
         }
       ]

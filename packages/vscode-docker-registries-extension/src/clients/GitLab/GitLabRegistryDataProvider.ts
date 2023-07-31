@@ -58,7 +58,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         this.authenticationProvider.storeBasicCredentials(credentials);
     }
 
-    public async onDisconnect(item: CommonRegistryItem): Promise<void> {
+    public async onDisconnect(): Promise<void> {
         this.authenticationProvider.removeSession();
     }
 

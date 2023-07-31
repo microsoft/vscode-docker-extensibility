@@ -16,5 +16,5 @@ export interface RegistryDataProvider<T extends RegistryItem> extends vscode.Tre
     getLoginInformation?(item: T): Promise<LoginInformation> | LoginInformation;
 
     onConnect?(): Promise<void>;
-    onDisconnect?(item?: T): Promise<void>;
+    onDisconnect?(): Promise<void>;
 }

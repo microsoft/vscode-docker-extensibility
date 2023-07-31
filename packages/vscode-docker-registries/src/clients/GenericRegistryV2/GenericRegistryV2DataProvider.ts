@@ -60,17 +60,6 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         });
     }
 
-    public async onConnect(): Promise<void> {
-        // TODO: should we auth before adding?
-        await this.addTrackedRegistry();
-    }
-
-    public async onDisconnect(item?: GenericV2RegistryItem): Promise<void> {
-        if (item) {
-            this.removeTrackedRegistry(item);
-        }
-    }
-
     protected override getAuthenticationProvider(item: GenericV2RegistryItem): BasicOAuthProvider {
         const registry = item.registryUri.toString();
 
@@ -83,7 +72,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         return this.authenticationProviders.get(registry)!;
     }
 
-    private async addTrackedRegistry(): Promise<void> {
+    public async addTrackedRegistry(): Promise<void> {
         const wizardContext: GenericRegistryV2WizardContext = {
             registryPrompt: vscode.l10n.t('Registry URL'), // TODO: change prompt
             usernamePrompt: vscode.l10n.t('Registry Username'), // TODO: change prompt
@@ -128,7 +117,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         this.authenticationProviders.set(registryUriString, authProvider);
     }
 
-    private removeTrackedRegistry(registry: GenericV2RegistryItem): void {
+    public removeTrackedRegistry(registry: GenericV2RegistryItem): void {
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
         const index = trackedRegistryStrings.findIndex(r => r === registry.registryUri.toString());
         if (index !== -1) {
