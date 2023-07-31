@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dockerRegistries2.removeTrackedGenericV2Registry', async (item) => {
 			genericRegistryV2DataProvider.removeTrackedRegistry(item.wrappedItem);
-			void urtdp.disconnectRegistryProvider(item);
+			urtdp.refresh();
 		})
 	);
 	context.subscriptions.push(

@@ -99,12 +99,8 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
 
         // store registry url in memento
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
-        const index = trackedRegistryStrings.findIndex(r => r === registryUriString);
-        if (index > -1) { // if found, throw error
-            throw new Error('Registry already exists'); //TODO: localize and see if there is a better way to handle this
-        }
         trackedRegistryStrings.push(registryUriString);
-        void this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
+        await this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
 
         // store credentials in auth provider
         const authProvider = new BasicOAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets, wizardContext.registryUri);
