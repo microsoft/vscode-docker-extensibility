@@ -121,5 +121,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
             void this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
         }
         this.authenticationProviders.delete(registry.registryUri.toString());
+
+        // TODO: if this is the last registry, remove the root node
     }
 }
