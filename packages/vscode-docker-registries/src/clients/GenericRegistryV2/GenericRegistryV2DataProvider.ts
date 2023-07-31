@@ -87,7 +87,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         const wizardContext: GenericRegistryV2WizardContext = {
             registryPrompt: vscode.l10n.t('Registry URL'), // TODO: change prompt
             usernamePrompt: vscode.l10n.t('Registry Username'), // TODO: change prompt
-            secretPrompt: vscode.l10n.t('Registry Personal Access Token'), // TODO: change prompt
+            secretPrompt: vscode.l10n.t('Registry Password or Personal Access Token'), // TODO: change prompt
         };
 
         const wizard = new RegistryWizard(

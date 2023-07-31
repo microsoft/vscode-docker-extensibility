@@ -72,8 +72,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
                     parent: registry,
                     registryUri: registry.registryUri,
                     label: repository,
-                    type: 'commonrepository',
-                    additionalContextValues: ['genericregistryv2']
+                    type: 'commonrepository'
                 });
             }
         } while (!foundAllInSearch);
