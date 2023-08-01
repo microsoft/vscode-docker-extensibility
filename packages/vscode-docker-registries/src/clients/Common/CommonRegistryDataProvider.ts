@@ -55,7 +55,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
                 contextValue: getContextValue(element, 'commontag'), // TODO
                 iconPath: new vscode.ThemeIcon('bookmark'),
-                createdAt: element.createdAt,
+                description: element.createdAt?.toString() || '',
             });
         } else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);

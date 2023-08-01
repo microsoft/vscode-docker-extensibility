@@ -4,12 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { RegistryV2DataProvider, V2Registry, V2RegistryItem } from '../RegistryV2/RegistryV2DataProvider';
-import { CommonRegistryRoot } from '../Common/models';
+import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '../RegistryV2/RegistryV2DataProvider';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
+import { GenericRegistryV2WizardContext, GenericRegistryV2WizardPromptStep } from './GenericRegistryV2WizardPromptStep';
+import { RegistryWizard } from '../../wizard/RegistryWizard';
+import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 
 const GenericV2StorageKey = 'GenericV2ContainerRegistry';
 const TrackedRegistriesKey = `${GenericV2StorageKey}.TrackedRegistries`;
+
+interface GenericV2RegistryRoot extends V2RegistryRoot {
+    readonly additionalContextValues: ['genericregistryrootv2'];
+}
+
+interface GenericV2RegistryItem extends V2RegistryItem {
+    readonly additionalContextValues: ['genericregistryv2'];
+}
+
+export type GenericV2Registry = V2Registry & GenericV2RegistryItem;
 
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public readonly id = 'vscode-docker.genericRegistryV2DataProvider';
@@ -23,7 +35,17 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         super();
     }
 
-    public async getRegistries(root: CommonRegistryRoot | V2RegistryItem): Promise<V2Registry[]> {
+    public getRoot(): GenericV2RegistryRoot {
+        return {
+            parent: undefined,
+            label: this.label,
+            type: 'commonroot',
+            iconPath: this.iconPath,
+            additionalContextValues: ['genericregistryrootv2'],
+        };
+    }
+
+    public async getRegistries(root: GenericV2RegistryRoot | GenericV2RegistryItem): Promise<GenericV2Registry[]> {
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
         const trackedRegistries = trackedRegistryStrings.map(r => vscode.Uri.parse(r));
 
@@ -33,19 +55,12 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
                 registryUri: r,
                 parent: root,
                 type: 'commonregistry',
+                additionalContextValues: ['genericregistryv2'],
             };
         });
     }
 
-    public async onConnect(): Promise<void> {
-        //TODO: call addTrackedRegistry
-    }
-
-    public async onDisconnect(): Promise<void> {
-        //TODO: call removeTrackedRegistry
-    }
-
-    protected override getAuthenticationProvider(item: V2RegistryItem): BasicOAuthProvider {
+    protected override getAuthenticationProvider(item: GenericV2RegistryItem): BasicOAuthProvider {
         const registry = item.registryUri.toString();
 
         if (!this.authenticationProviders.has(registry)) {
@@ -57,19 +72,60 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         return this.authenticationProviders.get(registry)!;
     }
 
-    private addTrackedRegistry(): void {
-        //const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
+    public async addTrackedRegistry(): Promise<void> {
+        const wizardContext: GenericRegistryV2WizardContext = {
+            registryPrompt: vscode.l10n.t('Registry URL'), // TODO: change prompt
+            usernamePrompt: vscode.l10n.t('Registry Username'), // TODO: change prompt
+            secretPrompt: vscode.l10n.t('Registry Password or Personal Access Token'), // TODO: change prompt
+        };
 
-        // TODO
-        throw new Error('Method not implemented.');
+        const wizard = new RegistryWizard(
+            wizardContext,
+            [
+                new GenericRegistryV2WizardPromptStep(),
+                new RegistryWizardUsernamePromptStep(),
+                new RegistryWizardSecretPromptStep(),
+            ],
+            new vscode.CancellationTokenSource().token
+        );
+
+        await wizard.prompt();
+
+        if (!wizardContext.registryUri) {
+            throw new Error('Registry URL is invalid');
+        }
+
+        const registryUriString = wizardContext.registryUri.toString();
+
+        // store registry url in memento
+        const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
+        trackedRegistryStrings.push(registryUriString);
+        await this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
+
+        // store credentials in auth provider
+        const authProvider = new BasicOAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets, wizardContext.registryUri);
+        await authProvider.storeBasicCredentials(
+            {
+                username: wizardContext.username || '',
+                secret: wizardContext.secret || '',
+            }
+        );
+        this.authenticationProviders.set(registryUriString, authProvider);
     }
 
-    private removeTrackedRegistry(registry: V2Registry): void {
+    public async removeTrackedRegistry(registry: GenericV2RegistryItem): Promise<void> {
+        // remove registry url from list of tracked registries
+        const registryUriString = registry.registryUri.toString();
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
-        const index = trackedRegistryStrings.findIndex(r => r === registry.registryUri.toString());
+        const index = trackedRegistryStrings.findIndex(r => r === registryUriString);
         if (index !== -1) {
             trackedRegistryStrings.splice(index, 1);
             void this.extensionContext.globalState.update(TrackedRegistriesKey, trackedRegistryStrings);
         }
+
+        // remove credentials from auth provider
+        await this.authenticationProviders.get(registryUriString)?.removeSession();
+        this.authenticationProviders.delete(registryUriString);
+        // TODO: check if the map of auth providers is empty, if so, remove the root from the tree
     }
 }

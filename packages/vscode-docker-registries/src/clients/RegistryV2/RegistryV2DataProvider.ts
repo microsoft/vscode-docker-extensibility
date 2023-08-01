@@ -71,7 +71,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 registryUri: repository.registryUri,
                 label: tag,
                 type: 'commontag',
-                createdAt: '', // TODO: Get this from the API
             });
         }
 
@@ -85,6 +84,10 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         }
 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', authenticationProvider));
+    }
+
+    private async getTagDetails(repository: V2Repository, tag: string): Promise<string> {
+        throw new Error('Not implemented');
     }
 
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;

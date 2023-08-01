@@ -11,6 +11,7 @@ import { showInputBox } from "./showInputBox";
 export interface RegistryWizardPromptStepOptions {
     isSecretStep?: boolean;
     prompt: string;
+    validateInput?(value: string): string | undefined | Thenable<string | undefined>;
 }
 
 export abstract class RegistryWizardPromptStep<T extends RegistryWizardContext> {

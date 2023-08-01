@@ -36,8 +36,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
     public async onConnect(): Promise<void> {
         const wizardContext: RegistryWizardContext = {
-            usernamePrompt: vscode.l10n.t('GitLab Username'),
-            secretPrompt: vscode.l10n.t('GitLab Personal Access Token'),
+            usernamePrompt: vscode.l10n.t('GitLab Username'), // TODO: change prompt
+            secretPrompt: vscode.l10n.t('GitLab Personal Access Token'), // TODO: change prompt
         };
 
         const wizard = new RegistryWizard(
@@ -154,7 +154,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                     label: tag.name,
                     parent: repository,
                     type: 'commontag',
-                    createdAt: await this.getTagDetails(tag.name, repository) //TODO: make this show up in the UI
+                    // createdAt: await this.getTagDetails(tag.name, repository) //TODO: make this show up in the UI
                 });
             }
         } while (!!nextLink);

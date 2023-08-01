@@ -10,11 +10,13 @@ import { GitLabRegistryDataProvider } from './clients/GitLab/GitLabRegistryDataP
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	const genericRegistryV2DataProvider = new GenericRegistryV2DataProvider(context);
+
 	const urtdp = new UnifiedRegistryTreeDataProvider(context.globalState);
 	urtdp.registerProvider(new GitHubRegistryDataProvider(context));
 	urtdp.registerProvider(new DockerHubRegistryDataProvider(context));
 	urtdp.registerProvider(new AzureRegistryDataProvider(context));
-	urtdp.registerProvider(new GenericRegistryV2DataProvider(context));
+	urtdp.registerProvider(genericRegistryV2DataProvider);
 	urtdp.registerProvider(new GitLabRegistryDataProvider(context));
 
 	let treeView: vscode.TreeView<unknown>;
@@ -23,6 +25,18 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.refreshRegistries', () => urtdp.refresh()));
 	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.connectRegistry', () => urtdp.connectRegistryProvider()));
 	context.subscriptions.push(vscode.commands.registerCommand('dockerRegistries2.disconnectRegistry', (item) => urtdp.disconnectRegistryProvider(item)));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dockerRegistries2.removeTrackedGenericV2Registry', async (item) => {
+			await genericRegistryV2DataProvider.removeTrackedRegistry(item.wrappedItem);
+			urtdp.refresh();
+		})
+	);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dockerRegistries2.addTrackedGenericV2Registry', async () => {
+			await genericRegistryV2DataProvider.addTrackedRegistry();
+			urtdp.connectRegistryProvider(genericRegistryV2DataProvider);
+		})
+	);
 
 	return {
 		memento: {
