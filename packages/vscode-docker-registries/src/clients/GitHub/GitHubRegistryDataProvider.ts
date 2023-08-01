@@ -9,6 +9,10 @@ import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2R
 import { registryV2Request } from '../RegistryV2/registryV2Request';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { httpRequest } from '../../utils/httpRequest';
+import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
+import { RegistryWizard } from '../../wizard/RegistryWizard';
+import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
+import { BasicCredentials } from '../../contracts/BasicCredentials';
 
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
 
@@ -24,6 +28,34 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         super();
 
         this.authenticationProvider = new BasicOAuthProvider(extensionContext.globalState, extensionContext.secrets, GitHubContainerRegistryUri);
+    }
+
+    public async onConnect(): Promise<void> {
+        const wizardContext: RegistryWizardContext = {
+            usernamePrompt: vscode.l10n.t('Github Username'),
+            secretPrompt: vscode.l10n.t('Github Personal Access Token'),
+        };
+
+        const wizard = new RegistryWizard(
+            wizardContext,
+            [
+                new RegistryWizardUsernamePromptStep(),
+                new RegistryWizardSecretPromptStep(),
+            ],
+            new vscode.CancellationTokenSource().token
+        );
+
+        await wizard.prompt();
+        const credentials: BasicCredentials = {
+            username: wizardContext.username || '',
+            secret: wizardContext.secret || '',
+        };
+
+        await this.authenticationProvider.storeBasicCredentials(credentials);
+    }
+
+    public async onDisconnect(): Promise<void> {
+        await this.authenticationProvider.removeSession();
     }
 
     public override async getRegistries(root: V2RegistryRoot): Promise<V2Registry[]> {
