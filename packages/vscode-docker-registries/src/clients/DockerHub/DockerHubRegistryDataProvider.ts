@@ -4,8 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DockerHubAuthProvider } from '../../auth/DockerHubAuthProvider';
-import { LoginInformation } from '../../contracts/BasicCredentials';
+import { BasicCredentials, LoginInformation } from '../../contracts/BasicCredentials';
 import { httpRequest } from '../../utils/httpRequest';
+import { RegistryWizard } from '../../wizard/RegistryWizard';
+import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
+import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { CommonRegistryDataProvider } from '../Common/CommonRegistryDataProvider';
 import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag } from '../Common/models';
 
@@ -28,6 +31,34 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
             light: vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'light', 'docker.svg'),
             dark: vscode.Uri.joinPath(extensionContext.extensionUri, 'resources', 'dark', 'docker.svg'),
         };
+    }
+
+    public async onConnect(): Promise<void> {
+        const wizardContext: RegistryWizardContext = {
+            usernamePrompt: vscode.l10n.t('Dockerhub Username'),
+            secretPrompt: vscode.l10n.t('Dockerhub Password or Personal Access Token'), // TODO: add scope info
+        };
+
+        const wizard = new RegistryWizard(
+            wizardContext,
+            [
+                new RegistryWizardUsernamePromptStep(),
+                new RegistryWizardSecretPromptStep(),
+            ],
+            new vscode.CancellationTokenSource().token
+        );
+
+        await wizard.prompt();
+        const credentials: BasicCredentials = {
+            username: wizardContext.username || '',
+            secret: wizardContext.secret || '',
+        };
+
+        await this.authenticationProvider.storeBasicCredentials(credentials);
+    }
+
+    public async onDisconnect(): Promise<void> {
+        await this.authenticationProvider.removeSession();
     }
 
     public getRoot(): CommonRegistryRoot {
