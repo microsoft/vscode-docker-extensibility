@@ -10,7 +10,6 @@ import { GenericRegistryV2WizardContext, GenericRegistryV2WizardPromptStep } fro
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 
-const ConnectedRegistryProvidersKey = 'ConnectedRegistryProviders';
 const GenericV2StorageKey = 'GenericV2ContainerRegistry';
 const TrackedRegistriesKey = `${GenericV2StorageKey}.TrackedRegistries`;
 
@@ -127,13 +126,6 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         // remove credentials from auth provider
         await this.authenticationProviders.get(registryUriString)?.removeSession();
         this.authenticationProviders.delete(registryUriString);
-
-        // if the list tracked registries in empty, remove genericV2 data provider from global state
-        if (trackedRegistryStrings.length === 0) {
-            const newConnectedProviderIds = this.extensionContext.globalState
-                .get<string[]>(ConnectedRegistryProvidersKey, [])
-                .filter(cpi => cpi !== this.id);
-            await this.extensionContext.globalState.update(ConnectedRegistryProvidersKey, newConnectedProviderIds);
-        }
+        // TODO: check if the map of auth providers is empty, if so, remove the root from the tree
     }
 }
