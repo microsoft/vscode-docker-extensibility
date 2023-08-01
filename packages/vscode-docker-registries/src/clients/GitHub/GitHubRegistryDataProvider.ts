@@ -32,8 +32,8 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
 
     public async onConnect(): Promise<void> {
         const wizardContext: RegistryWizardContext = {
-            usernamePrompt: vscode.l10n.t('Github Username'),
-            secretPrompt: vscode.l10n.t('Github Personal Access Token'), // TODO: add scope instructions
+            usernamePrompt: vscode.l10n.t('GitHub Username'),
+            secretPrompt: vscode.l10n.t('GitHub Personal Access Token (requires `repo` scope for read-only operations)'), // TODO: add scope for write
         };
 
         const wizard = new RegistryWizard(

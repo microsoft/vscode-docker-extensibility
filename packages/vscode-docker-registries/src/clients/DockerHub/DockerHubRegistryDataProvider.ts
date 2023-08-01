@@ -35,8 +35,8 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
     public async onConnect(): Promise<void> {
         const wizardContext: RegistryWizardContext = {
-            usernamePrompt: vscode.l10n.t('Dockerhub Username'),
-            secretPrompt: vscode.l10n.t('Dockerhub Password or Personal Access Token'), // TODO: add scope info
+            usernamePrompt: vscode.l10n.t('Docker Hub Username'),
+            secretPrompt: vscode.l10n.t('Docker Hub Password or Personal Access Token'), // TODO: add scope info
         };
 
         const wizard = new RegistryWizard(
