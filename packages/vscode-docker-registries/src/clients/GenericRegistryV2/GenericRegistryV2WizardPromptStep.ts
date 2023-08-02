@@ -10,6 +10,7 @@ import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 
 export interface GenericRegistryV2WizardContext extends RegistryWizardContext {
     readonly registryPrompt: string;
+    registryPromptPlaceholder?: string;
     registryUri?: Uri;
 }
 
@@ -19,6 +20,7 @@ export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2Wizard
             isSecretStep: false,
             prompt: wizardContext.registryPrompt,
             validateInput: (value: string): string | undefined => this.validateUrl(value),
+            placeholder: wizardContext.registryPromptPlaceholder ?? '',
         };
         const url = await showInputBox(options);
         wizardContext.registryUri = Uri.parse(url);

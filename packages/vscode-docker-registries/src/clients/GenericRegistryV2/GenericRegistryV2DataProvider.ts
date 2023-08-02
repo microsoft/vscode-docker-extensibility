@@ -74,9 +74,10 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
 
     public async addTrackedRegistry(): Promise<void> {
         const wizardContext: GenericRegistryV2WizardContext = {
-            registryPrompt: vscode.l10n.t('Registry URL'), // TODO: change prompt
-            usernamePrompt: vscode.l10n.t('Registry Username'), // TODO: change prompt
-            secretPrompt: vscode.l10n.t('Registry Password or Personal Access Token'), // TODO: change prompt
+            registryPrompt: vscode.l10n.t('Registry URL'),
+            registryPromptPlaceholder: vscode.l10n.t('http://localhost:5000'),
+            usernamePrompt: vscode.l10n.t('Registry Username'),
+            secretPrompt: vscode.l10n.t('Registry Password or Personal Access Token'),
         };
 
         const wizard = new RegistryWizard(
