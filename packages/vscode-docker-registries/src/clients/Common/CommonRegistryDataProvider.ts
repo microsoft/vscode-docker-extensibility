@@ -77,4 +77,5 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public deleteRegistry?(item: CommonRegistry): Promise<void>;
     public deleteRepository?(item: CommonRepository): Promise<void>;
     public deleteTag?(item: CommonTag): Promise<void>;
+    public getImageDigest?(item: CommonTag): Promise<string>;
 }

@@ -91,5 +91,25 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         throw new Error('Not implemented');
     }
 
+    public async getImageDigest(tagItem: V2Tag): Promise<string> {
+        const registryItem = tagItem.parent.parent as V2RegistryItem;
+
+        const url = `v2/${(tagItem.parent as V2Repository).label}/manifests/${tagItem.label}`;
+        const response = await registryV2Request({
+            method: 'GET',
+            registryUri: registryItem.baseUrl,
+            authenticationProvider: this.getAuthenticationProvider(registryItem),
+            path: [url],
+            scopes: [`repository:${(registryItem).label}:pull`],
+            headers: {
+                // According to https://docs.docker.com/registry/spec/api/
+                // When deleting a manifest from a registry version 2.3 or later, the following header must be used when HEAD or GET-ing the manifest to obtain the correct digest to delete
+                accept: 'application/vnd.docker.distribution.manifest.v2+json'
+            }
+        });
+
+        return response.headers['docker-content-digest'];
+    }
+
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;
 }
