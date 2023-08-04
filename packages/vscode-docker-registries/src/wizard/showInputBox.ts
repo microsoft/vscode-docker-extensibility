@@ -17,6 +17,7 @@ export async function showInputBox(options: RegistryWizardPromptStepOptions): Pr
         inputBox.password = !!options.isSecretStep;
         inputBox.title = options.prompt ?? '';
         inputBox.ignoreFocusOut = true;
+        inputBox.placeholder = options.placeholder ?? '';
 
         let latestValidation: Promise<InputBoxValidationResult> = options.validateInput ? Promise.resolve(options.validateInput(inputBox.value)) : Promise.resolve('');
         return await new Promise<string>((resolve, reject): void => {
