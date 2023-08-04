@@ -11,6 +11,7 @@ export interface CommonRegistryItem extends RegistryItem, ContextValueRegistryIt
     readonly label: string;
     readonly iconPath?: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon
     readonly description?: string;
+    readonly baseUrl?: vscode.Uri;
 }
 
 export interface CommonRegistryRoot extends CommonRegistryItem {

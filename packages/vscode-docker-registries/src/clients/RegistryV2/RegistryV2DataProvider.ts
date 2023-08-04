@@ -11,7 +11,7 @@ import { LoginInformation } from '../../contracts/BasicCredentials';
 import { registryV2Request } from './registryV2Request';
 
 export interface V2RegistryItem extends CommonRegistryItem {
-    readonly registryUri: vscode.Uri;
+    readonly baseUrl: vscode.Uri;
 }
 
 export type V2RegistryRoot = CommonRegistryRoot;
@@ -35,7 +35,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         const catalogResponse = await registryV2Request<{ repositories: string[] }>({
             authenticationProvider: this.getAuthenticationProvider(registry),
             method: 'GET',
-            registryUri: registry.registryUri,
+            registryUri: registry.baseUrl,
             path: ['v2', '_catalog'],
             scopes: ['registry:catalog:*'],
         });
@@ -45,7 +45,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         for (const repository of catalogResponse.body?.repositories || []) {
             results.push({
                 parent: registry,
-                registryUri: registry.registryUri,
+                baseUrl: registry.baseUrl,
                 label: repository,
                 type: 'commonrepository',
             });
@@ -58,7 +58,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         const tagsResponse = await registryV2Request<{ tags: string[] }>({
             authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
-            registryUri: repository.registryUri,
+            registryUri: repository.baseUrl,
             path: ['v2', repository.label, 'tags', 'list'],
             scopes: [`repository:${repository.label}:pull`],
         });
@@ -68,9 +68,10 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         for (const tag of tagsResponse.body?.tags || []) {
             results.push({
                 parent: repository,
-                registryUri: repository.registryUri,
+                baseUrl: repository.baseUrl,
                 label: tag,
                 type: 'commontag',
+                additionalContextValues: ['registryV2Tag']
             });
         }
 

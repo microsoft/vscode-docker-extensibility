@@ -85,6 +85,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 parent: root,
                 label: orgOrNamespace,
                 type: 'commonregistry',
+                additionalContextValues: ['dockerHubRegistry'],
             });
         }
 
@@ -107,8 +108,9 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         for (const repository of (await response.json()).results) {
             results.push({
                 parent: registry,
-                label: `${registry.label}/${repository.name}`,
+                label: `${repository.name}`,
                 type: 'commonrepository',
+                additionalContextValues: ['dockerHubRepositwewory']
             });
         }
 
@@ -117,7 +119,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
     public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
         const requestUrl = vscode.Uri.parse(DockerHubUrl)
-            .with({ path: `v2/repositories/${repository.label}/tags` });
+            .with({ path: `v2/repositories/${repository.parent.label}/${repository.label}/tags` });
 
         const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
             method: 'GET',
@@ -133,6 +135,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 parent: repository,
                 label: tag.name,
                 type: 'commontag',
+                additionalContextValues: ['dockerHubTag']
                 // createdAt: '', // TODO: get this from the API
             });
         }

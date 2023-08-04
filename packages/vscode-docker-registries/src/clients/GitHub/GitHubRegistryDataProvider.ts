@@ -64,7 +64,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         return organizations.map(org => (
             {
                 parent: root,
-                registryUri: GitHubContainerRegistryUri,
+                baseUrl: GitHubContainerRegistryUri,
                 label: org,
                 type: 'commonregistry',
             }
@@ -83,7 +83,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
             const catalogResponse = await registryV2Request<{ repositories: string[] }>({
                 authenticationProvider: this.authenticationProvider,
                 method: 'GET',
-                registryUri: registry.registryUri,
+                registryUri: registry.baseUrl,
                 path: ['v2', '_catalog'],
                 query: {
                     n: '100',
@@ -102,7 +102,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
 
                 results.push({
                     parent: registry,
-                    registryUri: registry.registryUri,
+                    baseUrl: registry.baseUrl,
                     label: repository,
                     type: 'commonrepository',
                 });
