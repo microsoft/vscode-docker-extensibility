@@ -14,6 +14,7 @@ export interface RegistryV2RequestOptions {
     path: string[];
     query?: Record<string, string>;
     scopes: string[];
+    headers?: Record<string, string>;
     throwOnFailure?: boolean;
     authenticationProvider: AuthenticationProvider<vscode.AuthenticationGetSessionOptions>;
     sessionOptions?: vscode.AuthenticationGetSessionOptions;
@@ -49,7 +50,8 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
 
     const request: RequestLike = {
         headers: {
-            'Accept': 'application/json',
+            accept: 'application/json',
+            ...options.headers
         },
         method: options.method,
     };

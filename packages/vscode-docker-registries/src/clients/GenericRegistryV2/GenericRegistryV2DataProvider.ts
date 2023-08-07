@@ -14,11 +14,11 @@ const GenericV2StorageKey = 'GenericV2ContainerRegistry';
 const TrackedRegistriesKey = `${GenericV2StorageKey}.TrackedRegistries`;
 
 interface GenericV2RegistryRoot extends V2RegistryRoot {
-    readonly additionalContextValues: ['genericregistryrootv2'];
+    readonly additionalContextValues: ['genericRegistryV2Root'];
 }
 
 interface GenericV2RegistryItem extends V2RegistryItem {
-    readonly additionalContextValues: ['genericregistryv2'];
+    readonly additionalContextValues: ['genericRegistryV2'];
 }
 
 export type GenericV2Registry = V2Registry & GenericV2RegistryItem;
@@ -35,13 +35,17 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         super();
     }
 
+    public async onConnect(): Promise<void> {
+        await this.addTrackedRegistry();
+    }
+
     public getRoot(): GenericV2RegistryRoot {
         return {
             parent: undefined,
             label: this.label,
             type: 'commonroot',
             iconPath: this.iconPath,
-            additionalContextValues: ['genericregistryrootv2'],
+            additionalContextValues: ['genericRegistryV2Root'],
         };
     }
 
@@ -52,19 +56,19 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         return trackedRegistries.map(r => {
             return {
                 label: r.toString(),
-                registryUri: r,
                 parent: root,
                 type: 'commonregistry',
-                additionalContextValues: ['genericregistryv2'],
+                additionalContextValues: ['genericRegistryV2'],
+                baseUrl: r
             };
         });
     }
 
     protected override getAuthenticationProvider(item: GenericV2RegistryItem): BasicOAuthProvider {
-        const registry = item.registryUri.toString();
+        const registry = item.baseUrl.toString();
 
         if (!this.authenticationProviders.has(registry)) {
-            const provider = new BasicOAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets, item.registryUri);
+            const provider = new BasicOAuthProvider(this.extensionContext.globalState, this.extensionContext.secrets, item.baseUrl);
             this.authenticationProviders.set(registry, provider);
         }
 
@@ -116,7 +120,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
 
     public async removeTrackedRegistry(registry: GenericV2RegistryItem): Promise<void> {
         // remove registry url from list of tracked registries
-        const registryUriString = registry.registryUri.toString();
+        const registryUriString = registry.baseUrl.toString();
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
         const index = trackedRegistryStrings.findIndex(r => r === registryUriString);
         if (index !== -1) {

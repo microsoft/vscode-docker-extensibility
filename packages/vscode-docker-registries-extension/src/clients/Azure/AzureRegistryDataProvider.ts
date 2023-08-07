@@ -92,7 +92,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
             return {
                 parent: subscriptionItem,
                 type: 'commonregistry',
-                registryUri: vscode.Uri.parse(`https://${registry.loginServer}`),
+                baseUrl: vscode.Uri.parse(`https://${registry.loginServer}`),
                 label: registry.name!,
                 iconPath: vscode.Uri.joinPath(this.extensionContext.extensionUri, 'resources', 'azureRegistry.svg'),
                 subscription: subscriptionItem.subscription,
@@ -114,7 +114,7 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     }
 
     protected override getAuthenticationProvider(item: AzureRegistryItem): ACROAuthProvider {
-        const registryString = item.registryUri.toString();
+        const registryString = item.baseUrl.toString();
 
         if (!this.authenticationProviders.has(registryString)) {
             const provider = new ACROAuthProvider(item.registryUri, item.subscription);
