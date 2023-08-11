@@ -110,7 +110,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 parent: registry,
                 label: `${repository.name}`,
                 type: 'commonrepository',
-                additionalContextValues: ['dockerHubRepositwewory']
+                additionalContextValues: ['dockerHubRepository']
             });
         }
 
