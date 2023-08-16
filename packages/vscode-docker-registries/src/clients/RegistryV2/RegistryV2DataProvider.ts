@@ -19,6 +19,18 @@ export type V2Registry = CommonRegistry & V2RegistryItem;
 export type V2Repository = CommonRepository & V2RegistryItem;
 export type V2Tag = CommonTag & V2RegistryItem;
 
+interface ManifestHistory {
+    v1Compatibility: string; // stringified ManifestHistoryV1Compatibility
+}
+
+interface ManifestHistoryV1Compatibility {
+    created: string;
+}
+
+interface Manifest {
+    history: ManifestHistory[];
+}
+
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public getRoot(): V2RegistryRoot {
         return {
@@ -89,21 +101,16 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     }
 
     private async getTagDetails(repository: V2Repository, tag: string): Promise<Date> {
-        const tagDetailResponse = await registryV2Request({
+        const tagDetailResponse = await registryV2Request<Manifest>({
             authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
             registryUri: repository.baseUrl,
             path: ['v2', repository.label, 'manifests', tag],
-            scopes: [`repository:${repository.label}:pull`],
-            headers: {
-                // According to https://docs.docker.com/registry/spec/api/
-                // When deleting a manifest from a registry version 2.3 or later, the following header must be used when HEAD or GET-ing the manifest to obtain the correct digest to delete
-                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
-            }
+            scopes: [`repository:${repository.label}:pull`]
         });
 
-        const time = tagDetailResponse.headers['docker-content-digest'] || '';
-        return new Date(time);
+        const history = <ManifestHistoryV1Compatibility>JSON.parse(tagDetailResponse.body?.history[0].v1Compatibility || '{}');
+        return new Date(history.created);
     }
 
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;
