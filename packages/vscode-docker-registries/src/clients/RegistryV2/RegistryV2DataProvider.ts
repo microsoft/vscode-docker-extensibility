@@ -71,7 +71,8 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 baseUrl: repository.baseUrl,
                 label: tag,
                 type: 'commontag',
-                additionalContextValues: ['registryV2Tag']
+                additionalContextValues: ['registryV2Tag'],
+                createdAt: await this.getTagDetails(repository, tag),
             });
         }
 
@@ -87,8 +88,21 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', authenticationProvider));
     }
 
-    private async getTagDetails(repository: V2Repository, tag: string): Promise<string> {
-        throw new Error('Not implemented');
+    private async getTagDetails(repository: V2Repository, tag: string): Promise<Date> {
+
+        const tagDetailResponse = await registryV2Request({
+            authenticationProvider: this.getAuthenticationProvider(repository),
+            method: 'GET',
+            registryUri: repository.baseUrl,
+            path: ['v2', repository.label, 'manifests', tag],
+            scopes: [`repository:${repository.label}:pull`],
+            headers: {
+                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
+            }
+        });
+
+        const time = tagDetailResponse.headers['docker-content-digest'] || '';
+        return new Date(time);
     }
 
     public async getImageDigest(tagItem: V2Tag): Promise<string> {
