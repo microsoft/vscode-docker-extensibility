@@ -71,6 +71,6 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
         succeeded: response.status >= 200 && response.status < 300,
         uri: uri,
         headers: response.headers,
-        body: (response.headers['content-length'] || response.headers['transfer-encoding'] === 'chunked') ? await response.json() as T : undefined,
+        body: (parseInt(response.headers['content-length']) || response.headers['transfer-encoding'] === 'chunked') ? await response.json() as T : undefined,
     };
 }

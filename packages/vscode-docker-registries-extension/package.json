@@ -37,6 +37,10 @@
         "title": "Connect Generic V2 Registry",
         "icon": "$(plug)",
         "command": "dockerRegistries2.addTrackedGenericV2Registry"
+      },
+      {
+        "title": "Delete Azure Tag",
+        "command": "dockerRegistries2.untagAzureImage"
       }
     ],
     "menus": {
@@ -62,6 +66,11 @@
         {
           "when": "view == dockerRegistries2 && viewItem =~ /genericregistryv2/i",
           "command": "dockerRegistries2.removeTrackedGenericV2Registry",
+          "group": "destructive@0"
+        },
+        {
+          "when": "view == dockerRegistries2 && viewItem =~ /azureContainerTag/i",
+          "command": "dockerRegistries2.untagAzureImage",
           "group": "destructive@0"
         }
       ]

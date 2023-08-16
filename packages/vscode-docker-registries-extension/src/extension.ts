@@ -38,6 +38,14 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dockerRegistries2.untagAzureImage', async (item) => {
+			const provider = item.provider as AzureRegistryDataProvider;
+			await provider.deleteTag(item.wrappedItem);
+			urtdp.refresh();
+		})
+	);
+
 	return {
 		memento: {
 			globalState: context.globalState,
