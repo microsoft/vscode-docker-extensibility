@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
-import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
+import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, RegistryErrorItem, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
 import { getContextValue } from '../../utils/contextValues';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 
@@ -14,16 +14,24 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
     public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
-        if (!element) {
-            return [await this.getRoot()];
-        } else if (isRegistryRoot(element)) {
-            return (await this.getRegistries(element));
-        } else if (isRegistry(element)) {
-            return await this.getRepositories(element);
-        } else if (isRepository(element)) {
-            return await this.getTags(element);
-        } else {
-            throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
+        try {
+            if (!element) {
+                return [await this.getRoot()];
+            } else if (isRegistryRoot(element)) {
+                return await this.getRegistries(element);
+            } else if (isRegistry(element)) {
+                return await this.getRepositories(element);
+            } else if (isRepository(element)) {
+                return await this.getTags(element);
+            } else {
+                throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                return [this.getRegistryErrorItem(error.message, element)];
+            } else {
+                return [this.getRegistryErrorItem('Unknown error', element)];
+            }
         }
     }
 
@@ -60,6 +68,16 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
         } else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
+    }
+
+    public getRegistryErrorItem(errorMsg: string, parent: CommonRegistryItem | undefined): RegistryErrorItem {
+        const errorItem: RegistryErrorItem = {
+            parent: parent,
+            label: errorMsg,
+            type: 'commonerror',
+        };
+
+        return errorItem;
     }
 
     public abstract readonly id: string;

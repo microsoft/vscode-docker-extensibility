@@ -50,3 +50,8 @@ export interface CommonTag extends CommonRegistryItem {
 export function isTag(maybeTag: unknown): maybeTag is CommonTag {
     return !!maybeTag && typeof maybeTag === 'object' && (maybeTag as CommonTag).type === 'commontag';
 }
+
+export interface RegistryErrorItem extends CommonRegistryItem {
+    readonly parent: CommonRegistryItem | undefined;
+    readonly type: 'commonerror';
+}

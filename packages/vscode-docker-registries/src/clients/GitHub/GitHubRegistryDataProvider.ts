@@ -89,7 +89,8 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
                     n: '100',
                     last: nextSearchString
                 },
-                scopes: ['registry:catalog:*']
+                scopes: ['registry:catalog:*'],
+                throwOnFailure: true,
             });
 
             for (const repository of catalogResponse.body?.repositories || []) {
