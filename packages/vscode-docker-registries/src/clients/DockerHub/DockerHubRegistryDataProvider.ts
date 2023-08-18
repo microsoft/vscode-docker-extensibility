@@ -16,6 +16,14 @@ import * as vscode from 'vscode';
 
 export const DockerHubUrl = 'https://hub.docker.com/';
 
+export function isDockerHubRegistryItem(item: unknown): item is CommonRegistry {
+    return !!item && typeof item === 'object' && (item as CommonRegistry).additionalContextValues?.includes('dockerHubRegistry') === true;
+}
+
+export function isDockerHubRepositoryItem(item: unknown): item is CommonRepository {
+    return !!item && typeof item === 'object' && (item as CommonRepository).additionalContextValues?.includes('dockerHubRepository') === true;
+}
+
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly id: string = 'vscode-docker.dockerHub';
     public readonly label: string = 'Docker Hub';

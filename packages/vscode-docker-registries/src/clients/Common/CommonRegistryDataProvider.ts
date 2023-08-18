@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
-import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
+import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, CommonError, isRegistry, isRegistryRoot, isRepository, isTag, isError } from './models';
 import { getContextValue } from '../../utils/contextValues';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import * as dayjs from 'dayjs';
@@ -18,16 +18,20 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
     public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
-        if (!element) {
-            return [await this.getRoot()];
-        } else if (isRegistryRoot(element)) {
-            return (await this.getRegistries(element));
-        } else if (isRegistry(element)) {
-            return await this.getRepositories(element);
-        } else if (isRepository(element)) {
-            return await this.getTags(element);
-        } else {
-            throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
+        try {
+            if (!element) {
+                return [await this.getRoot()];
+            } else if (isRegistryRoot(element)) {
+                return await this.getRegistries(element);
+            } else if (isRegistry(element)) {
+                return await this.getRepositories(element);
+            } else if (isRepository(element)) {
+                return await this.getTags(element);
+            } else {
+                throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
+            }
+        } catch (error: unknown) {
+            return [this.getRegistryErrorItem(error, element)];
         }
     }
 
@@ -61,9 +65,28 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 iconPath: new vscode.ThemeIcon('bookmark'),
                 description: dayjs(element.createdAt).fromNow(),
             });
-        } else {
+        } else if (isError(element)) {
+            return Promise.resolve({
+                ...element,
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+                contextValue: getContextValue(element, 'commonerror'),
+                iconPath: new vscode.ThemeIcon('error'),
+            });
+        }
+        else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
+    }
+
+    public getRegistryErrorItem(error: unknown, parent: CommonRegistryItem | undefined): CommonError {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        const errorItem: CommonError = {
+            parent: parent,
+            label: errorMsg,
+            type: 'commonerror',
+        };
+
+        return errorItem;
     }
 
     public abstract readonly id: string;

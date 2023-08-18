@@ -73,6 +73,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             registryUri: repository.baseUrl,
             path: ['v2', repository.label, 'tags', 'list'],
             scopes: [`repository:${repository.label}:pull`],
+            throwOnFailure: true,
         });
 
         const results: V2Tag[] = [];
