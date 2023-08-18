@@ -51,7 +51,11 @@ export function isTag(maybeTag: unknown): maybeTag is CommonTag {
     return !!maybeTag && typeof maybeTag === 'object' && (maybeTag as CommonTag).type === 'commontag';
 }
 
-export interface RegistryErrorItem extends CommonRegistryItem {
+export interface CommonError extends CommonRegistryItem {
     readonly parent: CommonRegistryItem | undefined;
     readonly type: 'commonerror';
+}
+
+export function isError(maybeError: unknown): maybeError is CommonError {
+    return !!maybeError && typeof maybeError === 'object' && (maybeError as CommonError).type === 'commonerror';
 }

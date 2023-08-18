@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
-import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, RegistryErrorItem, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
+import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, CommonError, isRegistry, isRegistryRoot, isRepository, isTag, isError } from './models';
 import { getContextValue } from '../../utils/contextValues';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import * as dayjs from 'dayjs';
@@ -31,11 +31,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
             }
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                return [this.getRegistryErrorItem(error.message, element)];
-            } else {
-                return [this.getRegistryErrorItem('Unknown error', element)];
-            }
+            return [this.getRegistryErrorItem(error, element)];
         }
     }
 
@@ -69,13 +65,22 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 iconPath: new vscode.ThemeIcon('bookmark'),
                 description: dayjs(element.createdAt).fromNow(),
             });
-        } else {
+        } else if (isError(element)) {
+            return Promise.resolve({
+                ...element,
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+                contextValue: getContextValue(element, 'commonerror'),
+                iconPath: new vscode.ThemeIcon('error'),
+            });
+        }
+        else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
     }
 
-    public getRegistryErrorItem(errorMsg: string, parent: CommonRegistryItem | undefined): RegistryErrorItem {
-        const errorItem: RegistryErrorItem = {
+    public getRegistryErrorItem(error: unknown, parent: CommonRegistryItem | undefined): CommonError {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        const errorItem: CommonError = {
             parent: parent,
             label: errorMsg,
             type: 'commonerror',
