@@ -8,6 +8,10 @@ import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
 import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag } from './models';
 import { getContextValue } from '../../utils/contextValues';
 import { LoginInformation } from '../../contracts/BasicCredentials';
+import * as dayjs from 'dayjs';
+import * as relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 export abstract class CommonRegistryDataProvider implements RegistryDataProvider<CommonRegistryItem> {
     protected readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<CommonRegistryItem | undefined>();
@@ -55,7 +59,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
                 contextValue: getContextValue(element, 'commontag'), // TODO
                 iconPath: new vscode.ThemeIcon('bookmark'),
-                description: element.createdAt?.toString() || '',
+                description: dayjs(element.createdAt).fromNow(),
             });
         } else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);

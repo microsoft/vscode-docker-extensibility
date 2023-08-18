@@ -43,6 +43,7 @@
         "typescript": "^5.0.4"
     },
     "dependencies": {
-        "node-fetch": "^2.6.11"
+        "node-fetch": "^2.6.11",
+        "dayjs": "^1.11.7"
     }
 }
