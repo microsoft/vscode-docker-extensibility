@@ -44,7 +44,7 @@ export function isRepository(maybeRepository: unknown): maybeRepository is Commo
 export interface CommonTag extends CommonRegistryItem {
     readonly parent: CommonRepository;
     readonly type: 'commontag';
-    readonly createdAt?: number;
+    readonly createdAt?: Date;
 }
 
 export function isTag(maybeTag: unknown): maybeTag is CommonTag {

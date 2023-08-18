@@ -154,7 +154,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                     label: tag.name,
                     parent: repository,
                     type: 'commontag',
-                    // createdAt: await this.getTagDetails(tag.name, repository) //TODO: make this show up in the UI
+                    createdAt: await this.getTagDetails(tag.name, repository)
                 });
             }
         } while (!!nextLink);
@@ -162,7 +162,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
         return results;
     }
 
-    private async getTagDetails(tag: string, repository: CommonRepository): Promise<string> {
+    private async getTagDetails(tag: string, repository: CommonRepository): Promise<Date> {
         const requestUrl = GitLabBaseUrl.with(
             {
                 path: `api/v4/projects/${repository.parent.projectId}/registry/repositories/${repository.repositoryId}/tags/${tag}`
@@ -171,7 +171,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
 
         // eslint-disable-next-line @typescript-eslint/naming-convention
         const response = await this.httpRequest<{ created_at: string }>(requestUrl);
-        return (await response.json()).created_at;
+        const createdAtString = (await response.json()).created_at;
+        return new Date(createdAtString);
     }
 
     private async httpRequest<TResponse>(requestUrl: vscode.Uri): Promise<ResponseLike<TResponse>> {
