@@ -101,7 +101,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', authenticationProvider));
     }
 
-    private async getTagDetails(repository: V2Repository, tag: string): Promise<Date> {
+    protected async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
         const tagDetailResponse = await registryV2Request<Manifest>({
             authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
@@ -110,8 +110,8 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             scopes: [`repository:${repository.label}:pull`]
         });
 
-        const history = <ManifestHistoryV1Compatibility>JSON.parse(tagDetailResponse.body?.history[0].v1Compatibility || '{}');
-        return new Date(history.created);
+        const history = <ManifestHistoryV1Compatibility>JSON.parse(tagDetailResponse.body?.history?.[0]?.v1Compatibility || '{}');
+        return history?.created ? new Date(history.created) : undefined;
     }
 
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;

@@ -16,6 +16,13 @@ import { BasicCredentials } from '../../contracts/BasicCredentials';
 
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
 
+interface Config {
+    digest: string;
+}
+interface Blob {
+    config: Config;
+}
+
 export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
     public readonly id: string = 'vscode-docker.githubContainerRegistry';
     public readonly label: string = vscode.l10n.t('GitHub');
@@ -115,6 +122,32 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
 
     protected getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never> {
         return this.authenticationProvider;
+    }
+
+    protected async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
+        const tagDetailResponse = await registryV2Request<Blob>({
+            authenticationProvider: this.getAuthenticationProvider(repository),
+            method: 'GET',
+            registryUri: repository.baseUrl,
+            path: ['v2', repository.label, 'manifests', tag],
+            scopes: [`repository:${repository.label}:pull`]
+        });
+
+        const digest = tagDetailResponse.body?.config?.digest || '';
+
+        if (digest) {
+            const configFile = await registryV2Request<{ created: string }>({
+                authenticationProvider: this.getAuthenticationProvider(repository),
+                method: 'GET',
+                registryUri: repository.baseUrl,
+                path: ['v2', repository.label, 'blobs', digest],
+                scopes: [`repository:${repository.label}:pull`]
+            });
+
+            return configFile.body?.created ? new Date(configFile.body.created) : undefined;
+        }
+
+        return undefined;
     }
 
     private async getOrganizations(): Promise<string[]> {
