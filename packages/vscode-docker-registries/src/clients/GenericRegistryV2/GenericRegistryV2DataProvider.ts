@@ -23,7 +23,7 @@ interface GenericV2RegistryItem extends V2RegistryItem {
 
 export type GenericV2Registry = V2Registry & GenericV2RegistryItem;
 
-export function isGenericV2RegistryItem(item: unknown): item is GenericV2Registry {
+export function isGenericV2Registry(item: unknown): item is GenericV2Registry {
     return !!item && typeof item === 'object' && (item as GenericV2Registry).additionalContextValues?.includes('genericRegistryV2') === true;
 }
 
