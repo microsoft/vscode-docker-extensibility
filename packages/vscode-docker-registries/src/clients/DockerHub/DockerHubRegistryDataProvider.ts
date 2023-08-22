@@ -129,7 +129,8 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         const requestUrl = vscode.Uri.parse(DockerHubUrl)
             .with({ path: `v2/repositories/${repository.parent.label}/${repository.label}/tags` });
 
-        const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const response = await httpRequest<{ results: [{ name: string, last_updated: string }] }>(requestUrl.toString(), {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
@@ -143,8 +144,8 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 parent: repository,
                 label: tag.name,
                 type: 'commontag',
-                additionalContextValues: ['dockerHubTag']
-                // createdAt: '', // TODO: get this from the API
+                additionalContextValues: ['dockerHubTag'],
+                createdAt: new Date(tag.last_updated || ''),
             });
         }
 

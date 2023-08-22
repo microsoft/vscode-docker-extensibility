@@ -23,6 +23,10 @@ interface GenericV2RegistryItem extends V2RegistryItem {
 
 export type GenericV2Registry = V2Registry & GenericV2RegistryItem;
 
+export function isGenericV2Registry(item: unknown): item is GenericV2Registry {
+    return !!item && typeof item === 'object' && (item as GenericV2Registry).additionalContextValues?.includes('genericRegistryV2') === true;
+}
+
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public readonly id = 'vscode-docker.genericRegistryV2DataProvider';
     public readonly label = 'Generic Registry V2';
