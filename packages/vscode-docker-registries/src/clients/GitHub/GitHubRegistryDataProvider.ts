@@ -74,6 +74,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
                 baseUrl: GitHubContainerRegistryUri,
                 label: org,
                 type: 'commonregistry',
+                additionalContextValues: ['githubRegistry']
             }
         ));
     }
