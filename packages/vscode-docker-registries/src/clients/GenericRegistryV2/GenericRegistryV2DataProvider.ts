@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '../RegistryV2/RegistryV2DataProvider';
+import { RegistryV2DataProvider, V2Registry, V2RegistryRoot, V2Repository, V2Tag } from '../RegistryV2/RegistryV2DataProvider';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
 import { GenericRegistryV2WizardContext, GenericRegistryV2WizardPromptStep } from './GenericRegistryV2WizardPromptStep';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
+import { CommonTag } from '../Common/models';
+import { registryV2Request } from '../RegistryV2/registryV2Request';
 
 const GenericV2StorageKey = 'GenericV2ContainerRegistry';
 const TrackedRegistriesKey = `${GenericV2StorageKey}.TrackedRegistries`;
@@ -17,14 +19,16 @@ interface GenericV2RegistryRoot extends V2RegistryRoot {
     readonly additionalContextValues: ['genericRegistryV2Root'];
 }
 
-interface GenericV2RegistryItem extends V2RegistryItem {
-    readonly additionalContextValues: ['genericRegistryV2'];
+interface GenericV2Registry extends V2Registry {
+    readonly additionalContextValues: ['genericRegistryV2Registry'];
 }
 
-export type GenericV2Registry = V2Registry & GenericV2RegistryItem;
+interface GenericV2RegistryTag extends V2Tag {
+    readonly additionalContextValues: ['genericRegistryV2Tag'];
+}
 
 export function isGenericV2Registry(item: unknown): item is GenericV2Registry {
-    return !!item && typeof item === 'object' && (item as GenericV2Registry).additionalContextValues?.includes('genericRegistryV2') === true;
+    return !!item && typeof item === 'object' && (item as GenericV2Registry).additionalContextValues?.includes('genericRegistryV2Registry') === true;
 }
 
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
@@ -53,7 +57,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         };
     }
 
-    public async getRegistries(root: GenericV2RegistryRoot | GenericV2RegistryItem): Promise<GenericV2Registry[]> {
+    public async getRegistries(root: GenericV2RegistryRoot | GenericV2Registry): Promise<GenericV2Registry[]> {
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
         const trackedRegistries = trackedRegistryStrings.map(r => vscode.Uri.parse(r));
 
@@ -62,13 +66,23 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
                 label: r.toString(),
                 parent: root,
                 type: 'commonregistry',
-                additionalContextValues: ['genericRegistryV2'],
+                additionalContextValues: ['genericRegistryV2Registry'],
                 baseUrl: r
             };
         });
     }
 
-    protected override getAuthenticationProvider(item: GenericV2RegistryItem): BasicOAuthProvider {
+    public async getTags(repository: V2Repository): Promise<GenericV2RegistryTag[]> {
+        const tags = await super.getTags(repository);
+        const tagsWithAdditionalContext: GenericV2RegistryTag[] = tags.map(tag => ({
+            ...tag,
+            additionalContextValues: ['genericRegistryV2Tag']
+        }));
+
+        return tagsWithAdditionalContext;
+    }
+
+    protected override getAuthenticationProvider(item: GenericV2Registry): BasicOAuthProvider {
         const registry = item.baseUrl.toString();
 
         if (!this.authenticationProviders.has(registry)) {
@@ -122,7 +136,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         this.authenticationProviders.set(registryUriString, authProvider);
     }
 
-    public async removeTrackedRegistry(registry: GenericV2RegistryItem): Promise<void> {
+    public async removeTrackedRegistry(registry: GenericV2Registry): Promise<void> {
         // remove registry url from list of tracked registries
         const registryUriString = registry.baseUrl.toString();
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
@@ -136,5 +150,41 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         await this.authenticationProviders.get(registryUriString)?.removeSession();
         this.authenticationProviders.delete(registryUriString);
         // TODO: check if the map of auth providers is empty, if so, remove the root from the tree
+    }
+
+    public async deleteTag(item: CommonTag): Promise<void> {
+        const digest = await this.getImageDigest(item);
+        const registry = item.parent.parent as unknown as GenericV2Registry;
+        await registryV2Request({
+            authenticationProvider: this.getAuthenticationProvider(registry),
+            method: 'DELETE',
+            registryUri: registry.baseUrl,
+            path: ['v2', item.parent.label, 'manifests', digest],
+            scopes: [`repository:${item.parent.label}:pull`],
+            headers: {
+                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
+            }
+        });
+    }
+
+    public async getImageDigest(item: CommonTag): Promise<string> {
+        const registry = item.parent.parent as unknown as GenericV2Registry;
+        const response = await registryV2Request({
+            authenticationProvider: this.getAuthenticationProvider(registry),
+            method: 'GET',
+            registryUri: registry.baseUrl,
+            path: ['v2', item.parent.label, 'manifests', item.label],
+            scopes: [`repository:${item.parent.label}:pull`],
+            headers: {
+                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
+            }
+        });
+
+        const digest = response.headers['docker-content-digest'];
+        if (!digest) {
+            throw new Error('Could not find digest');
+        }
+
+        return digest;
     }
 }
