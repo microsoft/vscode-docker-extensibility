@@ -114,5 +114,41 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         return history?.created ? new Date(history.created) : undefined;
     }
 
+    public async deleteTag(item: CommonTag): Promise<void> {
+        const digest = await this.getImageDigest(item);
+        const registry = item.parent.parent as unknown as V2Registry;
+        await registryV2Request({
+            authenticationProvider: this.getAuthenticationProvider(registry),
+            method: 'DELETE',
+            registryUri: registry.baseUrl,
+            path: ['v2', item.parent.label, 'manifests', digest],
+            scopes: [`repository:${item.parent.label}:pull`],
+            headers: {
+                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
+            }
+        });
+    }
+
+    public async getImageDigest(item: CommonTag): Promise<string> {
+        const registry = item.parent.parent as unknown as V2Registry;
+        const response = await registryV2Request({
+            authenticationProvider: this.getAuthenticationProvider(registry),
+            method: 'GET',
+            registryUri: registry.baseUrl,
+            path: ['v2', item.parent.label, 'manifests', item.label],
+            scopes: [`repository:${item.parent.label}:pull`],
+            headers: {
+                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
+            }
+        });
+
+        const digest = response.headers['docker-content-digest'];
+        if (!digest) {
+            throw new Error('Could not find digest');
+        }
+
+        return digest;
+    }
+
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;
 }

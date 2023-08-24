@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
-import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository } from '../RegistryV2/RegistryV2DataProvider';
+import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository, V2Tag } from '../RegistryV2/RegistryV2DataProvider';
 import { registryV2Request } from '../RegistryV2/registryV2Request';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { httpRequest } from '../../utils/httpRequest';
@@ -118,6 +118,16 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         } while (!foundAllInSearch);
 
         return results;
+    }
+
+    public async getTags(repository: V2Repository): Promise<V2Tag[]> {
+        const tags = await super.getTags(repository);
+        const tagsWithAdditionalContext: V2Tag[] = tags.map(tag => ({
+            ...tag,
+            additionalContextValues: ['githubRegistryTag']
+        }));
+
+        return tagsWithAdditionalContext;
     }
 
     protected getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never> {
