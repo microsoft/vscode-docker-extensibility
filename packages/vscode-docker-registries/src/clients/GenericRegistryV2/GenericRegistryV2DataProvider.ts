@@ -17,7 +17,7 @@ interface GenericV2RegistryRoot extends V2RegistryRoot {
     readonly additionalContextValues: ['genericRegistryV2Root'];
 }
 
-interface GenericV2Registry extends V2Registry {
+export interface GenericV2Registry extends V2Registry {
     readonly additionalContextValues: ['genericRegistryV2Registry'];
 }
 
