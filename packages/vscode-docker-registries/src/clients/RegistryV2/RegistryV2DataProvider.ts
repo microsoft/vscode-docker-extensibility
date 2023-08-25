@@ -122,10 +122,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             method: 'DELETE',
             registryUri: registry.baseUrl,
             path: ['v2', item.parent.label, 'manifests', digest],
-            scopes: [`repository:${item.parent.label}:pull`],
-            headers: {
-                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
-            }
+            scopes: [`repository:${item.parent.label}:delete`]
         });
     }
 

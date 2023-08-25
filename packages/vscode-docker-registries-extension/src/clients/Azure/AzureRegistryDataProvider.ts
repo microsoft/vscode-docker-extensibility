@@ -162,22 +162,6 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
         }
     }
 
-    public async deleteTag(item: AzureTag): Promise<void> {
-        const authenticationProvider = this.getAuthenticationProvider(item.parent.parent as unknown as AzureRegistryItem);
-
-        const reponse = await registryV2Request({
-            method: 'DELETE',
-            registryUri: item.baseUrl,
-            path: ['v2', '_acr', `${item.parent.label}`, 'tags', `${item.label}`],
-            scopes: [`repository:${item.parent.label}:delete`],
-            authenticationProvider: authenticationProvider,
-        });
-
-        if (!reponse.succeeded) {
-            throw new Error(`Failed to delete tag: ${reponse.statusText}`);
-        }
-    }
-
     protected override getAuthenticationProvider(item: AzureRegistryItem): ACROAuthProvider {
         const registryString = item.baseUrl.toString();
 
