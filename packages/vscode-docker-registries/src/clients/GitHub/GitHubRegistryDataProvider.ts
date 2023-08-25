@@ -132,28 +132,6 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         return tagsWithAdditionalContext;
     }
 
-    public async deleteTag(item: V2Tag): Promise<void> {
-        const results: string[] = [];
-
-        const creds = await this.authenticationProvider.getBasicCredentials();
-        results.push(creds.username);
-        // user/packages/{package_type}/{package_name}/versions/{package_version_id}
-        const requestUrl = vscode.Uri.parse('https://api.github.com/user/packages/docker');
-        const response = await httpRequest<{ login: string }[]>(requestUrl.toString(), {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/vnd.github+json',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'X-GitHub-Api-Version': '2022-11-28',
-                'Authorization': `Bearer ${creds.secret}`
-            }
-        });
-
-        for (const org of await response.json()) {
-            results.push(org.login);
-        }
-    }
-
     protected getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never> {
         return this.authenticationProvider;
     }
