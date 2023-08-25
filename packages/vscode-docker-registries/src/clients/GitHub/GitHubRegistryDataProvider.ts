@@ -15,7 +15,6 @@ import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from
 import { BasicCredentials } from '../../contracts/BasicCredentials';
 
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
-const GitHubApiUri = vscode.Uri.parse('https://api.github.com');
 
 interface Config {
     digest: string;
