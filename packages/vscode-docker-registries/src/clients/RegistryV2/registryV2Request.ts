@@ -59,19 +59,14 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
     const auth = await options.authenticationProvider.getSession(options.scopes, options.sessionOptions);
     request.headers['Authorization'] = `${auth.type} ${auth.accessToken}`;
 
-    const response = await httpRequest(uri.toString(true), request);
-    const succeeded = response.status >= 200 && response.status < 300;
-
-    if (options.throwOnFailure && !succeeded) {
-        throw new Error(vscode.l10n.t('Request to {0} failed with response {1}: {2}', uri.toString(), response.status, response.statusText));
-    }
+    const response = await httpRequest(uri.toString(true), request, options.throwOnFailure);
 
     return {
         status: response.status,
         statusText: response.statusText,
-        succeeded: succeeded,
+        succeeded: response.succeeded,
         uri: uri,
         headers: response.headers,
-        body: succeeded && (parseInt(response.headers['content-length']) || response.headers['transfer-encoding'] === 'chunked') ? await response.json() as T : undefined,
+        body: response.succeeded && (parseInt(response.headers['content-length']) || response.headers['transfer-encoding'] === 'chunked') ? await response.json() as T : undefined,
     };
 }

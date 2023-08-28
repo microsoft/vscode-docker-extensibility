@@ -16,10 +16,11 @@ export type ResponseLike<T> = ResponseInit & {
     headers: HeadersLike;
     status: number;
     statusText: string;
+    succeeded: boolean;
     json: () => Promise<T>;
 };
 
-export async function httpRequest<T>(url: string, request: RequestLike): Promise<ResponseLike<T>> {
+export async function httpRequest<T>(url: string, request: RequestLike, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
     const fetchRequest = new Request(url, request);
     const response: Response = await fetch(fetchRequest);
 
@@ -28,7 +29,7 @@ export async function httpRequest<T>(url: string, request: RequestLike): Promise
         headers[header] = value;
     }
 
-    if (response.status === 401) {
+    if (throwOnFailure && response.status === 401) {
         throw new UnauthorizedError(`Request to ${url} failed with status code 401: Unauthorized`);
     }
 
@@ -37,6 +38,7 @@ export async function httpRequest<T>(url: string, request: RequestLike): Promise
         headers: headers,
         status: response.status,
         statusText: response.statusText,
+        succeeded: response.status >= 200 && response.status < 300,
         json: response.json.bind(response),
     };
 }
