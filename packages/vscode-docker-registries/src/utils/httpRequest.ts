@@ -27,6 +27,10 @@ export async function httpRequest<T>(url: string, request: RequestLike): Promise
         headers[header] = value;
     }
 
+    if (response.status === 401) {
+        throw new Error('Unauthorized request');
+    }
+
     return {
         ...response,
         headers: headers,
