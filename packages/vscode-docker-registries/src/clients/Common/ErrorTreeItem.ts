@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { isUnauthorizedError } from "../../utils/errors";
 import { CommonError, CommonRegistryItem } from "./models";
 
 export interface RegistryConnectError extends CommonError {
@@ -12,24 +13,22 @@ export interface RegistryConnectError extends CommonError {
 }
 
 export function getErrorTreeItem(error: unknown, parent: CommonRegistryItem | undefined): CommonError[] {
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    const errorType = error instanceof Error ? error.name : 'Unknown error';
 
     // if the error is an Unauthorized error, return a special error type
-    if (errorMsg.includes('Unauthorized') || errorType === 'UnauthorizedError') {
+    if (isUnauthorizedError(error)) {
         return [{
             parent,
-            label: errorMsg,
+            label: error.message,
             type: 'commonerror',
-            description: 'Connect to Registry',
             additionalContextValues: ['registryConnectError'],
         }];
     }
 
+
     // otherwise, return a generic error
     return [{
         parent: parent,
-        label: errorMsg,
+        label: error instanceof Error ? error.message : 'Unknown error',
         type: 'commonerror',
     }];
 }

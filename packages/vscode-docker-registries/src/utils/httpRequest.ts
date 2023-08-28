@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Request, RequestInit, Response, ResponseInit, default as fetch } from 'node-fetch';
+import { UnauthorizedError } from './errors';
 
 export type HeadersLike = Record<string, string>;
 
@@ -28,7 +29,7 @@ export async function httpRequest<T>(url: string, request: RequestLike): Promise
     }
 
     if (response.status === 401) {
-        throw new Error('Unauthorized request');
+        throw new UnauthorizedError(`Request to ${url} failed with status code 401: Unauthorized`);
     }
 
     return {
