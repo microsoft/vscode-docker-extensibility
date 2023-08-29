@@ -9,6 +9,7 @@ export * from './clients/RegistryV2/RegistryV2DataProvider';
 export * from './clients/RegistryV2/registryV2Request';
 export * from './clients/Common/CommonRegistryDataProvider';
 export * from './clients/Common/models';
+export * from './clients/Common/ErrorTreeItem';
 export * from './clients/DockerHub/DockerHubRegistryDataProvider';
 export * from './clients/GenericRegistryV2/GenericRegistryV2DataProvider';
 export * from './clients/GitHub/GitHubRegistryDataProvider';

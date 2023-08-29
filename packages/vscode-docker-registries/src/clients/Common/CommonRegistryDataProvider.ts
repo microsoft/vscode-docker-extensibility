@@ -10,6 +10,7 @@ import { getContextValue } from '../../utils/contextValues';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import * as dayjs from 'dayjs';
 import * as relativeTime from 'dayjs/plugin/relativeTime';
+import { getErrorTreeItem } from './ErrorTreeItem';
 
 dayjs.extend(relativeTime);
 
@@ -31,7 +32,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
             }
         } catch (error: unknown) {
-            return [this.getRegistryErrorItem(error, element)];
+            return getErrorTreeItem(error, element);
         }
     }
 
@@ -76,17 +77,6 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
         else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
-    }
-
-    public getRegistryErrorItem(error: unknown, parent: CommonRegistryItem | undefined): CommonError {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        const errorItem: CommonError = {
-            parent: parent,
-            label: errorMsg,
-            type: 'commonerror',
-        };
-
-        return errorItem;
     }
 
     public abstract readonly id: string;
