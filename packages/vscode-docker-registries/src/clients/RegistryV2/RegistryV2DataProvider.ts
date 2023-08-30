@@ -10,10 +10,7 @@ import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import { registryV2Request } from './registryV2Request';
 
-export interface V2RegistryItem extends CommonRegistryItem {
-    readonly baseUrl: vscode.Uri;
-}
-
+export type V2RegistryItem = CommonRegistryItem;
 export type V2RegistryRoot = CommonRegistryRoot;
 export type V2Registry = CommonRegistry & V2RegistryItem;
 export type V2Repository = CommonRepository & V2RegistryItem;

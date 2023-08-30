@@ -26,6 +26,7 @@ export function isRegistryRoot(maybeRegistryRoot: unknown): maybeRegistryRoot is
 export interface CommonRegistry extends CommonRegistryItem {
     readonly parent: CommonRegistryItem;
     readonly type: 'commonregistry';
+    readonly baseUrl: vscode.Uri;
 }
 
 export function isRegistry(maybeRegistry: unknown): maybeRegistry is CommonRegistry {
@@ -35,6 +36,7 @@ export function isRegistry(maybeRegistry: unknown): maybeRegistry is CommonRegis
 export interface CommonRepository extends CommonRegistryItem {
     readonly parent: CommonRegistry;
     readonly type: 'commonrepository';
+    readonly baseUrl: vscode.Uri;
 }
 
 export function isRepository(maybeRepository: unknown): maybeRepository is CommonRepository {
@@ -45,6 +47,7 @@ export interface CommonTag extends CommonRegistryItem {
     readonly parent: CommonRepository;
     readonly type: 'commontag';
     readonly createdAt?: Date;
+    readonly baseUrl: vscode.Uri;
 }
 
 export function isTag(maybeTag: unknown): maybeTag is CommonTag {
