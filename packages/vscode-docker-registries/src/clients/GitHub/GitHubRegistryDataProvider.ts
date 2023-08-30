@@ -23,6 +23,10 @@ interface Blob {
     config: Config;
 }
 
+export function isGitHubRegistry(item: unknown): item is V2Registry {
+    return !!item && typeof item === 'object' && (item as V2Registry).additionalContextValues?.includes('githubRegistry') === true;
+}
+
 export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
     public readonly id: string = 'vscode-docker.githubContainerRegistry';
     public readonly label: string = vscode.l10n.t('GitHub');
