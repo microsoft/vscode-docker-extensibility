@@ -116,7 +116,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
             throw new Error('Registry URL is invalid');
         }
 
-        const registryUriString = wizardContext.registryUri.toString();
+        const registryUriString = wizardContext.registryUri.toString().toLowerCase();
 
         // store registry url in memento
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);

@@ -10,7 +10,7 @@ import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { CommonRegistryDataProvider } from '../Common/CommonRegistryDataProvider';
-import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag } from '../Common/models';
+import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag, CommonRegistryItem } from '../Common/models';
 
 import * as vscode from 'vscode';
 
@@ -157,13 +157,8 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         return results;
     }
 
-    public async getLoginInformation(): Promise<LoginInformation> {
-        const creds = await this.authenticationProvider.getBasicCredentials();
-        return {
-            server: DockerHubRequestUrl.toString(),
-            username: creds.username,
-            secret: creds.secret,
-        };
+    public async getLoginInformation(item: CommonRegistryItem): Promise<LoginInformation> {
+        return await this.authenticationProvider.getLoginInformation();
     }
 
     private async getNamespaces(): Promise<string[]> {
