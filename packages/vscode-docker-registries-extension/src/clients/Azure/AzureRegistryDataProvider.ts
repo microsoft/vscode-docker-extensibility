@@ -163,6 +163,9 @@ export class AzureRegistryDataProvider extends RegistryV2DataProvider implements
     }
 
     protected override getAuthenticationProvider(item: AzureRegistryItem): ACROAuthProvider {
+        if (!item.baseUrl) {
+            throw new Error(vscode.l10n.t('Registry does not have a base URL')); // this should never happen
+        }
         const registryString = item.baseUrl.toString();
 
         if (!this.authenticationProviders.has(registryString)) {

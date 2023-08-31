@@ -93,6 +93,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                     parent: root,
                     projectId: project.id,
                     type: 'commonregistry',
+                    baseUrl: GitLabBaseUrl
                 });
             }
         } while (!!nextLink);
@@ -124,6 +125,7 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                     parent: registry,
                     type: 'commonrepository',
                     repositoryId: repository.id,
+                    baseUrl: registry.baseUrl,
                 });
 
             }
@@ -154,7 +156,8 @@ export class GitLabRegistryDataProvider extends CommonRegistryDataProvider {
                     label: tag.name,
                     parent: repository,
                     type: 'commontag',
-                    createdAt: await this.getTagDetails(tag.name, repository)
+                    createdAt: await this.getTagDetails(tag.name, repository),
+                    baseUrl: repository.baseUrl,
                 });
             }
         } while (!!nextLink);

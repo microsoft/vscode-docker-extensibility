@@ -10,11 +10,12 @@ import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { CommonRegistryDataProvider } from '../Common/CommonRegistryDataProvider';
-import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag } from '../Common/models';
+import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag, CommonRegistryItem } from '../Common/models';
 
 import * as vscode from 'vscode';
 
-export const DockerHubUrl = 'https://hub.docker.com/';
+export const DockerHubRequestUrl = vscode.Uri.parse('https://hub.docker.com/');
+export const DockerHubRegistryUrl = vscode.Uri.parse('https://docker.io/');
 
 export function isDockerHubRegistry(item: unknown): item is CommonRegistry {
     return !!item && typeof item === 'object' && (item as CommonRegistry).additionalContextValues?.includes('dockerHubRegistry') === true;
@@ -75,6 +76,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
             label: this.label,
             iconPath: this.iconPath,
             type: 'commonroot',
+            baseUrl: DockerHubRegistryUrl
         };
     }
 
@@ -94,6 +96,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 label: orgOrNamespace,
                 type: 'commonregistry',
                 additionalContextValues: ['dockerHubRegistry'],
+                baseUrl: DockerHubRegistryUrl.with({ path: orgOrNamespace }),
             });
         }
 
@@ -101,7 +104,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     public async getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> {
-        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+        const requestUrl = DockerHubRequestUrl
             .with({ path: `v2/repositories/${registry.label}` });
 
         const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
@@ -118,7 +121,8 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 parent: registry,
                 label: `${repository.name}`,
                 type: 'commonrepository',
-                additionalContextValues: ['dockerHubRepository']
+                additionalContextValues: ['dockerHubRepository'],
+                baseUrl: registry.baseUrl,
             });
         }
 
@@ -126,7 +130,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
-        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+        const requestUrl = DockerHubRequestUrl
             .with({ path: `v2/repositories/${repository.parent.label}/${repository.label}/tags` });
 
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -146,23 +150,19 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 type: 'commontag',
                 additionalContextValues: ['dockerHubTag'],
                 createdAt: new Date(tag.last_updated || ''),
+                baseUrl: repository.baseUrl,
             });
         }
 
         return results;
     }
 
-    public async getLoginInformation(): Promise<LoginInformation> {
-        const creds = await this.authenticationProvider.getBasicCredentials();
-        return {
-            server: DockerHubUrl,
-            username: creds.username,
-            secret: creds.secret,
-        };
+    public async getLoginInformation(item: CommonRegistryItem): Promise<LoginInformation> {
+        return await this.authenticationProvider.getLoginInformation();
     }
 
     private async getNamespaces(): Promise<string[]> {
-        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+        const requestUrl = DockerHubRequestUrl
             .with({ path: `v2/repositories/namespaces` });
 
         const response = await httpRequest<{ namespaces: string[] }>(requestUrl.toString(), {
@@ -176,7 +176,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     private async getOrganizations(): Promise<string[]> {
-        const requestUrl = vscode.Uri.parse(DockerHubUrl)
+        const requestUrl = DockerHubRequestUrl
             .with({ path: `v2/user/orgs` });
 
         const response = await httpRequest<{ results: [{ orgname: string }] }>(requestUrl.toString(), {
