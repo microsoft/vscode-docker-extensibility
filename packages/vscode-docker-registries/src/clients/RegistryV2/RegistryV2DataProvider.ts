@@ -16,18 +16,6 @@ export type V2Registry = CommonRegistry & V2RegistryItem;
 export type V2Repository = CommonRepository & V2RegistryItem;
 export type V2Tag = CommonTag & V2RegistryItem;
 
-interface ManifestHistory {
-    v1Compatibility: string; // stringified ManifestHistoryV1Compatibility
-}
-
-interface ManifestHistoryV1Compatibility {
-    created: string;
-}
-
-interface Manifest {
-    history: ManifestHistory[];
-}
-
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public getRoot(): V2RegistryRoot {
         return {
@@ -145,4 +133,16 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     }
 
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;
+}
+
+interface ManifestHistory {
+    v1Compatibility: string; // stringified ManifestHistoryV1Compatibility
+}
+
+interface ManifestHistoryV1Compatibility {
+    created: string;
+}
+
+interface Manifest {
+    history: ManifestHistory[];
 }
