@@ -13,6 +13,7 @@ import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { BasicCredentials } from '../../contracts/BasicCredentials';
+import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
 
@@ -24,7 +25,7 @@ interface Blob {
 }
 
 export function isGitHubRegistry(item: unknown): item is V2Registry {
-    return !!item && typeof item === 'object' && (item as V2Registry).additionalContextValues?.includes('githubRegistry') === true;
+    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('githubRegistry') === true;
 }
 
 export class GitHubRegistryDataProvider extends RegistryV2DataProvider {

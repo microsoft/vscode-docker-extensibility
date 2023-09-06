@@ -5,6 +5,7 @@
 
 import { DockerHubAuthProvider } from '../../auth/DockerHubAuthProvider';
 import { BasicCredentials, LoginInformation } from '../../contracts/BasicCredentials';
+import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
 import { httpRequest } from '../../utils/httpRequest';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
@@ -18,11 +19,11 @@ export const DockerHubRequestUrl = vscode.Uri.parse('https://hub.docker.com/');
 export const DockerHubRegistryUrl = vscode.Uri.parse('https://docker.io/');
 
 export function isDockerHubRegistry(item: unknown): item is CommonRegistry {
-    return !!item && typeof item === 'object' && (item as CommonRegistry).additionalContextValues?.includes('dockerHubRegistry') === true;
+    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('dockerHubRegistry') === true;
 }
 
 export function isDockerHubRepository(item: unknown): item is CommonRepository {
-    return !!item && typeof item === 'object' && (item as CommonRepository).additionalContextValues?.includes('dockerHubRepository') === true;
+    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('dockerHubRepository') === true;
 }
 
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {

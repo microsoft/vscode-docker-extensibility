@@ -9,6 +9,7 @@ import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
 import { GenericRegistryV2WizardContext, GenericRegistryV2WizardPromptStep } from './GenericRegistryV2WizardPromptStep';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
+import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 const GenericV2StorageKey = 'GenericV2ContainerRegistry';
 const TrackedRegistriesKey = `${GenericV2StorageKey}.TrackedRegistries`;
@@ -26,7 +27,7 @@ interface GenericV2RegistryTag extends V2Tag {
 }
 
 export function isGenericV2Registry(item: unknown): item is GenericV2Registry {
-    return !!item && typeof item === 'object' && (item as GenericV2Registry).additionalContextValues?.includes('genericRegistryV2Registry') === true;
+    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('genericRegistryV2Registry') === true;
 }
 
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
