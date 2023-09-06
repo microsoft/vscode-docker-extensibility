@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { RegistryDataProvider } from '../../contracts/RegistryDataProvider';
-import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, CommonError, isRegistry, isRegistryRoot, isRepository, isTag, isError } from './models';
+import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepository, CommonTag, isRegistry, isRegistryRoot, isRepository, isTag, isError } from './models';
 import { getContextValue } from '../../utils/contextValues';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import * as dayjs from 'dayjs';
