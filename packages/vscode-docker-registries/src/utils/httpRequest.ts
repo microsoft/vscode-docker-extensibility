@@ -30,8 +30,12 @@ export async function httpRequest<T>(url: string, request: RequestLike, throwOnF
         headers[header] = value;
     }
 
+    const succeeded = response.status >= 200 && response.status < 300;
+
     if (throwOnFailure && response.status === 401) {
-        throw new UnauthorizedError(vscode.l10n.t('Request to \'{0}\' failed with status code 401: Unauthorized', url));
+        throw new UnauthorizedError(vscode.l10n.t('Request to \'{0}\' failed with response 401: Unauthorized', url));
+    } else if (throwOnFailure && !succeeded) {
+        throw new Error(vscode.l10n.t('Request to \'{0}\' failed with response {1}: {2}', url, response.status, response.statusText));
     }
 
     return {
@@ -39,7 +43,7 @@ export async function httpRequest<T>(url: string, request: RequestLike, throwOnF
         headers: headers,
         status: response.status,
         statusText: response.statusText,
-        succeeded: response.status >= 200 && response.status < 300,
+        succeeded: succeeded,
         json: response.json.bind(response),
     };
 }
