@@ -17,13 +17,6 @@ import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
 
-interface Config {
-    digest: string;
-}
-interface Blob {
-    config: Config;
-}
-
 export function isGitHubRegistry(item: unknown): item is V2Registry {
     return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('githubRegistry') === true;
 }
@@ -188,4 +181,12 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
 
         return results;
     }
+}
+
+interface Config {
+    digest: string;
+}
+
+interface Blob {
+    config: Config;
 }
