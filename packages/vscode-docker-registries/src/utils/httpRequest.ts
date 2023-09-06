@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from 'vscode';
 import { Request, RequestInit, Response, ResponseInit, default as fetch } from 'node-fetch';
 import { UnauthorizedError } from './errors';
 
@@ -30,7 +31,7 @@ export async function httpRequest<T>(url: string, request: RequestLike, throwOnF
     }
 
     if (throwOnFailure && response.status === 401) {
-        throw new UnauthorizedError(`Request to ${url} failed with status code 401: Unauthorized`);
+        throw new UnauthorizedError(vscode.l10n.t('Request to \'{0}\' failed with status code 401: Unauthorized', url));
     }
 
     return {

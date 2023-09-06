@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isUnauthorizedError } from "../../utils/errors";
-import { CommonError, CommonRegistryItem } from "./models";
+import * as vscode from 'vscode';
+import { isUnauthorizedError } from '../../utils/errors';
+import { CommonError, CommonRegistryItem } from './models';
 
 export interface RegistryConnectError extends CommonError {
     readonly parent: CommonRegistryItem | undefined;
@@ -13,22 +14,20 @@ export interface RegistryConnectError extends CommonError {
 }
 
 export function getErrorTreeItem(error: unknown, parent: CommonRegistryItem | undefined): CommonError[] {
-
-    // if the error is an Unauthorized error, return a special error type
+    // If the error is an Unauthorized error, return a special error type
     if (isUnauthorizedError(error)) {
         return [{
             parent,
             label: error.message,
             type: 'commonerror',
             additionalContextValues: ['registryConnectError'],
-        }];
+        } as RegistryConnectError];
     }
 
-
-    // otherwise, return a generic error
+    // Otherwise, return a generic error
     return [{
         parent: parent,
-        label: error instanceof Error ? error.message : 'Unknown error',
+        label: error instanceof Error ? error.message : vscode.l10n.t('Unknown error'),
         type: 'commonerror',
     }];
 }

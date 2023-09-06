@@ -26,8 +26,8 @@ export function isDockerHubRepository(item: unknown): item is CommonRepository {
 }
 
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
-    public readonly id: string = 'vscode-docker.dockerHub';
-    public readonly label: string = 'Docker Hub';
+    public readonly id = 'vscode-docker.dockerHub';
+    public readonly label = vscode.l10n.t('Docker Hub');
     public readonly description: undefined;
     public readonly iconPath: { light: vscode.Uri, dark: vscode.Uri };
 

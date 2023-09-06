@@ -41,28 +41,28 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-                contextValue: getContextValue(element, 'commonregistryroot'), // TODO
+                contextValue: getContextValue(element, 'commonregistryroot'),
                 iconPath: element.iconPath,
             });
         } else if (isRegistry(element)) {
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-                contextValue: getContextValue(element, 'commonregistry'), // TODO
+                contextValue: getContextValue(element, 'commonregistry'),
                 iconPath: element.iconPath || new vscode.ThemeIcon('briefcase'),
             });
         } else if (isRepository(element)) {
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-                contextValue: getContextValue(element, 'commonrepository'), // TODO
+                contextValue: getContextValue(element, 'commonrepository'),
                 iconPath: new vscode.ThemeIcon('repo'),
             });
         } else if (isTag(element)) {
             return Promise.resolve({
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
-                contextValue: getContextValue(element, 'commontag'), // TODO
+                contextValue: getContextValue(element, 'commontag'),
                 iconPath: new vscode.ThemeIcon('bookmark'),
                 description: element.createdAt ? dayjs(element.createdAt).fromNow() : undefined,
             });
@@ -73,8 +73,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 contextValue: getContextValue(element, 'commonerror'),
                 iconPath: new vscode.ThemeIcon('error'),
             });
-        }
-        else {
+        } else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
         }
     }
@@ -94,5 +93,4 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
     public deleteRegistry?(item: CommonRegistry): Promise<void>;
     public deleteRepository?(item: CommonRepository): Promise<void>;
     public deleteTag?(item: CommonTag): Promise<void>;
-    public getImageDigest?(item: CommonTag): Promise<string>;
 }

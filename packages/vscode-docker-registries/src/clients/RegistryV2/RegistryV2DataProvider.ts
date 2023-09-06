@@ -98,19 +98,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         throw new Error(vscode.l10n.t('Authentication provider {0} does not support getting login information.', authenticationProvider));
     }
 
-    protected async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
-        const tagDetailResponse = await registryV2Request<Manifest>({
-            authenticationProvider: this.getAuthenticationProvider(repository),
-            method: 'GET',
-            registryUri: repository.baseUrl,
-            path: ['v2', repository.label, 'manifests', tag],
-            scopes: [`repository:${repository.label}:pull`]
-        });
-
-        const history = <ManifestHistoryV1Compatibility>JSON.parse(tagDetailResponse.body?.history?.[0]?.v1Compatibility || '{}');
-        return history?.created ? new Date(history.created) : undefined;
-    }
-
     public async deleteTag(item: CommonTag): Promise<void> {
         const digest = await this.getImageDigest(item);
         const registry = item.parent.parent as unknown as V2Registry;
@@ -142,6 +129,19 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         }
 
         return digest;
+    }
+
+    protected async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
+        const tagDetailResponse = await registryV2Request<Manifest>({
+            authenticationProvider: this.getAuthenticationProvider(repository),
+            method: 'GET',
+            registryUri: repository.baseUrl,
+            path: ['v2', repository.label, 'manifests', tag],
+            scopes: [`repository:${repository.label}:pull`]
+        });
+
+        const history = <ManifestHistoryV1Compatibility>JSON.parse(tagDetailResponse.body?.history?.[0]?.v1Compatibility || '{}');
+        return history?.created ? new Date(history.created) : undefined;
     }
 
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;

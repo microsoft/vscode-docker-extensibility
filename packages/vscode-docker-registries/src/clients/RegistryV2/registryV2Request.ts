@@ -37,7 +37,7 @@ export async function registryV2Request<T>(options: RegistryV2RequestOptions): P
         } else if (result.status === 401 && result.headers['www-authenticate']) {
             options.authenticationProvider.fallback(result.headers['www-authenticate']);
         } else {
-            throw new Error(vscode.l10n.t('Request to {0} failed with response {1}: {2}', result.uri.toString(), result.status, result.statusText));
+            throw new Error(vscode.l10n.t('Request to \'{0}\' failed with response {1}: {2}', result.uri.toString(), result.status, result.statusText));
         }
     }
 

@@ -31,7 +31,7 @@ export function isGenericV2Registry(item: unknown): item is GenericV2Registry {
 
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public readonly id = 'vscode-docker.genericRegistryV2DataProvider';
-    public readonly label = 'Generic Registry V2';
+    public readonly label = vscode.l10n.t('Generic Registry V2');
     public readonly description: undefined;
     public readonly iconPath = new vscode.ThemeIcon('link');
 

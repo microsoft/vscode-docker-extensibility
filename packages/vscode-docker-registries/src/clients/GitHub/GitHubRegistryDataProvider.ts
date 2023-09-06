@@ -28,9 +28,9 @@ export function isGitHubRegistry(item: unknown): item is V2Registry {
 }
 
 export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
-    public readonly id: string = 'vscode-docker.githubContainerRegistry';
-    public readonly label: string = vscode.l10n.t('GitHub');
-    public readonly description: string = vscode.l10n.t('GitHub Container Registry');
+    public readonly id = 'vscode-docker.githubContainerRegistry';
+    public readonly label = vscode.l10n.t('GitHub');
+    public readonly description = vscode.l10n.t('GitHub Container Registry');
     public readonly iconPath: vscode.ThemeIcon = new vscode.ThemeIcon('github');
 
     private readonly authenticationProvider: BasicOAuthProvider;
