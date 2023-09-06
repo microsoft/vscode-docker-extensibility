@@ -54,8 +54,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
             [
                 new RegistryWizardUsernamePromptStep(),
                 new RegistryWizardSecretPromptStep(),
-            ],
-            new vscode.CancellationTokenSource().token
+            ]
         );
 
         await wizard.prompt();

@@ -3,38 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationError, CancellationToken } from "vscode";
 import { RegistryWizardContext } from "./RegistryWizardContext";
 import { RegistryWizardPromptStep } from "./RegistryWizardPromptStep";
 
 export class RegistryWizard<T extends RegistryWizardContext> {
+    private readonly promptSteps: RegistryWizardPromptStep<T>[];
+    private readonly context: T;
 
-    public title: string | undefined;
-    private readonly _promptSteps: RegistryWizardPromptStep<T>[];
-    private readonly _context: T;
-    private cancellationToken: CancellationToken;
-
-    public currentStepId: string | undefined;
-
-    public constructor(context: T, steps: RegistryWizardPromptStep<T>[], cancellationTokenSource: CancellationToken) {
-        this._promptSteps = steps.reverse();
-        this._context = context;
-        this.cancellationToken = cancellationTokenSource; //TODO: convert these to an interface maybe?
+    public constructor(context: T, steps: RegistryWizardPromptStep<T>[]) {
+        this.promptSteps = steps.reverse();
+        this.context = context;
     }
 
     public async prompt(): Promise<void> {
-        let step: RegistryWizardPromptStep<T> | undefined = this._promptSteps.pop();
+        let step: RegistryWizardPromptStep<T> | undefined = this.promptSteps.pop();
 
         while (step) {
-            if (this.cancellationToken.isCancellationRequested) {
-                throw new CancellationError();
+            if (step.shouldPrompt(this.context)) {
+                await step.prompt(this.context);
             }
 
-            if (step.shouldPrompt(this._context)) {
-                await step.prompt(this._context);
-            }
-
-            step = this._promptSteps.pop();
+            step = this.promptSteps.pop();
         }
     }
 }

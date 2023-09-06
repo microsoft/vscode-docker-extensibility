@@ -46,8 +46,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
             [
                 new RegistryWizardUsernamePromptStep(),
                 new RegistryWizardSecretPromptStep(),
-            ],
-            new vscode.CancellationTokenSource().token
+            ]
         );
 
         await wizard.prompt();

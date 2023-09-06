@@ -107,8 +107,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
                 new GenericRegistryV2WizardPromptStep(),
                 new RegistryWizardUsernamePromptStep(),
                 new RegistryWizardSecretPromptStep(),
-            ],
-            new vscode.CancellationTokenSource().token
+            ]
         );
 
         await wizard.prompt();
