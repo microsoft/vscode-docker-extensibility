@@ -71,7 +71,7 @@ export abstract class CommonRegistryDataProvider implements RegistryDataProvider
                 ...element,
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
                 contextValue: getContextValue(element, 'commonerror'),
-                iconPath: new vscode.ThemeIcon('error'),
+                iconPath: new vscode.ThemeIcon('error', new vscode.ThemeColor('problemsErrorIcon.foreground')),
             });
         } else {
             throw new Error(`Unexpected element: ${JSON.stringify(element)}`);
