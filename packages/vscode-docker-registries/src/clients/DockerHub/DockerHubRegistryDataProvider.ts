@@ -96,7 +96,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 label: orgOrNamespace,
                 type: 'commonregistry',
                 additionalContextValues: ['dockerHubRegistry'],
-                baseUrl: DockerHubRegistryUrl.with({ path: orgOrNamespace }),
+                baseUrl: DockerHubRegistryUrl,
             });
         }
 
