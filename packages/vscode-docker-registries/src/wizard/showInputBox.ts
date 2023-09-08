@@ -3,10 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationError, InputBoxOptions, window } from 'vscode';
+import { CancellationError, window } from 'vscode';
 import { RegistryWizardPromptStepOptions } from "./RegistryWizardPromptStep";
-
-export type InputBoxValidationResult = Awaited<ReturnType<Required<InputBoxOptions>['validateInput']>>;
 
 export async function showInputBox(options: RegistryWizardPromptStepOptions): Promise<string> {
     return new Promise((resolve, reject) => {
