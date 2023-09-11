@@ -6,6 +6,16 @@
 import { Request, RequestInit, Response, ResponseInit, default as fetch } from 'node-fetch';
 import { UnauthorizedError } from './errors';
 
+export function getNextLinkFromHeaders(headers: HeadersLike): string | undefined {
+    const linkHeader: string | undefined = headers['link'];
+    if (linkHeader) {
+        const match = linkHeader.match(/<(.*)>; rel="next"/i);
+        return match ? match[1] : undefined;
+    } else {
+        return undefined;
+    }
+}
+
 export type HeadersLike = Record<string, string>;
 
 export type RequestLike = RequestInit & {

@@ -9,6 +9,7 @@ import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepositor
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import { registryV2Request } from './registryV2Request';
+import { getNextLinkFromHeaders } from '../../utils/httpRequest';
 
 export type V2RegistryItem = CommonRegistryItem;
 export type V2RegistryRoot = CommonRegistryRoot;
@@ -41,24 +42,28 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     public abstract getRegistries(root: V2RegistryRoot | V2RegistryItem): V2Registry[] | Promise<V2Registry[]>;
 
     public async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
-        const catalogResponse = await registryV2Request<{ repositories: string[] }>({
-            authenticationProvider: this.getAuthenticationProvider(registry),
-            method: 'GET',
-            registryUri: registry.baseUrl,
-            path: ['v2', '_catalog'],
-            scopes: ['registry:catalog:*'],
-        });
 
         const results: V2Repository[] = [];
-
-        for (const repository of catalogResponse.body?.repositories || []) {
-            results.push({
-                parent: registry,
-                baseUrl: registry.baseUrl,
-                label: repository,
-                type: 'commonrepository',
+        let nextLink: vscode.Uri | undefined = registry.baseUrl.with({ path: 'v2/_catalog' });
+        do {
+            const catalogResponse = await registryV2Request<{ repositories: string[] }>({
+                authenticationProvider: this.getAuthenticationProvider(registry),
+                method: 'GET',
+                registryUri: nextLink,
+                scopes: ['registry:catalog:*'],
             });
-        }
+
+            for (const repository of catalogResponse.body?.repositories || []) {
+                results.push({
+                    parent: registry,
+                    baseUrl: registry.baseUrl,
+                    label: repository,
+                    type: 'commonrepository',
+                });
+            }
+            const nextLinkString = getNextLinkFromHeaders(catalogResponse.headers);
+            nextLink = nextLinkString ? vscode.Uri.parse(nextLinkString) : undefined;
+        } while (nextLink);
 
         return results;
     }
