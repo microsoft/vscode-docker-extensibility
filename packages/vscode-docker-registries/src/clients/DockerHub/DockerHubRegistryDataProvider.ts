@@ -5,7 +5,7 @@
 
 import { DockerHubAuthProvider } from '../../auth/DockerHubAuthProvider';
 import { BasicCredentials, LoginInformation } from '../../contracts/BasicCredentials';
-import { httpRequest } from '../../utils/httpRequest';
+import { getNextLinkFromHeaders, httpRequest } from '../../utils/httpRequest';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
@@ -104,55 +104,60 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     public async getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> {
-        const requestUrl = DockerHubRequestUrl
-            .with({ path: `v2/repositories/${registry.label}` });
-
-        const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
-            }
-        });
-
         const results: CommonRepository[] = [];
+        let requestUrl: vscode.Uri | undefined = DockerHubRequestUrl.with({ path: `v2/repositories/${registry.label}` });
 
-        for (const repository of (await response.json()).results) {
-            results.push({
-                parent: registry,
-                label: `${repository.name}`,
-                type: 'commonrepository',
-                additionalContextValues: ['dockerHubRepository'],
-                baseUrl: registry.baseUrl,
+        do {
+            const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+                }
             });
-        }
+
+            for (const repository of (await response.json()).results) {
+                results.push({
+                    parent: registry,
+                    label: `${repository.name}`,
+                    type: 'commonrepository',
+                    additionalContextValues: ['dockerHubRepository'],
+                    baseUrl: registry.baseUrl,
+                });
+            }
+
+            requestUrl = getNextLinkFromHeaders(response.headers, registry.baseUrl);
+        } while (requestUrl);
 
         return results;
     }
 
     public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
-        const requestUrl = DockerHubRequestUrl
+        const results: CommonTag[] = [];
+        let requestUrl: vscode.Uri | undefined = DockerHubRequestUrl
             .with({ path: `v2/repositories/${repository.parent.label}/${repository.label}/tags` });
 
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        const response = await httpRequest<{ results: [{ name: string, last_updated: string }] }>(requestUrl.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
-            }
-        });
-
-        const results: CommonTag[] = [];
-
-        for (const tag of (await response.json()).results) {
-            results.push({
-                parent: repository,
-                label: tag.name,
-                type: 'commontag',
-                additionalContextValues: ['dockerHubTag'],
-                createdAt: new Date(tag.last_updated || ''),
-                baseUrl: repository.baseUrl,
+        do {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const response = await httpRequest<{ results: [{ name: string, last_updated: string }] }>(requestUrl.toString(), {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+                }
             });
-        }
+
+            for (const tag of (await response.json()).results) {
+                results.push({
+                    parent: repository,
+                    label: tag.name,
+                    type: 'commontag',
+                    additionalContextValues: ['dockerHubTag'],
+                    createdAt: new Date(tag.last_updated || ''),
+                    baseUrl: repository.baseUrl,
+                });
+            }
+
+            requestUrl = getNextLinkFromHeaders(response.headers, repository.baseUrl);
+        } while (requestUrl);
 
         return results;
     }
