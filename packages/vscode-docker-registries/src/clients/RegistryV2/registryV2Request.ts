@@ -44,8 +44,8 @@ export async function registryV2Request<T>(options: RegistryV2RequestOptions): P
 }
 
 async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): Promise<RegistryV2Response<T>> {
-    const query = options.query ? new URLSearchParams(options.query) : undefined;
-    const uri = options.requestUri.with({ query: query?.toString() });
+    const query = new URLSearchParams(options.query);
+    const uri = options.requestUri.with({ query: query.toString() });
 
     const request: RequestLike = {
         headers: {
