@@ -48,7 +48,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             const catalogResponse = await registryV2Request<{ repositories: string[] }>({
                 authenticationProvider: this.getAuthenticationProvider(registry),
                 method: 'GET',
-                registryUri: nextLink,
+                requestUri: nextLink,
                 scopes: ['registry:catalog:*'],
             });
 
@@ -75,7 +75,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             const tagsResponse = await registryV2Request<{ tags: string[] }>({
                 authenticationProvider: this.getAuthenticationProvider(repository),
                 method: 'GET',
-                registryUri: nextLink,
+                requestUri: nextLink,
                 scopes: [`repository:${repository.label}:pull`],
                 throwOnFailure: true,
             });
@@ -113,7 +113,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         const tagDetailResponse = await registryV2Request<Manifest>({
             authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
-            registryUri: requestUrl,
+            requestUri: requestUrl,
             scopes: [`repository:${repository.label}:pull`]
         });
 
@@ -128,7 +128,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         await registryV2Request({
             authenticationProvider: this.getAuthenticationProvider(registry),
             method: 'DELETE',
-            registryUri: requestUrl,
+            requestUri: requestUrl,
             scopes: [`repository:${item.parent.label}:delete`]
         });
     }
@@ -140,7 +140,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         const response = await registryV2Request({
             authenticationProvider: this.getAuthenticationProvider(registry),
             method: 'GET',
-            registryUri: requestUrl,
+            requestUri: requestUrl,
             scopes: [`repository:${item.parent.label}:pull`],
             headers: {
                 'accept': 'application/vnd.docker.distribution.manifest.v2+json'
