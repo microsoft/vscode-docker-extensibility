@@ -70,9 +70,16 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 label: tag,
                 type: 'commontag',
                 additionalContextValues: ['registryV2Tag'],
-                createdAt: await this.getTagDetails(repository, tag),
             });
         }
+
+        // Asynchronously begin getting the created date details for each tag
+        results.forEach(tag => {
+            this.getTagDetails(repository, tag.label).then((createdAt) => {
+                tag.createdAt = createdAt;
+                this.onDidChangeTreeDataEmitter.fire(tag);
+            }, () => { /* Best effort */ });
+        });
 
         return results;
     }
