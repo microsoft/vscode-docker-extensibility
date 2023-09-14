@@ -10,8 +10,7 @@ import { RequestLike, httpRequest } from '../../utils/httpRequest';
 
 export interface RegistryV2RequestOptions {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-    registryUri: vscode.Uri;
-    path: string[];
+    requestUri: vscode.Uri;
     query?: Record<string, string>;
     scopes: string[];
     headers?: Record<string, string>;
@@ -46,7 +45,7 @@ export async function registryV2Request<T>(options: RegistryV2RequestOptions): P
 
 async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): Promise<RegistryV2Response<T>> {
     const query = new URLSearchParams(options.query);
-    const uri = vscode.Uri.joinPath(options.registryUri, ...options.path).with({ query: query.toString() });
+    const uri = options.requestUri.with({ query: query.toString() });
 
     const request: RequestLike = {
         headers: {
