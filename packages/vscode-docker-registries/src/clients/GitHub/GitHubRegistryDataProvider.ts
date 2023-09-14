@@ -79,6 +79,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
     // TODO: GitHub's catalog endpoint uses standard paging, so this could be simplified to call super.getRepositories with just the added query parameter for the last repository name
     public override async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
         const originalSearchString = registry.label + '/';
+        const requestUrl = registry.baseUrl.with({ path: 'v2/_catalog', query: 'n=2' });
 
         const results: V2Repository[] = [];
         let nextSearchString = originalSearchString;
@@ -88,8 +89,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
             const catalogResponse = await registryV2Request<{ repositories: string[] }>({
                 authenticationProvider: this.authenticationProvider,
                 method: 'GET',
-                registryUri: registry.baseUrl,
-                path: ['v2', '_catalog'],
+                requestUri: requestUrl,
                 query: {
                     n: '100',
                     last: nextSearchString
@@ -133,22 +133,22 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
     }
 
     protected override async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
+        const tagRequestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${tag}` });
+
         const tagDetailResponse = await registryV2Request<Blob>({
             authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
-            registryUri: repository.baseUrl,
-            path: ['v2', repository.label, 'manifests', tag],
+            requestUri: tagRequestUrl,
             scopes: [`repository:${repository.label}:pull`]
         });
 
         const digest = tagDetailResponse.body?.config?.digest || '';
-
+        const digestRequestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/blobs/${digest}` });
         if (digest) {
             const configFile = await registryV2Request<{ created: string }>({
                 authenticationProvider: this.getAuthenticationProvider(repository),
                 method: 'GET',
-                registryUri: repository.baseUrl,
-                path: ['v2', repository.label, 'blobs', digest],
+                requestUri: digestRequestUrl,
                 scopes: [`repository:${repository.label}:pull`]
             });
 

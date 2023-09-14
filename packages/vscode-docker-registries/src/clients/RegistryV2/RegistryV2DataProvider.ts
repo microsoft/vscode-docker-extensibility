@@ -9,6 +9,7 @@ import { CommonRegistry, CommonRegistryItem, CommonRegistryRoot, CommonRepositor
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { LoginInformation } from '../../contracts/BasicCredentials';
 import { registryV2Request } from './registryV2Request';
+import { getNextLinkFromHeaders } from '../../utils/httpRequest';
 
 export type V2RegistryItem = CommonRegistryItem;
 export type V2RegistryRoot = CommonRegistryRoot;
@@ -29,50 +30,58 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     public abstract getRegistries(root: V2RegistryRoot | V2RegistryItem): V2Registry[] | Promise<V2Registry[]>;
 
     public async getRepositories(registry: V2Registry): Promise<V2Repository[]> {
-        const catalogResponse = await registryV2Request<{ repositories: string[] }>({
-            authenticationProvider: this.getAuthenticationProvider(registry),
-            method: 'GET',
-            registryUri: registry.baseUrl,
-            path: ['v2', '_catalog'],
-            scopes: ['registry:catalog:*'],
-        });
-
         const results: V2Repository[] = [];
-
-        for (const repository of catalogResponse.body?.repositories || []) {
-            results.push({
-                parent: registry,
-                baseUrl: registry.baseUrl,
-                label: repository,
-                type: 'commonrepository',
+        let nextLink: vscode.Uri | undefined = registry.baseUrl.with({ path: 'v2/_catalog' });
+        do {
+            const catalogResponse = await registryV2Request<{ repositories: string[] }>({
+                authenticationProvider: this.getAuthenticationProvider(registry),
+                method: 'GET',
+                requestUri: nextLink,
+                scopes: ['registry:catalog:*'],
             });
-        }
+
+            for (const repository of catalogResponse.body?.repositories || []) {
+                results.push({
+                    parent: registry,
+                    baseUrl: registry.baseUrl,
+                    label: repository,
+                    type: 'commonrepository',
+                });
+            }
+
+            nextLink = getNextLinkFromHeaders(catalogResponse.headers, registry.baseUrl);
+        } while (nextLink);
 
         return results;
     }
 
     public async getTags(repository: V2Repository): Promise<V2Tag[]> {
-        const tagsResponse = await registryV2Request<{ tags: string[] }>({
-            authenticationProvider: this.getAuthenticationProvider(repository),
-            method: 'GET',
-            registryUri: repository.baseUrl,
-            path: ['v2', repository.label, 'tags', 'list'],
-            scopes: [`repository:${repository.label}:pull`],
-            throwOnFailure: true,
-        });
-
         const results: V2Tag[] = [];
+        let nextLink: vscode.Uri | undefined = repository.baseUrl.with({ path: `v2/${repository.label}/tags/list` });
 
-        for (const tag of tagsResponse.body?.tags || []) {
-            results.push({
-                parent: repository,
-                baseUrl: repository.baseUrl,
-                label: tag,
-                type: 'commontag',
-                additionalContextValues: ['registryV2Tag'],
-                createdAt: await this.getTagDetails(repository, tag),
+        do {
+            const tagsResponse = await registryV2Request<{ tags: string[] }>({
+                authenticationProvider: this.getAuthenticationProvider(repository),
+                method: 'GET',
+                requestUri: nextLink,
+                scopes: [`repository:${repository.label}:pull`],
+                throwOnFailure: true,
             });
-        }
+
+
+            for (const tag of tagsResponse.body?.tags || []) {
+                results.push({
+                    parent: repository,
+                    baseUrl: repository.baseUrl,
+                    label: tag,
+                    type: 'commontag',
+                    additionalContextValues: ['registryV2Tag'],
+                    createdAt: await this.getTagDetails(repository, tag),
+                });
+            }
+
+            nextLink = getNextLinkFromHeaders(tagsResponse.headers, repository.baseUrl);
+        } while (nextLink);
 
         return results;
     }
@@ -89,22 +98,23 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     public async deleteTag(item: CommonTag): Promise<void> {
         const digest = await this.getImageDigest(item);
         const registry = item.parent.parent as unknown as V2Registry;
+        const requestUrl = registry.baseUrl.with({ path: `v2/${item.parent.label}/manifests/${digest}` });
         await registryV2Request({
             authenticationProvider: this.getAuthenticationProvider(registry),
             method: 'DELETE',
-            registryUri: registry.baseUrl,
-            path: ['v2', item.parent.label, 'manifests', digest],
+            requestUri: requestUrl,
             scopes: [`repository:${item.parent.label}:delete`]
         });
     }
 
     public async getImageDigest(item: CommonTag): Promise<string> {
         const registry = item.parent.parent as unknown as V2Registry;
+        const requestUrl = registry.baseUrl.with({ path: `v2/${item.parent.label}/manifests/${item.label}` });
+
         const response = await registryV2Request({
             authenticationProvider: this.getAuthenticationProvider(registry),
             method: 'GET',
-            registryUri: registry.baseUrl,
-            path: ['v2', item.parent.label, 'manifests', item.label],
+            requestUri: requestUrl,
             scopes: [`repository:${item.parent.label}:pull`],
             headers: {
                 'accept': 'application/vnd.docker.distribution.manifest.v2+json'
@@ -120,11 +130,12 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     }
 
     protected async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
+        const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${tag}` });
+
         const tagDetailResponse = await registryV2Request<Manifest>({
             authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
-            registryUri: repository.baseUrl,
-            path: ['v2', repository.label, 'manifests', tag],
+            requestUri: requestUrl,
             scopes: [`repository:${repository.label}:pull`]
         });
 

@@ -7,6 +7,22 @@ import * as vscode from 'vscode';
 import { Request, RequestInit, Response, ResponseInit, default as fetch } from 'node-fetch';
 import { UnauthorizedError } from './errors';
 
+export function getNextLinkFromHeaders(headers: HeadersLike, baseUrl: vscode.Uri): vscode.Uri | undefined {
+    const linkHeader: string | undefined = headers['link'];
+    if (!linkHeader) {
+        return undefined;
+    }
+
+    const match = linkHeader.match(/<(.*)>; rel="next"/i);
+    if (!match) {
+        return undefined;
+    }
+
+    const headerUri = vscode.Uri.parse(match[1]);
+    const nextLinkUri = baseUrl.with({ path: headerUri.path, query: headerUri.query });
+    return nextLinkUri;
+}
+
 export type HeadersLike = Record<string, string>;
 
 export type RequestLike = RequestInit & {
