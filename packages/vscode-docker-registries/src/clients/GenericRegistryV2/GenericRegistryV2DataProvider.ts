@@ -39,7 +39,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
     public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
         const children = await super.getChildren(element);
         children.forEach(e => {
-            e.additionalContextValues = [GenericV2ContextValue];
+            e.additionalContextValues = [...(e.additionalContextValues || []), GenericV2ContextValue];
         });
         return children;
     }

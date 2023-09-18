@@ -74,7 +74,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
         const children = await super.getChildren(element);
         children.forEach(child => {
-            child.additionalContextValues = [DockerHubContextValue];
+            child.additionalContextValues = [...(child.additionalContextValues || []), DockerHubContextValue];
         });
         return children;
     }

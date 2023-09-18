@@ -67,7 +67,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
     public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
         const children = await super.getChildren(element);
         children.forEach(e => {
-            e.additionalContextValues = [GitHubContextValue];
+            e.additionalContextValues = [...(e.additionalContextValues || []), GitHubContextValue];
         });
         return children;
     }
