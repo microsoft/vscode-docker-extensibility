@@ -13,12 +13,14 @@ import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { BasicCredentials } from '../../contracts/BasicCredentials';
+import { CommonRegistryItem, isRegistry } from '../Common/models';
 import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
+const GitHubContextValue = 'github';
 
 export function isGitHubRegistry(item: unknown): item is V2Registry {
-    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('githubRegistry') === true;
+    return isRegistry(item) && isContextValueRegistryItem(item) && item.additionalContextValues?.includes(GitHubContextValue) === true;
 }
 
 export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
@@ -62,6 +64,14 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         await this.authenticationProvider.removeSession();
     }
 
+    public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
+        const children = await super.getChildren(element);
+        children.forEach(e => {
+            e.additionalContextValues = [GitHubContextValue];
+        });
+        return children;
+    }
+
     public override async getRegistries(root: V2RegistryRoot): Promise<V2Registry[]> {
         const organizations = await this.getOrganizations();
 
@@ -70,8 +80,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
                 parent: root,
                 baseUrl: GitHubContainerRegistryUri,
                 label: org,
-                type: 'commonregistry',
-                additionalContextValues: ['githubRegistry']
+                type: 'commonregistry'
             }
         ));
     }
@@ -116,16 +125,6 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         } while (!foundAllInSearch);
 
         return results;
-    }
-
-    public async getTags(repository: V2Repository): Promise<V2Tag[]> {
-        const tags = await super.getTags(repository);
-        const tagsWithAdditionalContext: V2Tag[] = tags.map(tag => ({
-            ...tag,
-            additionalContextValues: ['githubRegistryTag']
-        }));
-
-        return tagsWithAdditionalContext;
     }
 
     protected getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never> {

@@ -11,19 +11,20 @@ import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { CommonRegistryDataProvider } from '../Common/CommonRegistryDataProvider';
-import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag, CommonRegistryItem } from '../Common/models';
+import { CommonRegistryRoot, CommonRegistry, CommonRepository, CommonTag, CommonRegistryItem, isRegistry, isRepository } from '../Common/models';
 
 import * as vscode from 'vscode';
 
 export const DockerHubRequestUrl = vscode.Uri.parse('https://hub.docker.com/');
 export const DockerHubRegistryUrl = vscode.Uri.parse('https://docker.io/');
+export const DockerHubContextValue = 'dockerhub';
 
 export function isDockerHubRegistry(item: unknown): item is CommonRegistry {
-    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('dockerHubRegistry') === true;
+    return isRegistry(item) && isContextValueRegistryItem(item) && item.additionalContextValues?.includes(DockerHubContextValue) === true;
 }
 
 export function isDockerHubRepository(item: unknown): item is CommonRepository {
-    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('dockerHubRepository') === true;
+    return isRepository(item) && isContextValueRegistryItem(item) && item.additionalContextValues?.includes(DockerHubContextValue) === true;
 }
 
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
@@ -70,6 +71,14 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
         await this.authenticationProvider.removeSession();
     }
 
+    public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
+        const children = await super.getChildren(element);
+        children.forEach(child => {
+            child.additionalContextValues = [DockerHubContextValue];
+        });
+        return children;
+    }
+
     public getRoot(): CommonRegistryRoot {
         return {
             parent: undefined,
@@ -95,7 +104,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 parent: root,
                 label: orgOrNamespace,
                 type: 'commonregistry',
-                additionalContextValues: ['dockerHubRegistry'],
                 baseUrl: DockerHubRegistryUrl,
             });
         }
@@ -121,7 +129,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                     parent: registry,
                     label: `${repository.name}`,
                     type: 'commonrepository',
-                    additionalContextValues: ['dockerHubRepository'],
                     baseUrl: registry.baseUrl,
                 });
             }
@@ -151,7 +158,6 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                     parent: repository,
                     label: tag.name,
                     type: 'commontag',
-                    additionalContextValues: ['dockerHubTag'],
                     createdAt: new Date(tag.last_updated || ''),
                     baseUrl: repository.baseUrl,
                 });

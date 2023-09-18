@@ -4,30 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { RegistryV2DataProvider, V2Registry, V2RegistryRoot, V2Repository, V2Tag } from '../RegistryV2/RegistryV2DataProvider';
+import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot } from '../RegistryV2/RegistryV2DataProvider';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
 import { GenericRegistryV2WizardContext, GenericRegistryV2WizardPromptStep } from './GenericRegistryV2WizardPromptStep';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
+import { CommonRegistryItem, isRegistry } from '../Common/models';
 
 const GenericV2StorageKey = 'GenericV2ContainerRegistry';
 const TrackedRegistriesKey = `${GenericV2StorageKey}.TrackedRegistries`;
+const GenericV2ContextValue = 'generic';
 
-interface GenericV2RegistryRoot extends V2RegistryRoot {
-    readonly additionalContextValues: ['genericRegistryV2Root'];
-}
-
-export interface GenericV2Registry extends V2Registry {
-    readonly additionalContextValues: ['genericRegistryV2Registry'];
-}
-
-interface GenericV2RegistryTag extends V2Tag {
-    readonly additionalContextValues: ['genericRegistryV2Tag'];
-}
-
-export function isGenericV2Registry(item: unknown): item is GenericV2Registry {
-    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('genericRegistryV2Registry') === true;
+export function isGenericV2Registry(item: unknown): item is V2Registry {
+    return isRegistry(item) && isContextValueRegistryItem(item) && item.additionalContextValues?.includes(GenericV2ContextValue) === true;
 }
 
 export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
@@ -46,17 +36,24 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         await this.addTrackedRegistry();
     }
 
-    public getRoot(): GenericV2RegistryRoot {
+    public async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
+        const children = await super.getChildren(element);
+        children.forEach(e => {
+            e.additionalContextValues = [GenericV2ContextValue];
+        });
+        return children;
+    }
+
+    public getRoot(): V2RegistryRoot {
         return {
             parent: undefined,
             label: this.label,
             type: 'commonroot',
             iconPath: this.iconPath,
-            additionalContextValues: ['genericRegistryV2Root'],
         };
     }
 
-    public async getRegistries(root: GenericV2RegistryRoot | GenericV2Registry): Promise<GenericV2Registry[]> {
+    public async getRegistries(root: V2RegistryRoot | V2RegistryItem): Promise<V2Registry[]> {
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
         const trackedRegistries = trackedRegistryStrings.map(r => vscode.Uri.parse(r));
 
@@ -65,23 +62,12 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
                 label: r.toString(),
                 parent: root,
                 type: 'commonregistry',
-                additionalContextValues: ['genericRegistryV2Registry'],
                 baseUrl: r
             };
         });
     }
 
-    public async getTags(repository: V2Repository): Promise<GenericV2RegistryTag[]> {
-        const tags = await super.getTags(repository);
-        const tagsWithAdditionalContext: GenericV2RegistryTag[] = tags.map(tag => ({
-            ...tag,
-            additionalContextValues: ['genericRegistryV2Tag']
-        }));
-
-        return tagsWithAdditionalContext;
-    }
-
-    protected override getAuthenticationProvider(item: GenericV2Registry): BasicOAuthProvider {
+    protected override getAuthenticationProvider(item: V2Registry): BasicOAuthProvider {
         const registry = item.baseUrl.toString();
 
         if (!this.authenticationProviders.has(registry)) {
@@ -134,7 +120,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         this.authenticationProviders.set(registryUriString, authProvider);
     }
 
-    public async removeTrackedRegistry(registry: GenericV2Registry): Promise<void> {
+    public async removeTrackedRegistry(registry: V2Registry): Promise<void> {
         // remove registry url from list of tracked registries
         const registryUriString = registry.baseUrl.toString();
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
