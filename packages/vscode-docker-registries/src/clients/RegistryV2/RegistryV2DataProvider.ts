@@ -84,7 +84,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
 
         // Asynchronously begin getting the created date details for each tag
         results.forEach(tag => {
-            this.getTagDetails(repository, tag.label).then((createdAt) => {
+            this.getTagCreatedDate(repository, tag.label).then((createdAt) => {
                 tag.createdAt = createdAt;
                 this.onDidChangeTreeDataEmitter.fire(tag);
             }, () => { /* Best effort */ });
