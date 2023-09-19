@@ -131,7 +131,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         return this.authenticationProvider;
     }
 
-    protected override async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
+    protected override async getTagCreatedDate(repository: V2Repository, tag: string): Promise<Date | undefined> {
         const tagRequestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${tag}` });
 
         const tagDetailResponse = await registryV2Request<Blob>({
