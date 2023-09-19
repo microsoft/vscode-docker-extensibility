@@ -46,7 +46,7 @@ export function isRepository(maybeRepository: unknown): maybeRepository is Commo
 export interface CommonTag extends CommonRegistryItem {
     readonly parent: CommonRepository;
     readonly type: 'commontag';
-    readonly createdAt?: Date;
+    createdAt?: Date;
     readonly baseUrl: vscode.Uri;
 }
 

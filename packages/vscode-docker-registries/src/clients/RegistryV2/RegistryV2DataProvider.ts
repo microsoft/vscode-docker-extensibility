@@ -68,7 +68,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 throwOnFailure: true,
             });
 
-
             for (const tag of tagsResponse.body?.tags || []) {
                 results.push({
                     parent: repository,
@@ -76,12 +75,19 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                     label: tag,
                     type: 'commontag',
                     additionalContextValues: ['registryV2Tag'],
-                    createdAt: await this.getTagCreatedDate(repository, tag),
                 });
             }
 
             nextLink = getNextLinkFromHeaders(tagsResponse.headers, repository.baseUrl);
         } while (nextLink);
+
+        // Asynchronously begin getting the created date details for each tag
+        results.forEach(tag => {
+            this.getTagCreatedDate(repository, tag.label).then((createdAt) => {
+                tag.createdAt = createdAt;
+                this.onDidChangeTreeDataEmitter.fire(tag);
+            }, () => { /* Best effort */ });
+        });
 
         return results;
     }
