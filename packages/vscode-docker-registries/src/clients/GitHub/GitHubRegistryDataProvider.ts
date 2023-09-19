@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
-import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository, V2Tag } from '../RegistryV2/RegistryV2DataProvider';
+import { RegistryV2DataProvider, V2Registry, V2RegistryItem, V2RegistryRoot, V2Repository } from '../RegistryV2/RegistryV2DataProvider';
 import { registryV2Request } from '../RegistryV2/registryV2Request';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { httpRequest } from '../../utils/httpRequest';
@@ -13,12 +13,14 @@ import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardSecretPromptStep, RegistryWizardUsernamePromptStep } from '../../wizard/RegistryWizardPromptStep';
 import { BasicCredentials } from '../../contracts/BasicCredentials';
+import { CommonRegistryItem, isRegistry } from '../Common/models';
 import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
 
 const GitHubContainerRegistryUri = vscode.Uri.parse('https://ghcr.io');
+const GitHubContextValue = 'github';
 
 export function isGitHubRegistry(item: unknown): item is V2Registry {
-    return isContextValueRegistryItem(item) && item.additionalContextValues?.includes('githubRegistry') === true;
+    return isRegistry(item) && isContextValueRegistryItem(item) && item.additionalContextValues?.includes(GitHubContextValue) === true;
 }
 
 export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
@@ -62,6 +64,14 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         await this.authenticationProvider.removeSession();
     }
 
+    public override async getChildren(element?: CommonRegistryItem | undefined): Promise<CommonRegistryItem[]> {
+        const children = await super.getChildren(element);
+        children.forEach(e => {
+            e.additionalContextValues = [...(e.additionalContextValues || []), GitHubContextValue];
+        });
+        return children;
+    }
+
     public override async getRegistries(root: V2RegistryRoot): Promise<V2Registry[]> {
         const organizations = await this.getOrganizations();
 
@@ -70,8 +80,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
                 parent: root,
                 baseUrl: GitHubContainerRegistryUri,
                 label: org,
-                type: 'commonregistry',
-                additionalContextValues: ['githubRegistry']
+                type: 'commonregistry'
             }
         ));
     }
@@ -118,21 +127,11 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         return results;
     }
 
-    public async getTags(repository: V2Repository): Promise<V2Tag[]> {
-        const tags = await super.getTags(repository);
-        const tagsWithAdditionalContext: V2Tag[] = tags.map(tag => ({
-            ...tag,
-            additionalContextValues: ['githubRegistryTag']
-        }));
-
-        return tagsWithAdditionalContext;
-    }
-
     protected getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never> {
         return this.authenticationProvider;
     }
 
-    protected override async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
+    protected override async getTagCreatedDate(repository: V2Repository, tag: string): Promise<Date | undefined> {
         const tagRequestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${tag}` });
 
         const tagDetailResponse = await registryV2Request<Blob>({

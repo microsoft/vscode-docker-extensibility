@@ -75,7 +75,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                     label: tag,
                     type: 'commontag',
                     additionalContextValues: ['registryV2Tag'],
-                    createdAt: await this.getTagDetails(repository, tag),
+                    createdAt: await this.getTagCreatedDate(repository, tag),
                 });
             }
 
@@ -136,7 +136,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         return digest;
     }
 
-    protected async getTagDetails(repository: V2Repository, tag: string): Promise<Date | undefined> {
+    protected async getTagCreatedDate(repository: V2Repository, tag: string): Promise<Date | undefined> {
         const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${tag}` });
 
         const tagDetailResponse = await registryV2Request<Manifest>({
