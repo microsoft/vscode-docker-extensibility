@@ -75,7 +75,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                     label: tag,
                     type: 'commontag',
                     additionalContextValues: ['registryV2Tag'],
-                    createdAt: await this.getTagCreatedDate(repository, tag),
                 });
             }
 
