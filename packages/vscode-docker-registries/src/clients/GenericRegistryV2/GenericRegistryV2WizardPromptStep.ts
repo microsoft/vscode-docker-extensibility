@@ -7,9 +7,11 @@ import { Uri, l10n } from 'vscode';
 import { RegistryWizardPromptStep, RegistryWizardPromptStepOptions } from '../../wizard/RegistryWizardPromptStep';
 import { showInputBox } from '../../wizard/showInputBox';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
+import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
 
 export interface GenericRegistryV2WizardContext extends RegistryWizardContext {
     readonly registryPrompt: string;
+    readonly connectedRegistries: Map<string, BasicOAuthProvider>;
     registryPromptPlaceholder?: string;
     registryUri?: Uri;
 }
@@ -19,7 +21,7 @@ export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2Wizard
         const options: RegistryWizardPromptStepOptions = {
             isSecretStep: false,
             prompt: wizardContext.registryPrompt,
-            validateInput: (value: string): string | undefined => this.validateUrl(value),
+            validateInput: (value: string): string | undefined => this.validateUrl(value, wizardContext),
             placeholder: wizardContext.registryPromptPlaceholder ?? '',
         };
         const url = await showInputBox(options);
@@ -30,7 +32,7 @@ export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2Wizard
         return !!wizardContext.registryPrompt && !wizardContext.registryUri;
     }
 
-    private validateUrl(value: string): string | undefined {
+    private validateUrl(value: string, wizardContext: T): string | undefined {
         if (!value) {
             return l10n.t('URL cannot be empty.');
         }
@@ -42,6 +44,10 @@ export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2Wizard
             const uri = Uri.parse(value);
             scheme = uri.scheme;
             authority = uri.authority;
+
+            if (wizardContext.connectedRegistries.has(uri.toString().toLowerCase())) {
+                return l10n.t('URL {0} is already connected.', uri.toString().toLowerCase());
+            }
         } catch {
             return l10n.t('Please enter a valid URL');
         }
