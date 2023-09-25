@@ -7,11 +7,10 @@ import { Uri, l10n } from 'vscode';
 import { RegistryWizardPromptStep, RegistryWizardPromptStepOptions } from '../../wizard/RegistryWizardPromptStep';
 import { showInputBox } from '../../wizard/showInputBox';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
-import { BasicOAuthProvider } from '../../auth/BasicOAuthProvider';
 
 export interface GenericRegistryV2WizardContext extends RegistryWizardContext {
     readonly registryPrompt: string;
-    readonly connectedRegistries: Map<string, BasicOAuthProvider>;
+    readonly connectedRegistries: string[];
     registryPromptPlaceholder?: string;
     registryUri?: Uri;
 }
@@ -45,7 +44,7 @@ export class GenericRegistryV2WizardPromptStep<T extends GenericRegistryV2Wizard
             scheme = uri.scheme;
             authority = uri.authority;
 
-            if (wizardContext.connectedRegistries.has(uri.toString().toLowerCase())) {
+            if (wizardContext.connectedRegistries.includes(uri.toString().toLowerCase())) {
                 return l10n.t('URL {0} is already connected.', uri.toString().toLowerCase());
             }
         } catch {
