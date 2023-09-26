@@ -136,7 +136,7 @@ export class GenericRegistryV2DataProvider extends RegistryV2DataProvider {
         this.authenticationProviders.delete(registryUriString);
     }
 
-    public async hasTrackedRegistries(): Promise<boolean> {
+    public hasTrackedRegistries(): boolean {
         const trackedRegistryStrings = this.extensionContext.globalState.get<string[]>(TrackedRegistriesKey, []);
         return trackedRegistryStrings.length > 0;
     }
