@@ -53,7 +53,7 @@ export class RegistryWizardRequiredUsernamePromptStep<T extends RegistryWizardCo
     public override async prompt(wizardContext: T): Promise<void> {
         const options: RegistryWizardPromptStepOptions = {
             isSecretStep: false,
-            prompt: wizardContext.usernamePrompt || l10n.t('Enter your username, or press \'Enter\' for none'),
+            prompt: wizardContext.usernamePrompt || l10n.t('Enter your username'),
             validateInput: (value: string): string | undefined => this.validateInput(value),
         };
 
