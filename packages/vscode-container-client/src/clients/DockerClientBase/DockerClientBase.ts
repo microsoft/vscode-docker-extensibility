@@ -120,6 +120,7 @@ import { parsePruneLikeOutput } from './parsePruneLikeOutput';
 
 const LinuxStatArguments = '%f %h %g %u %s %X %Y %Z %n';
 const WindowsStatArguments = '/A-S /-C /TW';
+const PruneSpaceReclaimedRegex = /Total reclaimed space:\s*(.*)/;
 
 export abstract class DockerClientBase extends ConfigurableClient implements IContainersClient {
     /**
@@ -519,11 +520,10 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         output: string,
         strict: boolean,
     ): Promise<PruneImagesItem> {
-        const totalReclaimedSpaceRegex = /Total reclaimed space:\s*(.*)/;
         const deletedImageLineRegex = /deleted: sha256:\s*([a-fA-F0-9]{64})/;
 
         const deletedImages = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: totalReclaimedSpaceRegex,
+            spaceReclaimedRegex: PruneSpaceReclaimedRegex,
             resourceRegex: deletedImageLineRegex,
         });
 
@@ -958,9 +958,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         output: string,
         strict: boolean,
     ): Promise<PruneContainersItem> {
-        const totalReclaimedSpaceRegex = /Total reclaimed space:\s*(.*)/;
         const deletedContainerItems = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: totalReclaimedSpaceRegex,
+            spaceReclaimedRegex: PruneSpaceReclaimedRegex,
             resourceRegex: undefined, // the line is the container ID itself
         });
 
@@ -1270,9 +1269,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         strict: boolean,
     ): Promise<PruneVolumesItem> {
         const deletedVolumesLineRegex = /^deleted:\s*(.+)$/;
-        const totalReclaimedSpaceRegex = /Total reclaimed space:\s*(.*)/;
         const deletedVolumes = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: totalReclaimedSpaceRegex,
+            spaceReclaimedRegex: PruneSpaceReclaimedRegex,
             resourceRegex: deletedVolumesLineRegex,
         });
 
