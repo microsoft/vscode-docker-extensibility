@@ -120,7 +120,6 @@ import { parsePruneLikeOutput } from './parsePruneLikeOutput';
 
 const LinuxStatArguments = '%f %h %g %u %s %X %Y %Z %n';
 const WindowsStatArguments = '/A-S /-C /TW';
-const PruneSpaceReclaimedRegex = /Total reclaimed space:\s*(.*)/;
 
 export abstract class DockerClientBase extends ConfigurableClient implements IContainersClient {
     /**
@@ -520,10 +519,10 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         output: string,
         strict: boolean,
     ): Promise<PruneImagesItem> {
-        const deletedImageLineRegex = /deleted: sha256:\s*([a-fA-F0-9]{64})/;
+        const deletedImageLineRegex = /^deleted: sha256:\s*(\w+)$/igm;
 
         const deletedImages = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: PruneSpaceReclaimedRegex,
+            spaceReclaimedRegex: undefined,
             resourceRegex: deletedImageLineRegex,
         });
 
@@ -959,7 +958,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         strict: boolean,
     ): Promise<PruneContainersItem> {
         const deletedContainerItems = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: PruneSpaceReclaimedRegex,
+            spaceReclaimedRegex: undefined, // use default regex
             resourceRegex: undefined, // the line is the container ID itself
         });
 
@@ -1268,9 +1267,9 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         output: string,
         strict: boolean,
     ): Promise<PruneVolumesItem> {
-        const deletedVolumesLineRegex = /^deleted:\s*(.+)$/;
+        const deletedVolumesLineRegex = /^deleted:\s*(\w+)$/igm;
         const deletedVolumes = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: PruneSpaceReclaimedRegex,
+            spaceReclaimedRegex: undefined, // use default regex
             resourceRegex: deletedVolumesLineRegex,
         });
 
