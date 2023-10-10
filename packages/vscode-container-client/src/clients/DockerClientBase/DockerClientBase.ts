@@ -519,10 +519,9 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         output: string,
         strict: boolean,
     ): Promise<PruneImagesItem> {
-        const deletedImageLineRegex = /^deleted: sha256:\s*(\w+)$/igm;
+        const deletedImageLineRegex = /^deleted:\s*sha256:\s*(\w+)$/igm;
 
         const deletedImages = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: undefined,
             resourceRegex: deletedImageLineRegex,
         });
 
@@ -958,7 +957,6 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         strict: boolean,
     ): Promise<PruneContainersItem> {
         const deletedContainerItems = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: undefined, // use default regex
             resourceRegex: undefined, // the line is the container ID itself
         });
 
@@ -1269,7 +1267,6 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     ): Promise<PruneVolumesItem> {
         const deletedVolumesLineRegex = /^deleted:\s*(\w+)$/igm;
         const deletedVolumes = parsePruneLikeOutput(output, {
-            spaceReclaimedRegex: undefined, // use default regex
             resourceRegex: deletedVolumesLineRegex,
         });
 
