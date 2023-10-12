@@ -15,6 +15,7 @@ export abstract class BasicAuthProvider implements AuthenticationProvider {
         const secret = await this.secretStorage.get(`BasicAuthProvider.${this.storageSubKey}.secret`);
 
         if (username === undefined || username === null) {
+            // An empty username is allowed
             throw new Error(vscode.l10n.t('Could not load username for {0}', this.storageSubKey));
         } else if (secret === undefined || secret === null) {
             // An empty string is allowed as a secret (but obviously not advisable)
