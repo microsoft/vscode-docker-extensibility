@@ -21,3 +21,5 @@ parameters:
 # Use those templates
 extends:
   template: azure-pipelines/release-npm.yml@templates
+  parameters:
+    PackageToPublish: ${{ PackageToPublish }}
