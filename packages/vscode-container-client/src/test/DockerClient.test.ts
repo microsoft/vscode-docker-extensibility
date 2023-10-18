@@ -86,50 +86,115 @@ describe('DockerClient', () => {
             ]);
         });
     });
-});
 
-describe('DockerClient (unit)', () => {
-    const client = new DockerClient();
+    describe('#pruneContainersAsync()', () => {
+        it('correctly parses output', async () => {
+            const commandResult = await client.pruneContainers({});
+            const results = await commandResult.parse(`Deleted Containers:
+cdd20631c35b49696556d07df9a90421316d47eeac945c99ca800372bf9b8736
+0626abaf0a27401e2e25169bee8a38157f5b6e8427f198615ad7f304c4cb6deb
 
-    it('Should produce the expected lack of quoting/escaping customOptions', async () => {
-        const options: BuildImageCommandOptions = {
-            path: '.',
-            customOptions: '--no-cache --progress plain'
-        };
+Total reclaimed space: 14B`, true);
 
-        const commandResponse = await client.buildImage(options);
-        const pwshQuoted = new Powershell().quote(commandResponse.args);
-        const bashQuoted = new Bash().quote(commandResponse.args);
-
-        expect(pwshQuoted).to.deep.equal(['image', 'build', '--no-cache --progress plain', '\'.\'']);
-        expect(bashQuoted).to.deep.equal(['image', 'build', '--no-cache --progress plain', '\'.\'']);
+            expect(results.containersDeleted).to.have.lengthOf(2);
+            expect(results.containersDeleted).to.contain('cdd20631c35b49696556d07df9a90421316d47eeac945c99ca800372bf9b8736');
+            expect(results.containersDeleted).to.contain('0626abaf0a27401e2e25169bee8a38157f5b6e8427f198615ad7f304c4cb6deb');
+            expect(results.spaceReclaimed).to.equal(14);
+        });
     });
 
-    it('Should produce the expected lack of quoting/escaping a single string command', async () => {
-        const options: RunContainerCommandOptions = {
-            imageRef: 'someimage',
-            command: 'sh -c "echo hello world"',
-        };
+    describe('#pruneImagesAsync()', () => {
+        it('correctly parses output', async () => {
+            const commandResult = await client.pruneImages({});
+            const results = await commandResult.parse(`Deleted Images:
+untagged: redis@sha256:4ca2a277f1dc3ddd0da33a258096de9a1cf5b9d9bd96b27ee78763ee2248c28c
+deleted: sha256:5b0542ad1e7734b17905e99f80defc1f0a7748dd6d6f1648949eb45583d087de
+deleted: sha256:57ddb0b590e783cb033cd152d777e75ad20a2c85c7f85ea7c9f6de020ee30571
+deleted: sha256:e933c69e3728b6c09699982b317493292aaaea4f3675a6a8465220a39a15bef7
 
-        const commandResponse = await client.runContainer(options);
-        const pwshQuoted = new Powershell().quote(commandResponse.args);
-        const bashQuoted = new Bash().quote(commandResponse.args);
+Total reclaimed space: 62.95MB`, true);
 
-        expect(pwshQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh -c "echo hello world"']);
-        expect(bashQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh -c "echo hello world"']);
+            expect(results.imageRefsDeleted).to.have.lengthOf(3);
+            expect(results.imageRefsDeleted).to.contain('5b0542ad1e7734b17905e99f80defc1f0a7748dd6d6f1648949eb45583d087de');
+            expect(results.imageRefsDeleted).to.contain('57ddb0b590e783cb033cd152d777e75ad20a2c85c7f85ea7c9f6de020ee30571');
+            expect(results.imageRefsDeleted).to.contain('e933c69e3728b6c09699982b317493292aaaea4f3675a6a8465220a39a15bef7');
+            expect(results.spaceReclaimed).to.equal(Math.round(62.95 * 1024 * 1024));
+        });
     });
 
-    it('Should produce the expected quoting/escaping of an array command', async () => {
-        const options: RunContainerCommandOptions = {
-            imageRef: 'someimage',
-            command: ['sh', '-c', 'echo hello world'],
-        };
+    describe('#pruneVolumesAsync()', () => {
+        it('correctly parses output', async () => {
+            const commandResult = await client.pruneVolumes({});
+            const results = await commandResult.parse(`Deleted Volumes:
+d7d3cac120e9db519613f44866be1a1e39841a4841d678d632ba83775f318f49
+foo
 
-        const commandResponse = await client.runContainer(options);
-        const pwshQuoted = new Powershell().quote(commandResponse.args);
-        const bashQuoted = new Bash().quote(commandResponse.args);
+Total reclaimed space: 155.2KB`, true);
 
-        expect(pwshQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh', '-c', 'echo` hello` world']);
-        expect(bashQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh', '-c', 'echo\\ hello\\ world']);
+            expect(results.volumesDeleted).to.have.lengthOf(2);
+            expect(results.volumesDeleted).to.contain('d7d3cac120e9db519613f44866be1a1e39841a4841d678d632ba83775f318f49');
+            expect(results.volumesDeleted).to.contain('foo');
+            expect(results.spaceReclaimed).to.equal(Math.round(155.2 * 1024));
+        });
+    });
+
+    describe('#pruneNetworksAsync()', () => {
+        it('correctly parses output', async () => {
+            const commandResult = await client.pruneNetworks({});
+            const results = await commandResult.parse(`Deleted Networks:
+test_network1
+test_network2`, true);
+
+            expect(results.networksDeleted).to.have.lengthOf(2);
+            expect(results.networksDeleted).to.contain('test_network1');
+            expect(results.networksDeleted).to.contain('test_network2');
+            expect(results).to.not.have.property('spaceReclaimed');
+        });
+    });
+
+    describe('DockerClient (unit)', () => {
+        const client = new DockerClient();
+
+        it('Should produce the expected lack of quoting/escaping customOptions', async () => {
+            const options: BuildImageCommandOptions = {
+                path: '.',
+                customOptions: '--no-cache --progress plain'
+            };
+
+            const commandResponse = await client.buildImage(options);
+            const pwshQuoted = new Powershell().quote(commandResponse.args);
+            const bashQuoted = new Bash().quote(commandResponse.args);
+
+            expect(pwshQuoted).to.deep.equal(['image', 'build', '--no-cache --progress plain', '\'.\'']);
+            expect(bashQuoted).to.deep.equal(['image', 'build', '--no-cache --progress plain', '\'.\'']);
+        });
+
+        it('Should produce the expected lack of quoting/escaping a single string command', async () => {
+            const options: RunContainerCommandOptions = {
+                imageRef: 'someimage',
+                command: 'sh -c "echo hello world"',
+            };
+
+            const commandResponse = await client.runContainer(options);
+            const pwshQuoted = new Powershell().quote(commandResponse.args);
+            const bashQuoted = new Bash().quote(commandResponse.args);
+
+            expect(pwshQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh -c "echo hello world"']);
+            expect(bashQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh -c "echo hello world"']);
+        });
+
+        it('Should produce the expected quoting/escaping of an array command', async () => {
+            const options: RunContainerCommandOptions = {
+                imageRef: 'someimage',
+                command: ['sh', '-c', 'echo hello world'],
+            };
+
+            const commandResponse = await client.runContainer(options);
+            const pwshQuoted = new Powershell().quote(commandResponse.args);
+            const bashQuoted = new Bash().quote(commandResponse.args);
+
+            expect(pwshQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh', '-c', 'echo` hello` world']);
+            expect(bashQuoted).to.deep.equal(['container', 'run', 'someimage', 'sh', '-c', 'echo\\ hello\\ world']);
+        });
     });
 });
