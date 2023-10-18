@@ -28,7 +28,7 @@ export function parsePruneLikeOutput(output: string, options: PruneParseOptions)
     // match resources
     resourceRegex.lastIndex = 0;
     let result: RegExpExecArray | null;
-    while ((result = resourceRegex.exec(output))) {
+    while ((result = resourceRegex.exec(output)) && result.length >= 2) {
         deletedResources.push(result[1]);
     }
 
