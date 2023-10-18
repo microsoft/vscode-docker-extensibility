@@ -42,4 +42,3 @@ export function parsePruneLikeOutput(output: string, options: PruneParseOptions)
         resources: deletedResources,
     };
 }
-
