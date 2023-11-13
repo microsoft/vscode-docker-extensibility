@@ -4,11 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { Request, RequestInit, Response, ResponseInit, default as fetch } from 'node-fetch';
 import { HttpErrorResponse, UnauthorizedError } from './errors';
 
-export function getNextLinkFromHeaders(headers: HeadersLike, baseUrl: vscode.Uri): vscode.Uri | undefined {
-    const linkHeader: string | undefined = headers['link'];
+export function getNextLinkFromHeaders(headers: Headers, baseUrl: vscode.Uri): vscode.Uri | undefined {
+    const linkHeader = headers.get('link');
     if (!linkHeader) {
         return undefined;
     }
@@ -23,43 +22,22 @@ export function getNextLinkFromHeaders(headers: HeadersLike, baseUrl: vscode.Uri
     return nextLinkUri;
 }
 
-export type HeadersLike = Record<string, string>;
-
-export type RequestLike = RequestInit & {
-    headers: HeadersLike;
-};
-
-export type ResponseLike<T> = ResponseInit & {
-    headers: HeadersLike;
-    status: number;
-    statusText: string;
-    succeeded: boolean;
+export interface ResponseLike<T> extends Response {
     json: () => Promise<T>;
-};
+}
 
-export async function httpRequest<T>(url: string, request: RequestLike, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
+export async function httpRequest<T>(url: string, request: RequestInit, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
     const fetchRequest = new Request(url, request);
     const response: Response = await fetch(fetchRequest);
 
-    const headers: HeadersLike = {};
-    for (const [header, value] of response.headers.entries()) {
-        headers[header] = value;
-    }
-
-    const succeeded = response.status >= 200 && response.status < 300;
-
     if (throwOnFailure && response.status === 401) {
         throw new UnauthorizedError(vscode.l10n.t('Request to \'{0}\' failed with response 401: Unauthorized', url));
-    } else if (throwOnFailure && !succeeded) {
+    } else if (throwOnFailure && !response.ok) {
         throw new HttpErrorResponse(url, response.status, response.statusText);
     }
 
     return {
         ...response,
-        headers: headers,
-        status: response.status,
-        statusText: response.statusText,
-        succeeded: succeeded,
-        json: response.json.bind(response),
+        json: response.json.bind(response) as () => Promise<T>,
     };
 }

@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from '../contracts/AuthenticationProvider';
-import { RequestLike, httpRequest } from '../utils/httpRequest';
+import { httpRequest } from '../utils/httpRequest';
 import { BasicAuthProvider } from './BasicAuthProvider';
 import { LoginInformation } from '../contracts/BasicCredentials';
 
@@ -34,7 +34,7 @@ export class BasicOAuthProvider extends BasicAuthProvider implements Authenticat
                 scopes: scopes,
             };
         } else {
-            const request: RequestLike = {
+            const request: RequestInit = {
                 method: 'GET',
                 headers: {
                     'Authorization': `Basic ${this.getBasicAuthToken(username, secret)}`,
