@@ -32,7 +32,7 @@ export interface ResponseLike<T> extends Response {
     headers: HeadersLike;
     status: number;
     statusText: string;
-    ok: boolean;
+    succeeded: boolean;
     json: () => Promise<T>;
 }
 
@@ -51,7 +51,7 @@ export async function httpRequest<T>(url: string, request: RequestLike, throwOnF
         headers: response.headers, // These are getters so we need to call them to get the values
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok,
+        succeeded: response.ok,
         json: response.json.bind(response) as () => Promise<T>,
     };
 }

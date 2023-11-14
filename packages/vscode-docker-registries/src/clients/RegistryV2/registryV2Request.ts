@@ -23,7 +23,7 @@ export interface RegistryV2RequestOptions {
 export interface RegistryV2Response<T> {
     status: number;
     statusText: string;
-    ok: boolean;
+    succeeded: boolean;
     uri: vscode.Uri;
     headers: Headers;
     body: T | undefined;
@@ -32,7 +32,7 @@ export interface RegistryV2Response<T> {
 export async function registryV2Request<T>(options: RegistryV2RequestOptions): Promise<RegistryV2Response<T>> {
     if (isBasicOAuthProvider(options.authenticationProvider) && !options.authenticationProvider.didFallback) {
         const result = await registryV2RequestInternal<T>({ ...options, throwOnFailure: false });
-        if (result.ok) {
+        if (result.succeeded) {
             return result;
         } else if (result.status === 401 && result.headers.get('www-authenticate')) {
             options.authenticationProvider.fallback(result.headers.get('www-authenticate') as string);
