@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { isBasicOAuthProvider } from '../../auth/BasicOAuthProvider';
-import { httpRequest } from '../../utils/httpRequest';
+import { RequestLike, httpRequest } from '../../utils/httpRequest';
 import { HttpErrorResponse } from '../../utils/errors';
 
 export interface RegistryV2RequestOptions {
@@ -50,7 +50,7 @@ async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): 
 
     const auth = await options.authenticationProvider.getSession(options.scopes, options.sessionOptions);
 
-    const request: RequestInit = {
+    const request: RequestLike = {
         headers: {
             accept: 'application/json',
             Authorization: `${auth.type} ${auth.accessToken}`,

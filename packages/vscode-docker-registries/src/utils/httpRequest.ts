@@ -22,15 +22,21 @@ export function getNextLinkFromHeaders(headers: Headers, baseUrl: vscode.Uri): v
     return nextLinkUri;
 }
 
+export type HeadersLike = Headers;
+
+export type RequestLike = RequestInit & {
+    headers: Record<string, string>;
+};
+
 export interface ResponseLike<T> extends Response {
-    headers: Headers;
-    ok: boolean;
+    headers: HeadersLike;
     status: number;
     statusText: string;
+    ok: boolean;
     json: () => Promise<T>;
 }
 
-export async function httpRequest<T>(url: string, request: RequestInit, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
+export async function httpRequest<T>(url: string, request: RequestLike, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
     const fetchRequest = new Request(url, request);
     const response: Response = await fetch(fetchRequest);
 
@@ -43,9 +49,9 @@ export async function httpRequest<T>(url: string, request: RequestInit, throwOnF
     return {
         ...response,
         headers: response.headers, // These are getters so we need to call them to get the values
-        ok: response.ok,
         status: response.status,
         statusText: response.statusText,
+        ok: response.ok,
         json: response.json.bind(response) as () => Promise<T>,
     };
 }
