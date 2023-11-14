@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { AuthenticationProvider } from '../../contracts/AuthenticationProvider';
 import { isBasicOAuthProvider } from '../../auth/BasicOAuthProvider';
-import { RequestLike, httpRequest } from '../../utils/httpRequest';
+import { HeadersLike, RequestLike, httpRequest } from '../../utils/httpRequest';
 import { HttpErrorResponse } from '../../utils/errors';
 
 export interface RegistryV2RequestOptions {
@@ -25,7 +25,7 @@ export interface RegistryV2Response<T> {
     statusText: string;
     succeeded: boolean;
     uri: vscode.Uri;
-    headers: Headers;
+    headers: HeadersLike;
     body: T | undefined;
 }
 
