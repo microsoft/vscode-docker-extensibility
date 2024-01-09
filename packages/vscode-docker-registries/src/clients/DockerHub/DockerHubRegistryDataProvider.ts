@@ -6,7 +6,7 @@
 import { DockerHubAuthProvider } from '../../auth/DockerHubAuthProvider';
 import { BasicCredentials, LoginInformation } from '../../contracts/BasicCredentials';
 import { isContextValueRegistryItem } from '../../contracts/RegistryItem';
-import { getNextLinkFromHeaders, httpRequest } from '../../utils/httpRequest';
+import { httpRequest } from '../../utils/httpRequest';
 import { RegistryWizard } from '../../wizard/RegistryWizard';
 import { RegistryWizardContext } from '../../wizard/RegistryWizardContext';
 import { RegistryWizardRequiredUsernamePromptStep, RegistryWizardSecretPromptStep } from '../../wizard/RegistryWizardPromptStep';
@@ -118,14 +118,16 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
             .with({ path: `v2/repositories/${registry.label}` });
 
         do {
-            const response = await httpRequest<{ results: [{ name: string; }] }>(requestUrl.toString(), {
+            const response = await httpRequest<{ next: string, results: [{ name: string; }] }>(requestUrl.toString(), {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
                 }
             });
 
-            for (const repository of (await response.json()).results) {
+            const jsonResult = await response.json();
+
+            for (const repository of jsonResult.results) {
                 results.push({
                     parent: registry,
                     label: `${repository.name}`,
@@ -134,7 +136,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 });
             }
 
-            requestUrl = getNextLinkFromHeaders(response.headers, registry.baseUrl);
+            requestUrl = jsonResult.next || undefined;
         } while (requestUrl);
 
         return results;
@@ -147,12 +149,14 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
         do {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const response = await httpRequest<{ results: [{ name: string, last_updated: string }] }>(requestUrl.toString(), {
+            const response = await httpRequest<{ next: string, results: [{ name: string, last_updated: string }] }>(requestUrl.toString(), {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
                 }
             });
+
+            const jsonResult = await response.json();
 
             for (const tag of (await response.json()).results) {
                 results.push({
@@ -164,7 +168,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 });
             }
 
-            requestUrl = getNextLinkFromHeaders(response.headers, repository.baseUrl);
+            requestUrl = jsonResult.next || undefined;
         } while (requestUrl);
 
         return results;
@@ -175,30 +179,45 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     }
 
     private async getNamespaces(): Promise<string[]> {
-        const requestUrl = DockerHubRequestUrl
+        const results: string[] = [];
+        let requestUrl = DockerHubRequestUrl
             .with({ path: `v2/repositories/namespaces` });
 
-        const response = await httpRequest<{ namespaces: string[] }>(requestUrl.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
-            }
-        });
+        do {
+            const response = await httpRequest<{ next: string, namespaces: string[] }>(requestUrl.toString(), {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+                }
+            });
 
-        return (await response.json()).namespaces || [];
+            const jsonResult = await response.json();
+
+            results.push(...jsonResult.namespaces || []);
+            requestUrl = vscode.Uri.parse(jsonResult.next);
+        } while (requestUrl);
+
+        return results;
     }
 
     private async getOrganizations(): Promise<string[]> {
-        const requestUrl = DockerHubRequestUrl
+        const results: string[] = [];
+        let requestUrl = DockerHubRequestUrl
             .with({ path: `v2/user/orgs` });
 
-        const response = await httpRequest<{ results: [{ orgname: string }] }>(requestUrl.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
-            }
-        });
+        do {
+            const response = await httpRequest<{ next: string, results: [{ orgname: string }] }>(requestUrl.toString(), {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
+                }
+            });
 
-        return (await response.json()).results.map(org => org.orgname) || [];
+            const jsonResult = await response.json();
+            results.push(...jsonResult.results.map(org => org.orgname));
+            requestUrl = vscode.Uri.parse(jsonResult.next);
+        } while (requestUrl);
+
+        return results;
     }
 }
