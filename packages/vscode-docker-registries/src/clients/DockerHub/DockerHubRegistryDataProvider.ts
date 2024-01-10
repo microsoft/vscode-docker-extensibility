@@ -28,6 +28,9 @@ export function isDockerHubRepository(item: unknown): item is CommonRepository {
     return isRepository(item) && isContextValueRegistryItem(item) && item.additionalContextValues?.includes(DockerHubContextValue) === true;
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const pageSizeQuery = new URLSearchParams({ page_size: '100' }).toString();
+
 export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public readonly id = 'vscode-docker.dockerHub';
     public readonly label = vscode.l10n.t('Docker Hub');
@@ -115,10 +118,11 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public async getRepositories(registry: CommonRegistry): Promise<CommonRepository[]> {
         const results: CommonRepository[] = [];
         let requestUrl: vscode.Uri | undefined = DockerHubRequestUrl
-            .with({ path: `v2/repositories/${registry.label}` });
+            .with({ path: `v2/repositories/${registry.label}` })
+            .with({ query: pageSizeQuery });
 
         do {
-            const response = await httpRequest<{ next: string, results: [{ name: string; }] }>(requestUrl.toString(), {
+            const response = await httpRequest<{ next: string, results: [{ name: string; }] }>(requestUrl.toString(true), {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
@@ -136,7 +140,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 });
             }
 
-            requestUrl = vscode.Uri.parse(jsonResult.next);
+            requestUrl = getNextLinkFromBody(jsonResult);
         } while (requestUrl);
 
         return results;
@@ -145,11 +149,12 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
     public async getTags(repository: CommonRepository): Promise<CommonTag[]> {
         const results: CommonTag[] = [];
         let requestUrl: vscode.Uri | undefined = DockerHubRequestUrl
-            .with({ path: `v2/repositories/${repository.parent.label}/${repository.label}/tags` });
+            .with({ path: `v2/repositories/${repository.parent.label}/${repository.label}/tags` })
+            .with({ query: pageSizeQuery });
 
         do {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const response = await httpRequest<{ next: string, results: [{ name: string, last_updated: string }] }>(requestUrl.toString(), {
+            const response = await httpRequest<{ next: string, results: [{ name: string, last_updated: string }] }>(requestUrl.toString(true), {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
@@ -168,7 +173,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 });
             }
 
-            requestUrl = vscode.Uri.parse(jsonResult.next);
+            requestUrl = getNextLinkFromBody(jsonResult);
         } while (requestUrl);
 
         return results;
@@ -180,11 +185,12 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
     private async getNamespaces(): Promise<string[]> {
         const results: string[] = [];
-        let requestUrl = DockerHubRequestUrl
-            .with({ path: `v2/repositories/namespaces` });
+        let requestUrl: vscode.Uri | undefined = DockerHubRequestUrl
+            .with({ path: `v2/repositories/namespaces` })
+            .with({ query: pageSizeQuery });
 
         do {
-            const response = await httpRequest<{ next: string, namespaces: string[] }>(requestUrl.toString(), {
+            const response = await httpRequest<{ next: string, namespaces: string[] }>(requestUrl.toString(true), {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
@@ -194,7 +200,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
             const jsonResult = await response.json();
 
             results.push(...jsonResult.namespaces || []);
-            requestUrl = vscode.Uri.parse(jsonResult.next);
+            requestUrl = getNextLinkFromBody(jsonResult);
         } while (requestUrl);
 
         return results;
@@ -202,11 +208,12 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
     private async getOrganizations(): Promise<string[]> {
         const results: string[] = [];
-        let requestUrl = DockerHubRequestUrl
-            .with({ path: `v2/user/orgs` });
+        let requestUrl: vscode.Uri | undefined = DockerHubRequestUrl
+            .with({ path: `v2/user/orgs` })
+            .with({ query: pageSizeQuery });
 
         do {
-            const response = await httpRequest<{ next: string, results: [{ orgname: string }] }>(requestUrl.toString(), {
+            const response = await httpRequest<{ next: string, results: [{ orgname: string }] }>(requestUrl.toString(true), {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${(await this.authenticationProvider.getSession([], {})).accessToken}`,
@@ -215,9 +222,13 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
             const jsonResult = await response.json();
             results.push(...jsonResult.results.map(org => org.orgname));
-            requestUrl = vscode.Uri.parse(jsonResult.next);
+            requestUrl = getNextLinkFromBody(jsonResult);
         } while (requestUrl);
 
         return results;
     }
+}
+
+function getNextLinkFromBody(body: { next: string }): vscode.Uri | undefined {
+    return body.next ? vscode.Uri.parse(body.next) : undefined;
 }
