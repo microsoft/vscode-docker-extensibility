@@ -163,7 +163,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
 
             const jsonResult = await response.json();
 
-            for (const tag of (await response.json()).results) {
+            for (const tag of jsonResult.results) {
                 results.push({
                     parent: repository,
                     label: tag.name,
