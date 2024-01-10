@@ -136,7 +136,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 });
             }
 
-            requestUrl = jsonResult.next || undefined;
+            requestUrl = vscode.Uri.parse(jsonResult.next);
         } while (requestUrl);
 
         return results;
@@ -168,7 +168,7 @@ export class DockerHubRegistryDataProvider extends CommonRegistryDataProvider {
                 });
             }
 
-            requestUrl = jsonResult.next || undefined;
+            requestUrl = vscode.Uri.parse(jsonResult.next);
         } while (requestUrl);
 
         return results;
