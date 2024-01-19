@@ -462,7 +462,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
 
     protected getRemoveImagesCommandArgs(options: RemoveImagesCommandOptions): CommandLineArgs {
         return composeArgs(
-            withArg('image', 'remove'),
+            withArg('image', 'rm'), // Docker supports both `remove` and `rm`, but Podman supports only `rm`
             withFlagArg('--force', options.force),
             withArg(...options.imageRefs),
         )();

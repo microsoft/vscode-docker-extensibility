@@ -8,6 +8,9 @@ import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { WslShellCommandRunnerFactory } from '../commandRunners/wslStream';
 import { expect } from 'chai';
 
+const testDockerfileContext = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext';
+const testDockerfile = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext/Dockerfile';
+
 describe('PodmanClient', () => {
     const client = new PodmanClient();
     const wslRunner = new WslShellCommandRunnerFactory({ strict: true });
@@ -55,10 +58,34 @@ describe('PodmanClient', () => {
     describe('#buildImage()', () => {
         it('successfully builds images end to end', async () => {
             await wslRunner.getCommandRunner()(client.buildImage({
-                path: '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext',
-                file: '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext/Dockerfile',
+                path: testDockerfileContext,
+                file: testDockerfile,
                 tags: ['test:latest']
             }));
+
+            const images = await wslRunner.getCommandRunner()(client.listImages({}));
+            const image = images.find(i => i.image.originalName === 'localhost/test:latest');
+            expect(image).to.be.ok;
+
+            // Clean up the image so as to not interfere with the prune test
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            await wslRunner.getCommandRunner()(client.removeImages({ imageRefs: [image!.id] }));
+        });
+    });
+
+    describe('#pruneImage', () => {
+        it('successfully prunes images end to end', async () => {
+            // Build an image with no tag
+            await wslRunner.getCommandRunner()(client.buildImage({
+                path: testDockerfileContext,
+                file: testDockerfile,
+            }));
+
+            // Prune images
+            const result = await wslRunner.getCommandRunner()(client.pruneImages({}));
+
+            expect(result).to.be.ok;
+            expect(result.imageRefsDeleted).to.be.an('array').with.length.greaterThan(0);
         });
     });
 
