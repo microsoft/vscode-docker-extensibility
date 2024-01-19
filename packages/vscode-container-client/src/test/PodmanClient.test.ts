@@ -185,4 +185,12 @@ describe('PodmanClient', () => {
             expect(result.containersDeleted![0]).to.equal(containerId);
         });
     });
+
+    describe('#listNetworks()', () => {
+        it('successfully lists networks end to end', async () => {
+            const networks = await wslRunner.getCommandRunner()(client.listNetworks({}));
+            expect(networks).to.be.an('array').with.length.greaterThan(0);
+            expect(networks[0].name).to.be.ok;
+        });
+    });
 });

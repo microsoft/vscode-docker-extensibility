@@ -1436,11 +1436,11 @@ export type ListNetworkItem = {
     /**
      * The ID of the network
      */
-    id: string;
+    id?: string;
     /**
      * The network driver
      */
-    driver: string;
+    driver?: string;
     /**
      * Labels assigned to the network
      */
@@ -1448,19 +1448,19 @@ export type ListNetworkItem = {
     /**
      * The network scope
      */
-    scope: string;
+    scope?: string;
     /**
      * True if IPv6 network
      */
-    ipv6: boolean;
+    ipv6?: boolean;
     /**
      * The date the network was created
      */
-    createdAt: Date;
+    createdAt?: Date;
     /**
      * True if internal network
      */
-    internal: boolean;
+    internal?: boolean;
 };
 
 type ListNetworksCommand = {

@@ -20,6 +20,8 @@ import {
     ListContainersItem,
     ListImagesCommandOptions,
     ListImagesItem,
+    ListNetworkItem,
+    ListNetworksCommandOptions,
     ListVolumeItem,
     ListVolumesCommandOptions,
     PortBinding,
@@ -41,6 +43,7 @@ import { PodmanEventRecord, isPodmanEventRecord } from './PodmanEventRecord';
 import { asIds } from '../../utils/asIds';
 import { isPodmanInspectImageRecord, normalizePodmanInspectImageRecord } from './PodmanInspectImageRecord';
 import { isPodmanInspectContainerRecord, normalizePodmanInspectContainerRecord } from './PodmanInspectContainerRecord';
+import { isPodmanListNetworkRecord } from './PodmanListNetworkRecord';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -324,6 +327,40 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                 }
 
                 results.push(normalizePodmanInspectContainerRecord(inspect));
+            }
+        } catch (err) {
+            if (strict) {
+                throw err;
+            }
+        }
+
+        return results;
+    }
+
+    //#endregion
+
+    //#region ListNetworks Command
+
+    protected override async parseListNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<ListNetworkItem[]> {
+        // Podman networks are drastically different from Docker networks in terms of what details are available
+        const results = new Array<ListNetworkItem>();
+
+        try {
+            const resultRaw = JSON.parse(output);
+
+            if (!Array.isArray(resultRaw)) {
+                throw new Error('Invalid image inspect json');
+            }
+
+            for (const network of resultRaw) {
+                if (!isPodmanListNetworkRecord(network)) {
+                    throw new Error('Invalid image inspect json');
+                }
+
+                results.push({
+                    name: network.Name,
+                    labels: network.Labels || {},
+                });
             }
         } catch (err) {
             if (strict) {
