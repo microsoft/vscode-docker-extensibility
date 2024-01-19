@@ -112,4 +112,77 @@ describe('PodmanClient', () => {
             expect(image.raw).to.be.ok;
         });
     });
+
+    describe('Containers Big End To End()', function () {
+        this.timeout(10000);
+
+        it('successfully lists containers end to end', async () => {
+
+            // Start a container detached so it stays up
+            const containerId = await wslRunner.getCommandRunner()(client.runContainer({
+                imageRef: 'alpine:latest',
+                detached: true,
+                labels: {
+                    "FOO": "BAR"
+                },
+            }));
+            expect(containerId).to.be.ok;
+
+            // Tell TypeScript that the containerId is not undefined
+            if (!containerId) {
+                expect.fail('containerId should not be undefined');
+            }
+
+            const containers = await wslRunner.getCommandRunner()(client.listContainers({}));
+            expect(containers).to.be.an('array').with.length.greaterThan(0);
+            expect(containers[0].id).to.equal(containerId);
+            expect(containers[0].image).to.be.ok;
+            expect(containers[0].createdAt).to.be.ok;
+            expect(containers[0].status).to.be.ok;
+
+            // Stop the container
+            const stopped = await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
+            expect(stopped).to.be.an('array').with.lengthOf(1);
+            expect(stopped[0]).to.equal(containerId);
+
+            // Inspect the container
+            const inspected = await wslRunner.getCommandRunner()(client.inspectContainers({ containers: [containerId] }));
+            expect(inspected).to.be.an('array').with.lengthOf(1);
+            expect(inspected[0].id).to.equal(containerId);
+            expect(inspected[0].image).to.be.ok;
+            expect(inspected[0].createdAt).to.be.ok;
+            expect(inspected[0].status).to.equal('exited');
+
+            // Remove the container
+            const removed = await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId] }));
+            expect(removed).to.be.an('array').with.lengthOf(1);
+            expect(removed[0]).to.equal(containerId);
+        });
+    });
+
+    describe('#pruneContainers()', () => {
+        it('successfully prunes containers end to end', async () => {
+            // Start a hello-world container which will immediately exit
+            const containerId = await wslRunner.getCommandRunner()(client.runContainer({
+                imageRef: 'hello-world',
+                detached: true,
+            }));
+
+            expect(containerId).to.be.ok;
+            if (!containerId) {
+                expect.fail('containerId should not be undefined');
+            }
+
+            // Stop it to make sure it's good and stopped
+            await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
+
+
+            // Prune containers
+            const result = await wslRunner.getCommandRunner()(client.pruneContainers({}));
+            expect(result).to.be.ok;
+            expect(result.containersDeleted).to.be.an('array').with.lengthOf(1);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.containersDeleted![0]).to.equal(containerId);
+        });
+    });
 });

@@ -12,6 +12,8 @@ import {
     EventStreamCommandOptions,
     IContainersClient,
     InfoItem,
+    InspectContainersCommandOptions,
+    InspectContainersItem,
     InspectImagesCommandOptions,
     InspectImagesItem,
     ListContainersCommandOptions,
@@ -21,6 +23,8 @@ import {
     ListVolumeItem,
     ListVolumesCommandOptions,
     PortBinding,
+    PruneContainersCommandOptions,
+    PruneContainersItem,
     PruneImagesCommandOptions,
     PruneImagesItem,
     VersionItem
@@ -36,6 +40,7 @@ import { CancellationError } from '../../utils/CancellationError';
 import { PodmanEventRecord, isPodmanEventRecord } from './PodmanEventRecord';
 import { asIds } from '../../utils/asIds';
 import { isPodmanInspectImageRecord, normalizePodmanInspectImageRecord } from './PodmanInspectImageRecord';
+import { isPodmanInspectContainerRecord, normalizePodmanInspectContainerRecord } from './PodmanInspectContainerRecord';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -283,6 +288,50 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         }
 
         return containers;
+    }
+
+    //#endregion
+
+    //#region PruneContainers Command
+
+    protected override parsePruneContainersCommandOutput(
+        options: PruneContainersCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<PruneContainersItem> {
+        return Promise.resolve({
+            containersDeleted: asIds(output),
+        });
+    }
+
+    //#endregion
+
+    //#region InspectContainers Command
+
+    protected override async parseInspectContainersCommandOutput(options: InspectContainersCommandOptions, output: string, strict: boolean): Promise<InspectContainersItem[]> {
+        const results = new Array<InspectContainersItem>();
+
+        try {
+            const resultRaw = JSON.parse(output);
+
+            if (!Array.isArray(resultRaw)) {
+                throw new Error('Invalid image inspect json');
+            }
+
+            for (const inspect of resultRaw) {
+                if (!isPodmanInspectContainerRecord(inspect)) {
+                    throw new Error('Invalid image inspect json');
+                }
+
+                results.push(normalizePodmanInspectContainerRecord(inspect));
+            }
+        } catch (err) {
+            if (strict) {
+                throw err;
+            }
+        }
+
+        return results;
     }
 
     //#endregion
