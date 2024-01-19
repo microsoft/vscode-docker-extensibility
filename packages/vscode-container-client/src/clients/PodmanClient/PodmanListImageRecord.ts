@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export type PodmanImageRecord = {
+export type PodmanListImageRecord = {
     Id: string;
     Names?: Array<string>;
     Size: number;
@@ -11,8 +11,8 @@ export type PodmanImageRecord = {
     Created: number;
 };
 
-export function isPodmanImageRecord(maybeImage: unknown): maybeImage is PodmanImageRecord {
-    const image = maybeImage as PodmanImageRecord;
+export function isPodmanListImageRecord(maybeImage: unknown): maybeImage is PodmanListImageRecord {
+    const image = maybeImage as PodmanListImageRecord;
 
     if (!image || typeof image !== 'object') {
         return false;
