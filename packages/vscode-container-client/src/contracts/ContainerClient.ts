@@ -93,7 +93,7 @@ export type ImageNameDefaults = {
 };
 
 export type CommonCommandOptions = {
-    shellProvider?: IShell;
+    shellProvider?: IShell; // TODO: this seems to be unused
 };
 
 // Version Command Types
