@@ -12,6 +12,8 @@ import {
     EventStreamCommandOptions,
     IContainersClient,
     InfoItem,
+    InspectImagesCommandOptions,
+    InspectImagesItem,
     ListContainersCommandOptions,
     ListContainersItem,
     ListImagesCommandOptions,
@@ -19,6 +21,8 @@ import {
     ListVolumeItem,
     ListVolumesCommandOptions,
     PortBinding,
+    PruneImagesCommandOptions,
+    PruneImagesItem,
     VersionItem
 } from '../../contracts/ContainerClient';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
@@ -30,6 +34,8 @@ import { DockerClientBase } from '../DockerClientBase/DockerClientBase';
 import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
 import { CancellationError } from '../../utils/CancellationError';
 import { PodmanEventRecord, isPodmanEventRecord } from './PodmanEventRecord';
+import { asIds } from '../../utils/asIds';
+import { isPodmanInspectImageRecord, normalizePodmanInspectImageRecord } from './PodmanInspectImageRecord';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -174,20 +180,59 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     //#endregion
 
+    //#region PruneImages Command
+
+    protected override parsePruneImagesCommandOutput(
+        options: PruneImagesCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<PruneImagesItem> {
+        return Promise.resolve({
+            imageRefsDeleted: asIds(output),
+        });
+    }
+
+    //#endregion
+
     //#region InspectImages Command
 
-    // protected override async parseInspectImagesCommandOutput(options: InspectImagesCommandOptions, output: string, strict: boolean): Promise<InspectImagesItem[]> {
-    //     const images = new Array<InspectImagesItem>();
-    //     try {
+    /**
+     * Parse the standard output from a Docker-like inspect images command and
+     * normalize the result
+     * @param options Inspect images command options
+     * @param output The standard out from a Docker-like runtime inspect images command
+     * @param strict Should strict parsing be enforced?
+     * @returns Normalized array of InspectImagesItem records
+     */
+    protected async parseInspectImagesCommandOutput(
+        options: InspectImagesCommandOptions,
+        output: string,
+        strict: boolean,
+    ): Promise<Array<InspectImagesItem>> {
+        const results = new Array<InspectImagesItem>();
 
-    //     } catch (err) {
-    //         if (strict) {
-    //             throw err;
-    //         }
-    //     }
+        try {
+            const resultRaw = JSON.parse(output);
 
-    //     return images;
-    // }
+            if (!Array.isArray(resultRaw)) {
+                throw new Error('Invalid image inspect json');
+            }
+
+            for (const inspect of resultRaw) {
+                if (!isPodmanInspectImageRecord(inspect)) {
+                    throw new Error('Invalid image inspect json');
+                }
+
+                results.push(normalizePodmanInspectImageRecord(inspect));
+            }
+        } catch (err) {
+            if (strict) {
+                throw err;
+            }
+        }
+
+        return results;
+    }
 
     //#endregion
 

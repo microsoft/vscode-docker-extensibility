@@ -71,4 +71,18 @@ describe('PodmanClient', () => {
             expect(images[0].image.originalName).to.be.ok;
         });
     });
+
+    describe('#inspectImages()', () => {
+        it('successfully inspects images end to end', async () => {
+            const images = await wslRunner.getCommandRunner()(client.listImages({}));
+            const imageInspects = await wslRunner.getCommandRunner()(client.inspectImages({ imageRefs: [images[0].id] }));
+            expect(imageInspects).to.be.an('array').with.lengthOf(1);
+
+            const image = imageInspects[0];
+            expect(image.id).to.be.ok;
+            expect(image.image.originalName).to.be.ok;
+            expect(image.createdAt).to.be.ok;
+            expect(image.raw).to.be.ok;
+        });
+    });
 });
