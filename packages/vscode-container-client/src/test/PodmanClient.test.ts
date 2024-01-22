@@ -224,6 +224,15 @@ describe('PodmanClient', () => {
 
     describe('#listVolumes()', () => {
         it('successfully lists volumes end to end', async () => {
+            // Create a volume
+            try {
+                await wslRunner.getCommandRunner()(client.createVolume({
+                    name: 'list-test-volume',
+                }));
+            } catch {
+                // No-op
+            }
+
             const volumes = await wslRunner.getCommandRunner()(client.listVolumes({}));
             expect(volumes).to.be.an('array').with.length.greaterThan(0);
             expect(volumes[0].name).to.be.ok;
@@ -233,21 +242,34 @@ describe('PodmanClient', () => {
     describe('#pruneVolumes()', () => {
         it('successfully prunes volumes end to end', async () => {
             // Create a volume
-            await wslRunner.getCommandRunner()(client.createVolume({
-                name: 'prune-test-volume',
-            }));
+            try {
+                await wslRunner.getCommandRunner()(client.createVolume({
+                    name: 'prune-test-volume',
+                }));
+            } catch {
+                // No-op
+            }
 
             // Prune volumes
             const result = await wslRunner.getCommandRunner()(client.pruneVolumes({}));
             expect(result).to.be.ok;
             expect(result.volumesDeleted).to.be.an('array').with.length.greaterThan(0);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            expect(result.volumesDeleted![0]).to.equal('prune-test-volume');
+            expect(result.volumesDeleted![0]).to.have.string('test-volume');
         });
     });
 
-    describe('#inspectNetworks()', () => {
+    describe('#inspectVolumes()', () => {
         it('successfully inspects volumes end to end', async () => {
+            // Create a volume
+            try {
+                await wslRunner.getCommandRunner()(client.createVolume({
+                    name: 'inspect-test-volume',
+                }));
+            } catch {
+                // No-op
+            }
+
             const volumes = await wslRunner.getCommandRunner()(client.listVolumes({}));
             const volumeInspects = await wslRunner.getCommandRunner()(client.inspectVolumes({ volumes: [volumes[0].name] }));
             expect(volumeInspects).to.be.an('array').with.lengthOf(1);
