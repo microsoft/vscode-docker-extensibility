@@ -1117,7 +1117,6 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withArg('volume', 'create'),
             withNamedArg('--driver', options.driver),
             withArg(options.name),
-            withDockerJsonFormatArg,
         )();
     }
 
