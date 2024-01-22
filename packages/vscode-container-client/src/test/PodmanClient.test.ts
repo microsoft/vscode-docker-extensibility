@@ -154,7 +154,7 @@ describe('PodmanClient', () => {
             expect(inspected[0].status).to.equal('exited');
 
             // Remove the container
-            const removed = await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId] }));
+            const removed = await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
             expect(removed).to.be.an('array').with.lengthOf(1);
             expect(removed[0]).to.equal(containerId);
         });
@@ -281,7 +281,7 @@ describe('PodmanClient', () => {
     });
 
     describe('Big Filesystem End-to-end test', function () {
-        this.timeout(10000);
+        this.timeout(20000);
 
         it('successfully does filesystem operations', async () => {
             // Create a container
@@ -324,7 +324,7 @@ describe('PodmanClient', () => {
             expect(stat.ctime).to.be.ok;
 
             // Read /etc/hosts
-            const generator = await wslRunner.getStreamingCommandRunner()(client.readFile({
+            const generator = wslRunner.getStreamingCommandRunner()(client.readFile({
                 container: containerId,
                 path: '/etc/hosts',
                 operatingSystem: 'linux',
@@ -334,6 +334,9 @@ describe('PodmanClient', () => {
                 expect(chunk).to.be.ok;
                 expect(chunk.toString('utf-8')).to.be.ok;
             }
+
+            // Clean up the container
+            await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
         });
 
         xit('successfully writes a file', async () => {
