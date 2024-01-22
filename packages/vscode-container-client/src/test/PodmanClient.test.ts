@@ -281,7 +281,7 @@ describe('PodmanClient', () => {
     });
 
     describe('Big Filesystem End-to-end test', function () {
-        this.timeout(20000);
+        this.timeout(10000);
 
         it('successfully does filesystem operations', async () => {
             // Create a container
@@ -336,6 +336,7 @@ describe('PodmanClient', () => {
             }
 
             // Clean up the container
+            await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
             await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
         });
 
