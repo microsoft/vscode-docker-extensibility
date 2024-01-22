@@ -279,4 +279,65 @@ describe('PodmanClient', () => {
             expect(volume.raw).to.be.ok;
         });
     });
+
+    describe('Big Filesystem End-to-end test', function () {
+        this.timeout(10000);
+
+        it('successfully does filesystem operations', async () => {
+            // Create a container
+            const containerId = await wslRunner.getCommandRunner()(client.runContainer({
+                imageRef: 'alpine:latest',
+                detached: true,
+            }));
+            expect(containerId).to.be.ok;
+            if (!containerId) {
+                expect.fail('containerId should not be undefined');
+            }
+
+            // List files in /etc
+            const files = await wslRunner.getCommandRunner()(client.listFiles({
+                path: '/etc',
+                container: containerId
+            }));
+            expect(files).to.be.an('array').with.length.greaterThan(0);
+            const file = files[0];
+            expect(file.name).to.be.ok;
+            expect(file.type).to.be.ok;
+            expect(file.size).to.be.ok;
+            expect(file.mode).to.be.ok;
+
+            // Stat /etc/hosts
+            const stat = await wslRunner.getCommandRunner()(client.statPath({
+                path: '/etc/hosts',
+                container: containerId
+            }));
+
+            expect(stat).to.be.ok;
+            if (!stat) {
+                expect.fail('stat should not be undefined');
+            }
+            expect(stat.name).to.be.ok;
+            expect(stat.type).to.be.ok;
+            expect(stat.size).to.be.ok;
+            expect(stat.mode).to.be.ok;
+            expect(stat.mtime).to.be.ok;
+            expect(stat.ctime).to.be.ok;
+
+            // Read /etc/hosts
+            const generator = await wslRunner.getStreamingCommandRunner()(client.readFile({
+                container: containerId,
+                path: '/etc/hosts',
+                operatingSystem: 'linux',
+            }));
+
+            for await (const chunk of generator) {
+                expect(chunk).to.be.ok;
+                expect(chunk.toString('utf-8')).to.be.ok;
+            }
+        });
+
+        xit('successfully writes a file', async () => {
+            // TODO
+        });
+    });
 });
