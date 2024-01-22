@@ -1142,7 +1142,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         )();
     }
 
-    protected async parseListVolumesCommandOputput(
+    protected async parseListVolumesCommandOutput(
         options: ListVolumesCommandOptions,
         output: string,
         strict: boolean,
@@ -1198,7 +1198,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         return {
             command: this.commandName,
             args: this.getListVolumesCommandArgs(options),
-            parse: (output, strict) => this.parseListVolumesCommandOputput(options, output, strict),
+            parse: (output, strict) => this.parseListVolumesCommandOutput(options, output, strict),
         };
     }
 

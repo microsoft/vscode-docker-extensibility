@@ -193,4 +193,68 @@ describe('PodmanClient', () => {
             expect(networks[0].name).to.be.ok;
         });
     });
+
+    describe('#pruneNetworks()', () => {
+        it('successfully prunes networks end to end', async () => {
+            // Create a network
+            await wslRunner.getCommandRunner()(client.createNetwork({
+                name: 'prune-test-network',
+            }));
+
+            // Prune networks
+            const result = await wslRunner.getCommandRunner()(client.pruneNetworks({}));
+            expect(result).to.be.ok;
+            expect(result.networksDeleted).to.be.an('array').with.length.greaterThan(0);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.networksDeleted![0]).to.equal('prune-test-network');
+        });
+    });
+
+    describe('#inspectNetworks()', () => {
+        it('successfully inspects networks end to end', async () => {
+            const networks = await wslRunner.getCommandRunner()(client.listNetworks({}));
+            const networkInspects = await wslRunner.getCommandRunner()(client.inspectNetworks({ networks: [networks[0].name] }));
+            expect(networkInspects).to.be.an('array').with.lengthOf(1);
+
+            const network = networkInspects[0];
+            expect(network.name).to.be.ok;
+            expect(network.raw).to.be.ok;
+        });
+    });
+
+    describe('#listVolumes()', () => {
+        it('successfully lists volumes end to end', async () => {
+            const volumes = await wslRunner.getCommandRunner()(client.listVolumes({}));
+            expect(volumes).to.be.an('array').with.length.greaterThan(0);
+            expect(volumes[0].name).to.be.ok;
+        });
+    });
+
+    describe('#pruneVolumes()', () => {
+        it('successfully prunes volumes end to end', async () => {
+            // Create a volume
+            await wslRunner.getCommandRunner()(client.createVolume({
+                name: 'prune-test-volume',
+            }));
+
+            // Prune volumes
+            const result = await wslRunner.getCommandRunner()(client.pruneVolumes({}));
+            expect(result).to.be.ok;
+            expect(result.volumesDeleted).to.be.an('array').with.length.greaterThan(0);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.volumesDeleted![0]).to.equal('prune-test-volume');
+        });
+    });
+
+    describe('#inspectNetworks()', () => {
+        it('successfully inspects volumes end to end', async () => {
+            const volumes = await wslRunner.getCommandRunner()(client.listVolumes({}));
+            const volumeInspects = await wslRunner.getCommandRunner()(client.inspectVolumes({ volumes: [volumes[0].name] }));
+            expect(volumeInspects).to.be.an('array').with.lengthOf(1);
+
+            const volume = volumeInspects[0];
+            expect(volume.name).to.be.ok;
+            expect(volume.raw).to.be.ok;
+        });
+    });
 });

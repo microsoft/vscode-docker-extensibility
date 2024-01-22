@@ -1547,43 +1547,43 @@ export type InspectNetworksItem = {
     /**
      * The ID of the network
      */
-    id: string;
+    id?: string;
     /**
      * The network driver
      */
-    driver: string;
+    driver?: string;
     /**
      * Labels assigned to the network
      */
-    labels: Labels;
+    labels?: Labels;
     /**
      * The network scope
      */
-    scope: string;
+    scope?: string;
     /**
      * The IPAM config
      */
-    ipam: NetworkIpamConfig;
+    ipam?: NetworkIpamConfig;
     /**
      * True if IPv6 network
      */
-    ipv6: boolean;
+    ipv6?: boolean;
     /**
      * True if internal network
      */
-    internal: boolean;
+    internal?: boolean;
     /**
      * True if attachable
      */
-    attachable: boolean;
+    attachable?: boolean;
     /**
      * True if ingress
      */
-    ingress: boolean;
+    ingress?: boolean;
     /**
      * The date the network was created
      */
-    createdAt: Date;
+    createdAt?: Date;
     /**
      * The raw JSON from the inspect record
      */
