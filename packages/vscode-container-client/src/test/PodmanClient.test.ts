@@ -113,7 +113,7 @@ describe('PodmanClient', () => {
         });
     });
 
-    describe('Containers Big End To End()', function () {
+    describe('Containers Big End To End', function () {
         this.timeout(10000);
 
         it('successfully lists containers end to end', async () => {
@@ -280,7 +280,7 @@ describe('PodmanClient', () => {
         });
     });
 
-    describe('Big Filesystem End-to-end test', function () {
+    describe('Filesystem Big End To End', function () {
         this.timeout(10000);
 
         it('successfully does filesystem operations', async () => {
