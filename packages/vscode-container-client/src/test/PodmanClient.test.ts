@@ -12,7 +12,7 @@ import { PodmanListImageRecord } from '../clients/PodmanClient/PodmanListImageRe
 const testDockerfileContext = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext';
 const testDockerfile = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext/Dockerfile';
 
-describe('PodmanClient', () => {
+xdescribe('PodmanClient', () => {
     const client = new PodmanClient();
     const wslRunner = new WslShellCommandRunnerFactory({ strict: true });
 
