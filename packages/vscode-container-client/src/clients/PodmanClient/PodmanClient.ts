@@ -171,9 +171,13 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
                     const createdAt = dayjs.unix(rawImage.Created).toDate();
 
+                    // Podman lists the same image multiple times depending on how many tags it has
+                    // So index the name based on how many times we've already seen this image ID
+                    const countImagesOfSameId = images.filter(i => i.id === rawImage.Id).length;
+
                     images.push({
                         id: rawImage.Id,
-                        image: parseDockerLikeImageName(rawImage.Names?.[0]),
+                        image: parseDockerLikeImageName(rawImage.Names?.[countImagesOfSameId]),
                         // labels: rawImage.Labels || {},
                         createdAt,
                         size: rawImage.Size,

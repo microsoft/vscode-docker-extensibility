@@ -7,6 +7,7 @@ import { describe, it } from 'mocha';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { WslShellCommandRunnerFactory } from '../commandRunners/wslStream';
 import { expect } from 'chai';
+import { PodmanListImageRecord } from '../clients/PodmanClient/PodmanListImageRecord';
 
 const testDockerfileContext = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext';
 const testDockerfile = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext/Dockerfile';
@@ -52,6 +53,31 @@ describe('PodmanClient', () => {
     describe('#logout()', () => {
         xit('successfully logs out end to end', async () => {
             // TODO
+        });
+    });
+
+    describe('List images with same name', () => {
+        it('correctly parses images that have the same name', async () => {
+            const image: PodmanListImageRecord = {
+                Created: 1619710180,
+                Id: "3a093384ac7f6f4f1d1b3f0b2d5b0d6c0c5c8a1e2d6f8f2a8b8a4f6c0a4c8d5f",
+                Names: [
+                    "foo",
+                    "bar"
+                ],
+                Size: 0,
+            };
+
+            const images: PodmanListImageRecord[] = [
+                image,
+                image, // Podman will have the exact same image twice if it has two tags
+            ];
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const reparsedImages = await ((client as any).parseListImagesCommandOutput({}, JSON.stringify(images), true));
+            expect(reparsedImages).to.be.an('array').with.lengthOf(2);
+            expect(reparsedImages[0].image.originalName).to.equal('foo');
+            expect(reparsedImages[1].image.originalName).to.equal('bar');
         });
     });
 
