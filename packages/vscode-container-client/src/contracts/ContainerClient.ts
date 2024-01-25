@@ -1436,11 +1436,11 @@ export type ListNetworkItem = {
     /**
      * The ID of the network
      */
-    id?: string;
+    id: string | undefined;
     /**
      * The network driver
      */
-    driver?: string;
+    driver: string | undefined;
     /**
      * Labels assigned to the network
      */
@@ -1448,19 +1448,19 @@ export type ListNetworkItem = {
     /**
      * The network scope
      */
-    scope?: string;
+    scope: string | undefined;
     /**
      * True if IPv6 network
      */
-    ipv6?: boolean;
+    ipv6: boolean | undefined;
     /**
      * The date the network was created
      */
-    createdAt?: Date;
+    createdAt: Date | undefined;
     /**
      * True if internal network
      */
-    internal?: boolean;
+    internal: boolean | undefined;
 };
 
 type ListNetworksCommand = {
@@ -1547,43 +1547,43 @@ export type InspectNetworksItem = {
     /**
      * The ID of the network
      */
-    id?: string;
+    id: string | undefined;
     /**
      * The network driver
      */
-    driver?: string;
+    driver: string | undefined;
     /**
      * Labels assigned to the network
      */
-    labels?: Labels;
+    labels: Labels;
     /**
      * The network scope
      */
-    scope?: string;
+    scope: string | undefined;
     /**
      * The IPAM config
      */
-    ipam?: NetworkIpamConfig;
+    ipam: NetworkIpamConfig | undefined;
     /**
      * True if IPv6 network
      */
-    ipv6?: boolean;
+    ipv6: boolean | undefined;
     /**
      * True if internal network
      */
-    internal?: boolean;
+    internal: boolean | undefined;
     /**
      * True if attachable
      */
-    attachable?: boolean;
+    attachable: boolean | undefined;
     /**
      * True if ingress
      */
-    ingress?: boolean;
+    ingress: boolean | undefined;
     /**
      * The date the network was created
      */
-    createdAt?: Date;
+    createdAt: Date | undefined;
     /**
      * The raw JSON from the inspect record
      */

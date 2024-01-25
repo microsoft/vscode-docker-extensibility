@@ -374,8 +374,14 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                 }
 
                 results.push({
-                    name: network.Name,
+                    name: network.name || network.Name || '',
                     labels: network.Labels || {},
+                    createdAt: network.created ? new Date(network.created) : undefined,
+                    internal: network.internal,
+                    ipv6: network.ipv6_enabled,
+                    driver: network.driver,
+                    id: network.id,
+                    scope: undefined, // Not available from Podman
                 });
             }
         } catch (err) {

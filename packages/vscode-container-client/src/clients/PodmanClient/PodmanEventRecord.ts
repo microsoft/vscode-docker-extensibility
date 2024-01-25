@@ -6,6 +6,7 @@
 import { EventAction, EventType } from "../../contracts/ContainerClient";
 
 export type PodmanEventRecord = {
+    ID?: string; // Not in v3
     Type: EventType;
     Status: EventAction;
     Name: string;
