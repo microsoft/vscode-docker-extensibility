@@ -142,23 +142,21 @@ xdescribe('PodmanClient', () => {
     describe('Containers Big End To End', function () {
         this.timeout(10000);
 
-        it('successfully lists containers end to end', async () => {
+        let containerId: string;
 
+        before(async () => {
             // Start a container detached so it stays up
-            const containerId = await wslRunner.getCommandRunner()(client.runContainer({
+            containerId = await wslRunner.getCommandRunner()(client.runContainer({
                 imageRef: 'alpine:latest',
                 detached: true,
                 labels: {
                     "FOO": "BAR"
                 },
-            }));
+            })) as string;
             expect(containerId).to.be.ok;
+        });
 
-            // Tell TypeScript that the containerId is not undefined
-            if (!containerId) {
-                expect.fail('containerId should not be undefined');
-            }
-
+        it('successfully lists containers end to end', async () => {
             const containers = await wslRunner.getCommandRunner()(client.listContainers({}));
             expect(containers).to.be.an('array').with.length.greaterThan(0);
             expect(containers[0].id).to.equal(containerId);
@@ -178,7 +176,9 @@ xdescribe('PodmanClient', () => {
             expect(inspected[0].image).to.be.ok;
             expect(inspected[0].createdAt).to.be.ok;
             expect(inspected[0].status).to.equal('exited');
+        });
 
+        after(async () => {
             // Remove the container
             const removed = await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
             expect(removed).to.be.an('array').with.lengthOf(1);
@@ -308,18 +308,18 @@ xdescribe('PodmanClient', () => {
 
     describe('Filesystem Big End To End', function () {
         this.timeout(10000);
+        let containerId: string;
 
-        it('successfully does filesystem operations', async () => {
+        before(async () => {
             // Create a container
-            const containerId = await wslRunner.getCommandRunner()(client.runContainer({
+            containerId = await wslRunner.getCommandRunner()(client.runContainer({
                 imageRef: 'alpine:latest',
                 detached: true,
-            }));
+            })) as string;
             expect(containerId).to.be.ok;
-            if (!containerId) {
-                expect.fail('containerId should not be undefined');
-            }
+        });
 
+        it('successfully does filesystem operations', async () => {
             // List files in /etc
             const files = await wslRunner.getCommandRunner()(client.listFiles({
                 path: '/etc',
@@ -360,14 +360,16 @@ xdescribe('PodmanClient', () => {
                 expect(chunk).to.be.ok;
                 expect(chunk.toString('utf-8')).to.be.ok;
             }
-
-            // Clean up the container
-            await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
-            await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
         });
 
         xit('successfully writes a file', async () => {
             // TODO
+        });
+
+        after(async () => {
+            // Clean up the container
+            await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
+            await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
         });
     });
 });
