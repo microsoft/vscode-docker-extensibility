@@ -6,7 +6,7 @@
 import * as stream from 'stream';
 import { describe, it } from 'mocha';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
-import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
+// import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory } from '../commandRunners/wslStream';
 import { expect } from 'chai';
 import { PodmanListImageRecord } from '../clients/PodmanClient/PodmanListImageRecord';
