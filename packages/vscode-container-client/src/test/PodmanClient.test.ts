@@ -6,41 +6,42 @@
 import * as stream from 'stream';
 import { describe, it } from 'mocha';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
+import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory } from '../commandRunners/wslStream';
 import { expect } from 'chai';
 import { PodmanListImageRecord } from '../clients/PodmanClient/PodmanListImageRecord';
-//import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
 
 const testDockerUsername = '';
 const testDockerPat = '';
 
+const client = new PodmanClient();
+const runner = new WslShellCommandRunnerFactory({ strict: true });
 const testDockerfileContext = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext';
 const testDockerfile = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext/Dockerfile';
-//const testDockerfileContext = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext';
-//const testDockerfile = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext\\Dockerfile';
+
+// const client = new PodmanClient();
+// const runner = new ShellStreamCommandRunnerFactory({ strict: true });
+// const testDockerfileContext = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext';
+// const testDockerfile = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext\\Dockerfile';
 
 xdescribe('PodmanClient', () => {
-    const client = new PodmanClient();
-    const wslRunner = new WslShellCommandRunnerFactory({ strict: true });
-    //const wslRunner = new ShellStreamCommandRunnerFactory({ strict: true });
-
     describe('#version()', () => {
         it('successfully parses version end to end', async () => {
-            const version = await wslRunner.getCommandRunner()(client.version({}));
+            const version = await runner.getCommandRunner()(client.version({}));
             expect(version?.client).to.be.ok;
         });
     });
 
     describe('#checkInstall()', () => {
         it('successfully checks install end to end', async () => {
-            const result = await wslRunner.getCommandRunner()(client.checkInstall({}));
+            const result = await runner.getCommandRunner()(client.checkInstall({}));
             expect(result).to.have.string('podman');
         });
     });
 
     describe('#info()', () => {
         it('successfully parses info end to end', async () => {
-            const info = await wslRunner.getCommandRunner()(client.info({}));
+            const info = await runner.getCommandRunner()(client.info({}));
             expect(info.osType).to.be.ok;
             expect(info.raw).to.be.ok;
         });
@@ -67,7 +68,7 @@ xdescribe('PodmanClient', () => {
         });
 
         it('successfully logs out end to end', async () => {
-            await wslRunner.getCommandRunner()(client.logout({ registry: 'docker.io' }));
+            await runner.getCommandRunner()(client.logout({ registry: 'docker.io' }));
         });
     });
 
@@ -98,32 +99,32 @@ xdescribe('PodmanClient', () => {
 
     describe('#buildImage()', () => {
         it('successfully builds images end to end', async () => {
-            await wslRunner.getCommandRunner()(client.buildImage({
+            await runner.getCommandRunner()(client.buildImage({
                 path: testDockerfileContext,
                 file: testDockerfile,
                 tags: ['test:latest']
             }));
 
-            const images = await wslRunner.getCommandRunner()(client.listImages({}));
+            const images = await runner.getCommandRunner()(client.listImages({}));
             const image = images.find(i => i.image.originalName === 'localhost/test:latest');
             expect(image).to.be.ok;
 
             // Clean up the image so as to not interfere with the prune test
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            await wslRunner.getCommandRunner()(client.removeImages({ imageRefs: [image!.id] }));
+            await runner.getCommandRunner()(client.removeImages({ imageRefs: [image!.id] }));
         });
     });
 
     describe('#pruneImage', () => {
         it('successfully prunes images end to end', async () => {
             // Build an image with no tag
-            await wslRunner.getCommandRunner()(client.buildImage({
+            await runner.getCommandRunner()(client.buildImage({
                 path: testDockerfileContext,
                 file: testDockerfile,
             }));
 
             // Prune images
-            const result = await wslRunner.getCommandRunner()(client.pruneImages({}));
+            const result = await runner.getCommandRunner()(client.pruneImages({}));
 
             expect(result).to.be.ok;
             expect(result.imageRefsDeleted).to.be.an('array').with.length.greaterThan(0);
@@ -132,7 +133,7 @@ xdescribe('PodmanClient', () => {
 
     describe('#listImages()', () => {
         it('successfully lists images end to end', async () => {
-            const images = await wslRunner.getCommandRunner()(client.listImages({}));
+            const images = await runner.getCommandRunner()(client.listImages({}));
             expect(images).to.be.an('array').with.length.greaterThan(0);
             expect(images[0].id).to.be.ok;
             expect(images[0].size).to.be.ok;
@@ -142,8 +143,8 @@ xdescribe('PodmanClient', () => {
 
     describe('#inspectImages()', () => {
         it('successfully inspects images end to end', async () => {
-            const images = await wslRunner.getCommandRunner()(client.listImages({}));
-            const imageInspects = await wslRunner.getCommandRunner()(client.inspectImages({ imageRefs: [images[0].id] }));
+            const images = await runner.getCommandRunner()(client.listImages({}));
+            const imageInspects = await runner.getCommandRunner()(client.inspectImages({ imageRefs: [images[0].id] }));
             expect(imageInspects).to.be.an('array').with.lengthOf(1);
 
             const image = imageInspects[0];
@@ -161,7 +162,7 @@ xdescribe('PodmanClient', () => {
 
         before(async () => {
             // Start a container detached so it stays up
-            containerId = await wslRunner.getCommandRunner()(client.runContainer({
+            containerId = await runner.getCommandRunner()(client.runContainer({
                 imageRef: 'alpine:latest',
                 detached: true,
                 labels: {
@@ -172,7 +173,7 @@ xdescribe('PodmanClient', () => {
         });
 
         it('successfully lists containers end to end', async () => {
-            const containers = await wslRunner.getCommandRunner()(client.listContainers({}));
+            const containers = await runner.getCommandRunner()(client.listContainers({}));
             expect(containers).to.be.an('array').with.length.greaterThan(0);
             expect(containers[0].id).to.equal(containerId);
             expect(containers[0].image).to.be.ok;
@@ -180,12 +181,12 @@ xdescribe('PodmanClient', () => {
             expect(containers[0].status).to.be.ok;
 
             // Stop the container
-            const stopped = await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
+            const stopped = await runner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
             expect(stopped).to.be.an('array').with.lengthOf(1);
             expect(stopped[0]).to.equal(containerId);
 
             // Inspect the container
-            const inspected = await wslRunner.getCommandRunner()(client.inspectContainers({ containers: [containerId] }));
+            const inspected = await runner.getCommandRunner()(client.inspectContainers({ containers: [containerId] }));
             expect(inspected).to.be.an('array').with.lengthOf(1);
             expect(inspected[0].id).to.equal(containerId);
             expect(inspected[0].image).to.be.ok;
@@ -195,7 +196,7 @@ xdescribe('PodmanClient', () => {
 
         after(async () => {
             // Remove the container
-            const removed = await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
+            const removed = await runner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
             expect(removed).to.be.an('array').with.lengthOf(1);
             expect(removed[0]).to.equal(containerId);
         });
@@ -204,7 +205,7 @@ xdescribe('PodmanClient', () => {
     describe('#pruneContainers()', () => {
         it('successfully prunes containers end to end', async () => {
             // Start a hello-world container which will immediately exit
-            const containerId = await wslRunner.getCommandRunner()(client.runContainer({
+            const containerId = await runner.getCommandRunner()(client.runContainer({
                 imageRef: 'hello-world',
                 detached: true,
             }));
@@ -215,11 +216,11 @@ xdescribe('PodmanClient', () => {
             }
 
             // Stop it to make sure it's good and stopped
-            await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
+            await runner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
 
 
             // Prune containers
-            const result = await wslRunner.getCommandRunner()(client.pruneContainers({}));
+            const result = await runner.getCommandRunner()(client.pruneContainers({}));
             expect(result).to.be.ok;
             expect(result.containersDeleted).to.be.an('array').with.lengthOf(1);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -229,7 +230,7 @@ xdescribe('PodmanClient', () => {
 
     describe('#listNetworks()', () => {
         it('successfully lists networks end to end', async () => {
-            const networks = await wslRunner.getCommandRunner()(client.listNetworks({}));
+            const networks = await runner.getCommandRunner()(client.listNetworks({}));
             expect(networks).to.be.an('array').with.length.greaterThan(0);
             expect(networks[0].name).to.be.ok;
         });
@@ -238,12 +239,12 @@ xdescribe('PodmanClient', () => {
     describe('#pruneNetworks()', () => {
         it('successfully prunes networks end to end', async () => {
             // Create a network
-            await wslRunner.getCommandRunner()(client.createNetwork({
+            await runner.getCommandRunner()(client.createNetwork({
                 name: 'prune-test-network',
             }));
 
             // Prune networks
-            const result = await wslRunner.getCommandRunner()(client.pruneNetworks({}));
+            const result = await runner.getCommandRunner()(client.pruneNetworks({}));
             expect(result).to.be.ok;
             expect(result.networksDeleted).to.be.an('array').with.length.greaterThan(0);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -253,8 +254,8 @@ xdescribe('PodmanClient', () => {
 
     describe('#inspectNetworks()', () => {
         it('successfully inspects networks end to end', async () => {
-            const networks = await wslRunner.getCommandRunner()(client.listNetworks({}));
-            const networkInspects = await wslRunner.getCommandRunner()(client.inspectNetworks({ networks: [networks[0].name] }));
+            const networks = await runner.getCommandRunner()(client.listNetworks({}));
+            const networkInspects = await runner.getCommandRunner()(client.inspectNetworks({ networks: [networks[0].name] }));
             expect(networkInspects).to.be.an('array').with.lengthOf(1);
 
             const network = networkInspects[0];
@@ -267,14 +268,14 @@ xdescribe('PodmanClient', () => {
         it('successfully lists volumes end to end', async () => {
             // Create a volume
             try {
-                await wslRunner.getCommandRunner()(client.createVolume({
+                await runner.getCommandRunner()(client.createVolume({
                     name: 'list-test-volume',
                 }));
             } catch {
                 // No-op
             }
 
-            const volumes = await wslRunner.getCommandRunner()(client.listVolumes({}));
+            const volumes = await runner.getCommandRunner()(client.listVolumes({}));
             expect(volumes).to.be.an('array').with.length.greaterThan(0);
             expect(volumes[0].name).to.be.ok;
         });
@@ -284,7 +285,7 @@ xdescribe('PodmanClient', () => {
         it('successfully prunes volumes end to end', async () => {
             // Create a volume
             try {
-                await wslRunner.getCommandRunner()(client.createVolume({
+                await runner.getCommandRunner()(client.createVolume({
                     name: 'prune-test-volume',
                 }));
             } catch {
@@ -292,7 +293,7 @@ xdescribe('PodmanClient', () => {
             }
 
             // Prune volumes
-            const result = await wslRunner.getCommandRunner()(client.pruneVolumes({}));
+            const result = await runner.getCommandRunner()(client.pruneVolumes({}));
             expect(result).to.be.ok;
             expect(result.volumesDeleted).to.be.an('array').with.length.greaterThan(0);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -304,15 +305,15 @@ xdescribe('PodmanClient', () => {
         it('successfully inspects volumes end to end', async () => {
             // Create a volume
             try {
-                await wslRunner.getCommandRunner()(client.createVolume({
+                await runner.getCommandRunner()(client.createVolume({
                     name: 'inspect-test-volume',
                 }));
             } catch {
                 // No-op
             }
 
-            const volumes = await wslRunner.getCommandRunner()(client.listVolumes({}));
-            const volumeInspects = await wslRunner.getCommandRunner()(client.inspectVolumes({ volumes: [volumes[0].name] }));
+            const volumes = await runner.getCommandRunner()(client.listVolumes({}));
+            const volumeInspects = await runner.getCommandRunner()(client.inspectVolumes({ volumes: [volumes[0].name] }));
             expect(volumeInspects).to.be.an('array').with.lengthOf(1);
 
             const volume = volumeInspects[0];
@@ -327,7 +328,7 @@ xdescribe('PodmanClient', () => {
 
         before(async () => {
             // Create a container
-            containerId = await wslRunner.getCommandRunner()(client.runContainer({
+            containerId = await runner.getCommandRunner()(client.runContainer({
                 imageRef: 'alpine:latest',
                 detached: true,
             })) as string;
@@ -336,7 +337,7 @@ xdescribe('PodmanClient', () => {
 
         it('successfully does filesystem operations', async () => {
             // List files in /etc
-            const files = await wslRunner.getCommandRunner()(client.listFiles({
+            const files = await runner.getCommandRunner()(client.listFiles({
                 path: '/etc',
                 container: containerId
             }));
@@ -348,7 +349,7 @@ xdescribe('PodmanClient', () => {
             expect(file.mode).to.be.ok;
 
             // Stat /etc/hosts
-            const stat = await wslRunner.getCommandRunner()(client.statPath({
+            const stat = await runner.getCommandRunner()(client.statPath({
                 path: '/etc/hosts',
                 container: containerId
             }));
@@ -365,7 +366,7 @@ xdescribe('PodmanClient', () => {
             expect(stat.ctime).to.be.ok;
 
             // Read /etc/hosts
-            const generator = wslRunner.getStreamingCommandRunner()(client.readFile({
+            const generator = runner.getStreamingCommandRunner()(client.readFile({
                 container: containerId,
                 path: '/etc/hosts',
                 operatingSystem: 'linux',
@@ -383,8 +384,8 @@ xdescribe('PodmanClient', () => {
 
         after(async () => {
             // Clean up the container
-            await wslRunner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
-            await wslRunner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
+            await runner.getCommandRunner()(client.stopContainers({ container: [containerId], time: 1 }));
+            await runner.getCommandRunner()(client.removeContainers({ containers: [containerId], force: true }));
         });
     });
 });
