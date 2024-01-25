@@ -3,18 +3,26 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as stream from 'stream';
 import { describe, it } from 'mocha';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { WslShellCommandRunnerFactory } from '../commandRunners/wslStream';
 import { expect } from 'chai';
 import { PodmanListImageRecord } from '../clients/PodmanClient/PodmanListImageRecord';
+//import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
+
+const testDockerUsername = '';
+const testDockerPat = '';
 
 const testDockerfileContext = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext';
 const testDockerfile = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext/Dockerfile';
+//const testDockerfileContext = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext';
+//const testDockerfile = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext\\Dockerfile';
 
 xdescribe('PodmanClient', () => {
     const client = new PodmanClient();
     const wslRunner = new WslShellCommandRunnerFactory({ strict: true });
+    //const wslRunner = new ShellStreamCommandRunnerFactory({ strict: true });
 
     describe('#version()', () => {
         it('successfully parses version end to end', async () => {
@@ -44,15 +52,22 @@ xdescribe('PodmanClient', () => {
         });
     });
 
-    describe('#login()', () => {
-        xit('successfully logs in end to end', async () => {
-            // TODO
-        });
-    });
+    describe('#login() and #logout()', () => {
+        it('successfully logs in end to end', async () => {
+            // Create a stream to write the PAT into
+            const stdInPipe = stream.Readable.from(testDockerPat);
+            const runner = new WslShellCommandRunnerFactory({ strict: true, stdInPipe: stdInPipe });
 
-    describe('#logout()', () => {
-        xit('successfully logs out end to end', async () => {
-            // TODO
+            // Log in
+            await runner.getCommandRunner()(client.login({
+                registry: 'docker.io',
+                username: testDockerUsername,
+                passwordStdIn: true,
+            }));
+        });
+
+        it('successfully logs out end to end', async () => {
+            await wslRunner.getCommandRunner()(client.logout({ registry: 'docker.io' }));
         });
     });
 
