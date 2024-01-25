@@ -62,6 +62,11 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     public static ClientId = 'com.microsoft.visualstudio.containers.podman';
 
     /**
+     * The default argument given to `--format`
+     */
+    public readonly defaultFormatForJson: string = "json";
+
+    /**
      * Constructs a new {@link PodmanClient}
      * @param commandName (Optional, default `podman`) The command that will be run
      * as the base command. If quoting is necessary, it is the responsibility of the

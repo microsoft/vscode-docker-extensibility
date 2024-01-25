@@ -132,6 +132,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      */
     public readonly defaultTag: string = 'latest';
 
+    /**
+     * The default argument given to `--format`
+     */
+    public readonly defaultFormatForJson: string = "{{ json . }}";
+
     //#region Information Commands
 
     protected getInfoCommandArgs(
@@ -139,7 +144,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     ): CommandLineArgs {
         return composeArgs(
             withArg('info'),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
         )();
     }
 
@@ -173,7 +178,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     protected getVersionCommandArgs(options: VersionCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('version'),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
         )();
     }
 
@@ -243,7 +248,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerLabelFilterArgs(options.labels),
             withDockerFilterArg(options.types?.map((type) => `type=${type}`)),
             withDockerFilterArg(options.events?.map((event) => `event=${event}`)),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
         )();
     }
 
@@ -391,7 +396,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerFilterArg(options.references?.map((reference) => `reference=${reference}`)),
             withDockerLabelFilterArgs(options.labels),
             withDockerNoTruncArg,
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
         )();
     }
 
@@ -602,7 +607,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     ): CommandLineArgs {
         return composeArgs(
             withArg('image', 'inspect'),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
             withArg(...options.imageRefs),
         )();
     }
@@ -770,7 +775,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerFilterArg(options.volumes?.map((volume) => `volume=${volume}`)),
             withDockerFilterArg(options.networks?.map((network) => `network=${network}`)),
             withDockerNoTruncArg,
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
             withDockerIgnoreSizeArg,
         )();
     }
@@ -1046,7 +1051,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     ): CommandLineArgs {
         return composeArgs(
             withArg('container', 'inspect'),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
             withArg(...options.containers)
         )();
     }
@@ -1137,7 +1142,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerBooleanFilterArg('dangling', options.dangling),
             withDockerFilterArg(options.driver ? `driver=${options.driver}` : undefined),
             withDockerLabelFilterArgs(options.labels),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
         )();
     }
 
@@ -1291,7 +1296,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     ): CommandLineArgs {
         return composeArgs(
             withArg('volume', 'inspect'),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
             withArg(...options.volumes),
         )();
     }
@@ -1374,7 +1379,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withArg('network', 'ls'),
             withDockerLabelFilterArgs(options.labels),
             withDockerNoTruncArg,
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
         )();
     }
 
@@ -1494,7 +1499,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     ): CommandLineArgs {
         return composeArgs(
             withArg('network', 'inspect'),
-            withDockerJsonFormatArg,
+            withDockerJsonFormatArg(this.defaultFormatForJson),
             withArg(...options.networks),
         )();
     }
