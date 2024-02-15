@@ -3,27 +3,33 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from 'path';
 import * as stream from 'stream';
 import { describe, it } from 'mocha';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
-// import { ShellStreamCommandRunnerFactory } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory } from '../commandRunners/wslStream';
 import { expect } from 'chai';
 import { PodmanListImageRecord } from '../clients/PodmanClient/PodmanListImageRecord';
+import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
+import { wslifyPath } from '../utils/wslifyPath';
 
-const testDockerUsername = '';
-const testDockerPat = '';
+const testDockerUsername = ''; // Supply a value for this to run the login/logout tests
+const testDockerPat = ''; // Supply a value for this to run the login/logout tests
+const executeInWsl = true; // Change this to false to run the tests on the host machine
 
 const client = new PodmanClient();
-const runner = new WslShellCommandRunnerFactory({ strict: true });
-const testDockerfileContext = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext';
-const testDockerfile = '/mnt/d/vscode-docker-extensibility/packages/vscode-container-client/src/test/buildContext/Dockerfile';
+let runner: ShellStreamCommandRunnerFactory<ShellStreamCommandRunnerOptions> | WslShellCommandRunnerFactory;
+let testDockerfileContext: string = path.resolve(__dirname, 'buildContext');
+let testDockerfile: string = path.resolve(testDockerfileContext, 'Dockerfile');
+if (executeInWsl) {
+    runner = new WslShellCommandRunnerFactory({ strict: true });
+    testDockerfileContext = wslifyPath(testDockerfileContext);
+    testDockerfile = wslifyPath(testDockerfile);
+} else {
+    runner = new ShellStreamCommandRunnerFactory({ strict: true });
+}
 
-// const client = new PodmanClient();
-// const runner = new ShellStreamCommandRunnerFactory({ strict: true });
-// const testDockerfileContext = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext';
-// const testDockerfile = 'D:\\vscode-docker-extensibility\\packages\\vscode-container-client\\src\\test\\buildContext\\Dockerfile';
-
+// Remove the x in `xdescribe` to run PodmanClient tests
 xdescribe('PodmanClient', () => {
     describe('#version()', () => {
         it('successfully parses version end to end', async () => {
@@ -54,7 +60,11 @@ xdescribe('PodmanClient', () => {
     });
 
     describe('#login() and #logout()', () => {
-        it('successfully logs in end to end', async () => {
+        it('successfully logs in end to end', async function () {
+            if (!testDockerUsername || !testDockerPat) {
+                this.skip();
+            }
+
             // Create a stream to write the PAT into
             const stdInPipe = stream.Readable.from(testDockerPat);
             const runner = new WslShellCommandRunnerFactory({ strict: true, stdInPipe: stdInPipe });
@@ -67,7 +77,11 @@ xdescribe('PodmanClient', () => {
             }));
         });
 
-        it('successfully logs out end to end', async () => {
+        it('successfully logs out end to end', async function () {
+            if (!testDockerUsername || !testDockerPat) {
+                this.skip();
+            }
+
             await runner.getCommandRunner()(client.logout({ registry: 'docker.io' }));
         });
     });
