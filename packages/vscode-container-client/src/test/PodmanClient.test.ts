@@ -13,6 +13,8 @@ import { PodmanListImageRecord } from '../clients/PodmanClient/PodmanListImageRe
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { wslifyPath } from '../utils/wslifyPath';
 
+// To run tests, remove the `x` in `xdescribe('PodmanClient', () => {` on line below
+
 const testDockerUsername = ''; // Supply a value for this to run the login/logout tests
 const testDockerPat = ''; // Supply a value for this to run the login/logout tests
 const executeInWsl = true; // Change this to false to run the tests on the host machine
