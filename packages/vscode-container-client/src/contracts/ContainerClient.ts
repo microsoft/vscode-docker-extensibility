@@ -5,7 +5,6 @@
 
 import type { FileType, ShellQuotedString } from 'vscode';
 import { GeneratorCommandResponse, PromiseCommandResponse, VoidCommandResponse } from './CommandRunner';
-import { IShell } from './Shell';
 
 export type ContainerOS = "linux" | "windows";
 
@@ -92,9 +91,7 @@ export type ImageNameDefaults = {
     readonly defaultTag: string;
 };
 
-export type CommonCommandOptions = {
-    shellProvider?: IShell; // TODO: this seems to be unused
-};
+export type CommonCommandOptions = Record<string, unknown>;
 
 // Version Command Types
 
