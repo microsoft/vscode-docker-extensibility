@@ -31,6 +31,7 @@ export function parseListFilesCommandLinuxOutput(
     for (const match of output.matchAll(regex)) {
         /* eslint-disable @typescript-eslint/no-non-null-assertion */
         const name = path.basename(match.groups!.name);
+
         const { mode, fileType } = parseLinuxType(match.groups!.type);
         const size = Number.parseInt(match.groups!.size, 10);
         const mtime = dayjs.unix(Number.parseInt(match.groups!.mtime, 10)).valueOf();
