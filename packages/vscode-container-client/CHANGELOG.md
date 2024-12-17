@@ -1,7 +1,7 @@
 ## 0.1.2 - 1 August 2024
 ### Fixed
 * Listing files fails due to new Bash behavior. [#231](https://github.com/microsoft/vscode-docker-extensibility/issues/231)
-* Unable to inspect builtin networks. [#202](https://github.com/microsoft/vscode-docker-extensibility/issues/228)
+* Unable to inspect built-in networks. [#202](https://github.com/microsoft/vscode-docker-extensibility/issues/228)
 
 ## 0.1.1 - 18 October 2023
 ### Added
