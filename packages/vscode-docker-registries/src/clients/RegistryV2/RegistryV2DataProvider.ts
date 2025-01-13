@@ -37,7 +37,6 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 authenticationProvider: this.getAuthenticationProvider(registry),
                 method: 'GET',
                 requestUri: nextLink,
-                query: Object.fromEntries(new URLSearchParams(nextLink.query)),
                 scopes: ['registry:catalog:*'],
             });
 
@@ -162,7 +161,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             requestUri: requestUrl,
             scopes: [`repository:${item.parent.label}:pull`],
             headers: {
-                'accept': 'application/vnd.docker.distribution.manifest.v2+json'
+                'accept': 'application/vnd.docker.distribution.manifest.v2+json,application/vnd.oci.image.index.v1+json'
             }
         });
     }

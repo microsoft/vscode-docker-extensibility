@@ -98,11 +98,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
             const catalogResponse = await registryV2Request<{ repositories: string[] }>({
                 authenticationProvider: this.authenticationProvider,
                 method: 'GET',
-                requestUri: requestUrl,
-                query: {
-                    n: '100',
-                    last: nextSearchString
-                },
+                requestUri: requestUrl.with({ query: new URLSearchParams({ n: '100', last: nextSearchString }).toString() }),
                 scopes: ['registry:catalog:*'],
                 throwOnFailure: true,
             });
@@ -118,7 +114,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
                 results.push({
                     parent: registry,
                     baseUrl: registry.baseUrl,
-                    label: repository,
+                    label: repository.toLowerCase(), // GHCR in particular allows uppercase letters in repository names which is not actually valid. Need to throw them all to lowercase. See https://github.com/microsoft/vscode-docker/issues/4419
                     type: 'commonrepository',
                 });
             }
@@ -175,7 +171,7 @@ export class GitHubRegistryDataProvider extends RegistryV2DataProvider {
         });
 
         for (const org of await response.json()) {
-            results.push(org.login);
+            results.push(org.login.toLowerCase()); // GHCR allows uppercase letters in organization names which leads to invalid repository names. Need to throw them all to lowercase. See https://github.com/microsoft/vscode-docker/issues/4419
         }
 
         return results;

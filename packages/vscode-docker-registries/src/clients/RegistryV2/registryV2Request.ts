@@ -12,7 +12,6 @@ import { HttpErrorResponse } from '../../utils/errors';
 export interface RegistryV2RequestOptions {
     method: 'GET' | 'POST' | 'PUT' | 'DELETE';
     requestUri: vscode.Uri;
-    query?: Record<string, string>;
     scopes: string[];
     headers?: Record<string, string>;
     throwOnFailure?: boolean;
@@ -45,27 +44,24 @@ export async function registryV2Request<T>(options: RegistryV2RequestOptions): P
 }
 
 async function registryV2RequestInternal<T>(options: RegistryV2RequestOptions): Promise<RegistryV2Response<T>> {
-    const query = new URLSearchParams(options.query);
-    const uri = options.requestUri.with({ query: query.toString() });
-
     const auth = await options.authenticationProvider.getSession(options.scopes, options.sessionOptions);
 
     const request: RequestLike = {
         headers: {
-            accept: 'application/json',
+            accept: 'application/json,application/vnd.oci.image.index.v1+json',
             Authorization: `${auth.type} ${auth.accessToken}`,
             ...options.headers
         },
         method: options.method,
     };
 
-    const response = await httpRequest(uri.toString(true), request, options.throwOnFailure);
+    const response = await httpRequest(options.requestUri.toString(true), request, options.throwOnFailure);
 
     return {
         status: response.status,
         statusText: response.statusText,
         succeeded: response.succeeded,
-        uri: uri,
+        uri: options.requestUri,
         headers: response.headers,
         body: response.succeeded && (parseInt(response.headers.get('content-length') ?? '0') || response.headers.get('transfer-encoding') === 'chunked') ? await response.json() as T : undefined,
     };
