@@ -10,7 +10,8 @@ export type PodmanEventRecord = {
     Type: EventType;
     Status: EventAction;
     Name: string;
-    Time: string;
+    Time?: string; // Not in v5
+    time?: number; // Not in v3, v4
     Attributes?: Record<string, unknown>;
 };
 
@@ -33,7 +34,7 @@ export function isPodmanEventRecord(maybeEvent: unknown): maybeEvent is PodmanEv
         return false;
     }
 
-    if (typeof event.Time !== 'string') {
+    if (typeof event.Time !== 'string' && typeof event.time !== 'number') {
         return false;
     }
 

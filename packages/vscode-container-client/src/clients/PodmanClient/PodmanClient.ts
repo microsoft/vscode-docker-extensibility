@@ -149,7 +149,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                     type: item.Type,
                     action: item.Status,
                     actor: { id: item.Name, attributes: item.Attributes || {} },
-                    timestamp: new Date(item.Time),
+                    timestamp: new Date(item.time || item.Time || ''),
                     raw: JSON.stringify(line),
                 };
             } catch (err) {
