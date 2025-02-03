@@ -277,7 +277,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                     const ports: PortBinding[] = (rawContainer.Ports || []).map(p => {
                         return {
                             containerPort: p.container_port,
-                            hostIp: p.host_ip,
+                            hostIp: p.host_ip || "127.0.0.1",
                             hostPort: p.host_port,
                             protocol: p.protocol,
                         };
