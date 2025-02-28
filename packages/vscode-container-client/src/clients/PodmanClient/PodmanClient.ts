@@ -40,7 +40,6 @@ import {
 import { asIds } from '../../utils/asIds';
 import { CancellationError } from '../../utils/CancellationError';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
-import { zParseJson } from '../../utils/zParseJson';
 import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
 import { DockerClientBase } from '../DockerClientBase/DockerClientBase';
 import { PodmanEventRecordSchema } from './PodmanEventRecord';
@@ -93,7 +92,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     //#region Version Command
 
     protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
-        const version = zParseJson(output, PodmanVersionRecordSchema);
+        const version = PodmanVersionRecordSchema.parseJson(output);
 
         return {
             client: version.Client.APIVersion,
@@ -137,7 +136,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
             try {
                 // Parse a line at a time
-                const item = zParseJson(line, PodmanEventRecordSchema);
+                const item = PodmanEventRecordSchema.parseJson(line);
 
                 // Yield the parsed data
                 yield {

@@ -87,7 +87,6 @@ import {
 import { dayjs } from '../../utils/dayjs';
 import { byteStreamToGenerator, stringStreamToGenerator } from '../../utils/streamToGenerator';
 import { toArray } from '../../utils/toArray';
-import { zParseJson } from '../../utils/zParseJson';
 import { ConfigurableClient } from '../ConfigurableClient';
 import { DockerEventRecordSchema } from './DockerEventRecord';
 import { DockerInfoRecordSchema } from './DockerInfoRecord';
@@ -150,7 +149,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     }
 
     protected async parseInfoCommandOutput(output: string, strict: boolean): Promise<InfoItem> {
-        const info = zParseJson(output, DockerInfoRecordSchema);
+        const info = DockerInfoRecordSchema.parseJson(output);
 
         return {
             operatingSystem: info.OperatingSystem,
@@ -186,7 +185,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @returns
      */
     protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
-        const version = zParseJson(output, DockerVersionRecordSchema);
+        const version = DockerVersionRecordSchema.parseJson(output);
 
         return {
             client: version.Client.ApiVersion,
@@ -266,7 +265,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
 
             try {
                 // Parse a line at a time
-                const item = zParseJson(line, DockerEventRecordSchema);
+                const item = DockerEventRecordSchema.parseJson(line);
 
                 // Yield the parsed data
                 yield {
@@ -414,7 +413,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawImage = zParseJson(imageJson, DockerListImageRecordSchema);
+                    const rawImage = DockerListImageRecordSchema.parseJson(imageJson);
                     images.push(normalizeDockerListImageRecord(rawImage));
                 } catch (err) {
                     if (strict) {
@@ -616,7 +615,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = zParseJson(inspectString, DockerInspectImageRecordSchema);
+                    const inspect = DockerInspectImageRecordSchema.parseJson(inspectString);
                     return [...images, normalizeDockerInspectImageRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
@@ -772,7 +771,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawContainer = zParseJson(containerJson, DockerListContainerRecordSchema);
+                    const rawContainer = DockerListContainerRecordSchema.parseJson(containerJson);
                     containers.push(normalizeDockerListContainerRecord(rawContainer, strict));
                 } catch (err) {
                     if (strict) {
@@ -1049,7 +1048,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = zParseJson(inspectString, DockerInspectContainerRecordSchema);
+                    const inspect = DockerInspectContainerRecordSchema.parseJson(inspectString);
                     return [...containers, normalizeDockerInspectContainerRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
@@ -1128,7 +1127,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawVolume = zParseJson(volumeJson, DockerVolumeRecordSchema);
+                    const rawVolume = DockerVolumeRecordSchema.parseJson(volumeJson);
 
                     // Parse the labels assigned to the volumes and normalize to key value pairs
                     const labels = parseDockerLikeLabels(rawVolume.Labels);
@@ -1278,7 +1277,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = zParseJson(inspectString, DockerInspectVolumeRecordSchema);
+                    const inspect = DockerInspectVolumeRecordSchema.parseJson(inspectString);
                     return [...volumes, normalizeDockerInspectVolumeRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
@@ -1356,7 +1355,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawNetwork = zParseJson(networkJson, DockerListNetworkRecordSchema);
+                    const rawNetwork = DockerListNetworkRecordSchema.parseJson(networkJson);
                     networks.push(normalizeDockerListNetworkRecord(rawNetwork));
                 } catch (err) {
                     if (strict) {
@@ -1471,7 +1470,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = zParseJson(inspectString, DockerInspectNetworkRecordSchema);
+                    const inspect = DockerInspectNetworkRecordSchema.parseJson(inspectString);
                     return [...networks, normalizeDockerInspectNetworkRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
