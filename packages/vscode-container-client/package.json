@@ -49,8 +49,7 @@
         ],
         "require": [
             "ts-node/register",
-            "./src/test/tsconfig-paths-bootstrap.js",
-            "./src/utils/zodExtensions.ts"
+            "./src/test/tsconfig-paths-bootstrap.js"
         ],
         "spec": [
             "src/test/**/*.test.ts"

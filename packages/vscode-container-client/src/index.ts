@@ -3,9 +3,6 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// Import the zodExtensions module to ensure the patch is applied
-import './utils/zodExtensions';
-
 export * from './clients/DockerClient/DockerClient';
 export * from './clients/DockerComposeClient/DockerComposeClient';
 export * from './clients/PodmanClient/PodmanClient';

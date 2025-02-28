@@ -22,3 +22,5 @@ z.ZodObject.prototype.parseJson = function (jsonString: string) {
     const parsed = JSON.parse(jsonString);
     return this.parse(parsed);
 };
+
+export { z };

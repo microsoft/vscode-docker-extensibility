@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
 import { ImageNameInfo, InspectImagesItem, PortBinding } from "../../contracts/ContainerClient";
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from "../../utils/parseDockerLikeImageName";
 import { toArray } from "../../utils/toArray";
+import { z } from '../../utils/zod';
 import { parseDockerLikeEnvironmentVariables } from "./parseDockerLikeEnvironmentVariables";
 
 const DockerInspectImageConfigSchema = z.object({

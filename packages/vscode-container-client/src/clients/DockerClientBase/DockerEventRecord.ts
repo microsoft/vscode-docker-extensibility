@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
 import { EventActionSchema, EventTypeSchema } from '../../contracts/ZodEnums';
+import { z } from '../../utils/zod';
 
 export const DockerEventRecordSchema = z.object({
     Type: EventTypeSchema,

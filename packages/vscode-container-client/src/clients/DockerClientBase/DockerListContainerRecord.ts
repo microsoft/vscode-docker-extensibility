@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
 import { ListContainersItem, PortBinding } from "../../contracts/ContainerClient";
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from "../../utils/parseDockerLikeImageName";
+import { z } from '../../utils/zod';
 import { parseDockerLikeLabels } from "./parseDockerLikeLabels";
 import { parseDockerRawPortString } from "./parseDockerRawPortString";
 
