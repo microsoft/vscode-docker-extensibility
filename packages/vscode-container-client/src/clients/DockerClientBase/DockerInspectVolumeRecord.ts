@@ -3,23 +3,21 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { z } from 'zod';
 import { InspectVolumesItem } from '../../contracts/ContainerClient';
 import { dayjs } from '../../utils/dayjs';
 
-export type DockerInspectVolumeRecord = {
-    Name: string;
-    Driver: string;
-    Mountpoint: string;
-    Scope: string;
-    Labels: Record<string, string>;
-    Options: Record<string, unknown>;
-    CreatedAt: string;
-};
+export const DockerInspectVolumeRecordSchema = z.object({
+    Name: z.string(),
+    Driver: z.string(),
+    Mountpoint: z.string(),
+    Scope: z.string(),
+    Labels: z.record(z.string()),
+    Options: z.record(z.unknown()),
+    CreatedAt: z.string(),
+});
 
-// TODO: Actually test properties
-export function isDockerInspectVolumeRecord(maybeVolume: unknown): maybeVolume is DockerInspectVolumeRecord {
-    return true;
-}
+type DockerInspectVolumeRecord = z.infer<typeof DockerInspectVolumeRecordSchema>;
 
 export function normalizeDockerInspectVolumeRecord(volume: DockerInspectVolumeRecord): InspectVolumesItem {
     const createdAt = dayjs.utc(volume.CreatedAt);
