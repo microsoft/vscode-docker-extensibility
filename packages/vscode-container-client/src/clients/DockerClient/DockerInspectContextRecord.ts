@@ -11,5 +11,3 @@ export const DockerInspectContextRecordSchema = z.object({
         Description: z.string().optional(),
     }).optional(),
 });
-
-export type DockerInspectContextRecord = z.infer<typeof DockerInspectContextRecordSchema>;

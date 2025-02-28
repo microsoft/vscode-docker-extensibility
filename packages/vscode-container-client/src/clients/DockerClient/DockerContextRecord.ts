@@ -11,5 +11,3 @@ export const DockerContextRecordSchema = z.object({
     Description: z.string().optional(),
     DockerEndpoint: z.string().optional(),
 });
-
-export type DockerContextRecord = z.infer<typeof DockerContextRecordSchema>;
