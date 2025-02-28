@@ -7,6 +7,7 @@ import { PromiseCommandResponse, VoidCommandResponse } from "../../contracts/Com
 import { IContainersClient, InspectContextsCommandOptions, InspectContextsItem, ListContextItem, ListContextsCommandOptions, RemoveContextsCommandOptions, UseContextCommandOptions } from "../../contracts/ContainerClient";
 import { asIds } from "../../utils/asIds";
 import { CommandLineArgs, composeArgs, withArg } from "../../utils/commandLineBuilder";
+import { zParseJson } from "../../utils/zParseJson";
 import { DockerClientBase } from "../DockerClientBase/DockerClientBase";
 import { withDockerJsonFormatArg } from "../DockerClientBase/withDockerJsonFormatArg";
 import { DockerContextRecordSchema } from "./DockerContextRecord";
@@ -67,7 +68,7 @@ export class DockerClient extends DockerClientBase implements IContainersClient 
                         return;
                     }
 
-                    const rawContext = DockerContextRecordSchema.parse(JSON.parse(contextJson));
+                    const rawContext = zParseJson(contextJson, DockerContextRecordSchema);
 
                     contexts.push({
                         name: rawContext.Name,
@@ -166,7 +167,7 @@ export class DockerClient extends DockerClientBase implements IContainersClient 
                 }
 
                 try {
-                    const inspect = DockerInspectContextRecordSchema.parse(JSON.parse(inspectString));
+                    const inspect = zParseJson(inspectString, DockerInspectContextRecordSchema);
 
                     // Return the normalized InspectVolumesItem record
                     const volume: InspectContextsItem = {
