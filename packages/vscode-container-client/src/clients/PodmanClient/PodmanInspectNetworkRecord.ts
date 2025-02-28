@@ -3,36 +3,21 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { InspectNetworksItem } from "../../contracts/ContainerClient";
+import { z } from 'zod';
+import { InspectNetworksItem } from '../../contracts/ContainerClient';
 
-export type PodmanInspectNetworkRecord = {
-    id?: string; // Not in v3
-    driver?: string; // Not in v3
-    created?: string; // Not in v3
+export const PodmanInspectNetworkRecordSchema = z.object({
+    id: z.string().optional(), // Not in v3
+    driver: z.string().optional(), // Not in v3
+    created: z.string().optional(), // Not in v3
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    ipv6_enabled?: boolean; // Not in v3
-    internal?: boolean; // Not in v3
-    name: string;
-    labels?: Record<string, string>;
-};
+    ipv6_enabled: z.boolean().optional(), // Not in v3
+    internal: z.boolean().optional(), // Not in v3
+    name: z.string(),
+    labels: z.record(z.string()).optional(),
+});
 
-export function isPodmanInspectNetworkRecord(maybeNetwork: unknown): maybeNetwork is PodmanInspectNetworkRecord {
-    const network = maybeNetwork as PodmanInspectNetworkRecord;
-
-    if (!network || typeof network !== 'object') {
-        return false;
-    }
-
-    if (typeof network.name !== 'string') {
-        return false;
-    }
-
-    if (network.labels && typeof network.labels !== 'object') {
-        return false;
-    }
-
-    return true;
-}
+type PodmanInspectNetworkRecord = z.infer<typeof PodmanInspectNetworkRecordSchema>;
 
 export function normalizePodmanInspectNetworkRecord(network: PodmanInspectNetworkRecord): InspectNetworksItem {
     return {

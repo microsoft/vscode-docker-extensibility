@@ -3,55 +3,20 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { InspectVolumesItem } from "../../contracts/ContainerClient";
+import { z } from 'zod';
+import { InspectVolumesItem } from '../../contracts/ContainerClient';
 
-export type PodmanInspectVolumeRecord = {
-    Name: string;
-    Driver: string;
-    Mountpoint: string;
-    CreatedAt: string;
-    Labels?: Record<string, string>;
-    Scope: string;
-    Options?: Record<string, unknown>;
-};
+export const PodmanInspectVolumeRecordSchema = z.object({
+    Name: z.string(),
+    Driver: z.string(),
+    Mountpoint: z.string(),
+    CreatedAt: z.string(),
+    Labels: z.record(z.string()).optional(),
+    Scope: z.string(),
+    Options: z.record(z.unknown()).optional(),
+});
 
-export function isPodmanInspectVolumeRecord(maybeVolume: unknown): maybeVolume is PodmanInspectVolumeRecord {
-    const volume = maybeVolume as PodmanInspectVolumeRecord;
-
-    if (!volume || typeof volume !== 'object') {
-        return false;
-    }
-
-    if (typeof volume.Name !== 'string') {
-        return false;
-    }
-
-    if (typeof volume.Driver !== 'string') {
-        return false;
-    }
-
-    if (typeof volume.Mountpoint !== 'string') {
-        return false;
-    }
-
-    if (typeof volume.CreatedAt !== 'string') {
-        return false;
-    }
-
-    if (volume.Labels && typeof volume.Labels !== 'object') {
-        return false;
-    }
-
-    if (typeof volume.Scope !== 'string') {
-        return false;
-    }
-
-    if (volume.Options && typeof volume.Options !== 'object') {
-        return false;
-    }
-
-    return true;
-}
+type PodmanInspectVolumeRecord = z.infer<typeof PodmanInspectVolumeRecordSchema>;
 
 export function normalizePodmanInspectVolumeRecord(volume: PodmanInspectVolumeRecord): InspectVolumesItem {
     return {

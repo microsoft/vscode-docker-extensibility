@@ -37,20 +37,20 @@ import {
     PruneVolumesItem,
     VersionItem
 } from '../../contracts/ContainerClient';
-import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
-import { isPodmanListContainerRecord } from './PodmanListContainerRecord';
-import { isPodmanListImageRecord } from './PodmanListImageRecord';
-import { isPodmanVersionRecord } from './PodmanVersionRecord';
-import { DockerClientBase } from '../DockerClientBase/DockerClientBase';
-import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
-import { CancellationError } from '../../utils/CancellationError';
-import { PodmanEventRecord, isPodmanEventRecord } from './PodmanEventRecord';
 import { asIds } from '../../utils/asIds';
-import { isPodmanInspectImageRecord, normalizePodmanInspectImageRecord } from './PodmanInspectImageRecord';
-import { isPodmanInspectContainerRecord, normalizePodmanInspectContainerRecord } from './PodmanInspectContainerRecord';
-import { isPodmanListNetworkRecord } from './PodmanListNetworkRecord';
-import { isPodmanInspectNetworkRecord, normalizePodmanInspectNetworkRecord } from './PodmanInspectNetworkRecord';
-import { isPodmanInspectVolumeRecord, normalizePodmanInspectVolumeRecord } from './PodmanInspectVolumeRecord';
+import { CancellationError } from '../../utils/CancellationError';
+import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
+import { CancellationTokenLike } from '../../typings/CancellationTokenLike';
+import { DockerClientBase } from '../DockerClientBase/DockerClientBase';
+import { PodmanEventRecordSchema } from './PodmanEventRecord';
+import { PodmanInspectContainerRecordSchema, normalizePodmanInspectContainerRecord } from './PodmanInspectContainerRecord';
+import { PodmanInspectImageRecordSchema, normalizePodmanInspectImageRecord } from './PodmanInspectImageRecord';
+import { PodmanInspectNetworkRecordSchema, normalizePodmanInspectNetworkRecord } from './PodmanInspectNetworkRecord';
+import { PodmanInspectVolumeRecordSchema, normalizePodmanInspectVolumeRecord } from './PodmanInspectVolumeRecord';
+import { PodmanListContainerRecord, PodmanListContainerRecordSchema } from './PodmanListContainerRecord';
+import { PodmanListImageRecord, PodmanListImageRecordSchema } from './PodmanListImageRecord';
+import { PodmanListNetworkRecordSchema } from './PodmanListNetworkRecord';
+import { PodmanVersionRecordSchema } from './PodmanVersionRecord';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -92,10 +92,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     //#region Version Command
 
     protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
-        const version = JSON.parse(output);
-        if (!isPodmanVersionRecord(version)) {
-            throw new Error('Invalid version JSON');
-        }
+        const version = PodmanVersionRecordSchema.parse(output);
 
         return {
             client: version.Client.APIVersion,
@@ -139,10 +136,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
             try {
                 // Parse a line at a time
-                const item: PodmanEventRecord = JSON.parse(line);
-                if (!isPodmanEventRecord(item)) {
-                    throw new Error('Invalid event JSON');
-                }
+                const item = PodmanEventRecordSchema.parse(line);
 
                 // Yield the parsed data
                 yield {
@@ -166,14 +160,11 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     protected override async parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
         const images = new Array<ListImagesItem>();
-        try {
-            const rawImages = JSON.parse(output);
-            rawImages.forEach((rawImage: unknown) => {
-                try {
-                    if (!isPodmanListImageRecord(rawImage)) {
-                        throw new Error('Invalid image JSON');
-                    }
 
+        try {
+            const rawImages = PodmanListImageRecordSchema.array().parse(output);
+            rawImages.forEach((rawImage: PodmanListImageRecord) => {
+                try {
                     const createdAt = dayjs.unix(rawImage.Created).toDate();
 
                     // Podman lists the same image multiple times depending on how many tags it has
@@ -236,17 +227,9 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectImagesItem>();
 
         try {
-            const resultRaw = JSON.parse(output);
-
-            if (!Array.isArray(resultRaw)) {
-                throw new Error('Invalid image inspect json');
-            }
+            const resultRaw = PodmanInspectImageRecordSchema.array().parse(output);
 
             for (const inspect of resultRaw) {
-                if (!isPodmanInspectImageRecord(inspect)) {
-                    throw new Error('Invalid image inspect json');
-                }
-
                 results.push(normalizePodmanInspectImageRecord(inspect));
             }
         } catch (err) {
@@ -264,14 +247,11 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     protected override async parseListContainersCommandOutput(options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
         const containers = new Array<ListContainersItem>();
-        try {
-            const rawContainers = JSON.parse(output);
-            rawContainers.forEach((rawContainer: unknown) => {
-                try {
-                    if (!isPodmanListContainerRecord(rawContainer)) {
-                        throw new Error('Invalid container JSON');
-                    }
 
+        try {
+            const rawContainers = PodmanListContainerRecordSchema.array().parse(output);
+            rawContainers.forEach((rawContainer: PodmanListContainerRecord) => {
+                try {
                     const name = rawContainer.Names?.[0].trim();
                     const createdAt = dayjs.unix(rawContainer.Created).toDate();
                     const ports: PortBinding[] = (rawContainer.Ports || []).map(p => {
@@ -331,17 +311,9 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectContainersItem>();
 
         try {
-            const resultRaw = JSON.parse(output);
-
-            if (!Array.isArray(resultRaw)) {
-                throw new Error('Invalid container inspect json');
-            }
+            const resultRaw = PodmanInspectContainerRecordSchema.array().parse(output);
 
             for (const inspect of resultRaw) {
-                if (!isPodmanInspectContainerRecord(inspect)) {
-                    throw new Error('Invalid container inspect json');
-                }
-
                 results.push(normalizePodmanInspectContainerRecord(inspect));
             }
         } catch (err) {
@@ -358,21 +330,13 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     //#region ListNetworks Command
 
     protected override async parseListNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<ListNetworkItem[]> {
-        // Podman networks are drastically different from Docker networks in terms of what details are available
+        // Podman networks are drastically different from Docker networks in terms of what details are available, especially Podman v3
         const results = new Array<ListNetworkItem>();
 
         try {
-            const resultRaw = JSON.parse(output);
-
-            if (!Array.isArray(resultRaw)) {
-                throw new Error('Invalid network json');
-            }
+            const resultRaw = PodmanListNetworkRecordSchema.array().parse(output);
 
             for (const network of resultRaw) {
-                if (!isPodmanListNetworkRecord(network)) {
-                    throw new Error('Invalid network json');
-                }
-
                 results.push({
                     name: network.name || network.Name || '',
                     labels: network.Labels || {},
@@ -412,21 +376,13 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     //#region InspectNetworks Command
 
     protected override async parseInspectNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<InspectNetworksItem[]> {
-        // Podman networks are drastically different from Docker networks in terms of what details are available
+        // Podman networks are drastically different from Docker networks in terms of what details are available, especially Podman v3
         const results = new Array<InspectNetworksItem>();
 
         try {
-            const resultRaw = JSON.parse(output);
-
-            if (!Array.isArray(resultRaw)) {
-                throw new Error('Invalid network inspect json');
-            }
+            const resultRaw = PodmanInspectNetworkRecordSchema.array().parse(output);
 
             for (const network of resultRaw) {
-                if (!isPodmanInspectNetworkRecord(network)) {
-                    throw new Error('Invalid network inspect json');
-                }
-
                 results.push(normalizePodmanInspectNetworkRecord(network));
             }
         } catch (err) {
@@ -469,17 +425,9 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectVolumesItem>();
 
         try {
-            const resultRaw = JSON.parse(output);
-
-            if (!Array.isArray(resultRaw)) {
-                throw new Error('Invalid volume json');
-            }
+            const resultRaw = PodmanInspectVolumeRecordSchema.array().parse(output);
 
             for (const volume of resultRaw) {
-                if (!isPodmanInspectVolumeRecord(volume)) {
-                    throw new Error('Invalid volume json');
-                }
-
                 results.push(normalizePodmanInspectVolumeRecord(volume));
             }
         } catch (err) {
