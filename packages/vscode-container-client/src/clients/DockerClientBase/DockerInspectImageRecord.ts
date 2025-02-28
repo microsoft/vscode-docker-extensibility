@@ -34,7 +34,7 @@ export const DockerInspectImageRecordSchema = z.object({
 
 type DockerInspectImageRecord = z.infer<typeof DockerInspectImageRecordSchema>;
 
-export function normalizeDockerInspectImageRecord(image: DockerInspectImageRecord): InspectImagesItem {
+export function normalizeDockerInspectImageRecord(image: DockerInspectImageRecord, raw: string): InspectImagesItem {
     // This is effectively doing firstOrDefault on the RepoTags for the image. If there are any values
     // in RepoTags, the first one will be parsed and returned as the tag name for the image.
     const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(image.RepoTags?.[0]);
@@ -89,6 +89,6 @@ export function normalizeDockerInspectImageRecord(image: DockerInspectImageRecor
         operatingSystem: os,
         createdAt: dayjs(image.Created).toDate(),
         user: image.Config?.User || undefined,
-        raw: JSON.stringify(image),
+        raw,
     };
 }

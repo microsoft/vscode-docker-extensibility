@@ -33,7 +33,7 @@ export const DockerInspectNetworkRecordSchema = z.object({
 
 type DockerInspectNetworkRecord = z.infer<typeof DockerInspectNetworkRecordSchema>;
 
-export function normalizeDockerInspectNetworkRecord(network: DockerInspectNetworkRecord): InspectNetworksItem {
+export function normalizeDockerInspectNetworkRecord(network: DockerInspectNetworkRecord, raw: string): InspectNetworksItem {
     const ipam: NetworkIpamConfig = {
         driver: network.IPAM.Driver,
         config: network.IPAM.Config?.map(({ Subnet, Gateway }) => ({
@@ -57,6 +57,6 @@ export function normalizeDockerInspectNetworkRecord(network: DockerInspectNetwor
         attachable: network.Attachable,
         ingress: network.Ingress,
         createdAt,
-        raw: JSON.stringify(network),
+        raw,
     };
 }

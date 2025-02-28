@@ -149,7 +149,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     }
 
     protected async parseInfoCommandOutput(output: string, strict: boolean): Promise<InfoItem> {
-        const info = DockerInfoRecordSchema.parse(output);
+        const info = DockerInfoRecordSchema.parse(JSON.parse(output));
 
         return {
             operatingSystem: info.OperatingSystem,
@@ -185,7 +185,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @returns
      */
     protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
-        const version = DockerVersionRecordSchema.parse(output);
+        const version = DockerVersionRecordSchema.parse(JSON.parse(output));
 
         return {
             client: version.Client.ApiVersion,
@@ -265,7 +265,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
 
             try {
                 // Parse a line at a time
-                const item = DockerEventRecordSchema.parse(line);
+                const item = DockerEventRecordSchema.parse(JSON.parse(line));
 
                 // Yield the parsed data
                 yield {
@@ -273,7 +273,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                     action: item.Action,
                     actor: { id: item.Actor.ID, attributes: item.Actor.Attributes },
                     timestamp: new Date(item.time),
-                    raw: JSON.stringify(line),
+                    raw: line,
                 };
             } catch (err) {
                 if (strict) {
@@ -413,7 +413,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawImage = DockerListImageRecordSchema.parse(imageJson);
+                    const rawImage = DockerListImageRecordSchema.parse(JSON.parse(imageJson));
                     images.push(normalizeDockerListImageRecord(rawImage));
                 } catch (err) {
                     if (strict) {
@@ -615,8 +615,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = DockerInspectImageRecordSchema.parse(inspectString);
-                    return [...images, normalizeDockerInspectImageRecord(inspect)];
+                    const inspect = DockerInspectImageRecordSchema.parse(JSON.parse(inspectString));
+                    return [...images, normalizeDockerInspectImageRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -771,7 +771,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawContainer = DockerListContainerRecordSchema.parse(containerJson);
+                    const rawContainer = DockerListContainerRecordSchema.parse(JSON.parse(containerJson));
                     containers.push(normalizeDockerListContainerRecord(rawContainer, strict));
                 } catch (err) {
                     if (strict) {
@@ -1048,8 +1048,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = DockerInspectContainerRecordSchema.parse(inspectString);
-                    return [...containers, normalizeDockerInspectContainerRecord(inspect)];
+                    const inspect = DockerInspectContainerRecordSchema.parse(JSON.parse(inspectString));
+                    return [...containers, normalizeDockerInspectContainerRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -1127,7 +1127,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawVolume = DockerVolumeRecordSchema.parse(volumeJson);
+                    const rawVolume = DockerVolumeRecordSchema.parse(JSON.parse(volumeJson));
 
                     // Parse the labels assigned to the volumes and normalize to key value pairs
                     const labels = parseDockerLikeLabels(rawVolume.Labels);
@@ -1277,8 +1277,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = DockerInspectVolumeRecordSchema.parse(inspectString);
-                    return [...volumes, normalizeDockerInspectVolumeRecord(inspect)];
+                    const inspect = DockerInspectVolumeRecordSchema.parse(JSON.parse(inspectString));
+                    return [...volumes, normalizeDockerInspectVolumeRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -1355,7 +1355,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                         return;
                     }
 
-                    const rawNetwork = DockerListNetworkRecordSchema.parse(networkJson);
+                    const rawNetwork = DockerListNetworkRecordSchema.parse(JSON.parse(networkJson));
                     networks.push(normalizeDockerListNetworkRecord(rawNetwork));
                 } catch (err) {
                     if (strict) {
@@ -1470,8 +1470,8 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
                 }
 
                 try {
-                    const inspect = DockerInspectNetworkRecordSchema.parse(inspectString);
-                    return [...networks, normalizeDockerInspectNetworkRecord(inspect)];
+                    const inspect = DockerInspectNetworkRecordSchema.parse(JSON.parse(inspectString));
+                    return [...networks, normalizeDockerInspectNetworkRecord(inspect, inspectString)];
                 } catch (err) {
                     if (strict) {
                         throw err;

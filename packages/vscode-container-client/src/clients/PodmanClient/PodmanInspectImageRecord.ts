@@ -34,7 +34,7 @@ export const PodmanInspectImageRecordSchema = z.object({
 
 type PodmanInspectImageRecord = z.infer<typeof PodmanInspectImageRecordSchema>;
 
-export function normalizePodmanInspectImageRecord(image: PodmanInspectImageRecord): InspectImagesItem {
+export function normalizePodmanInspectImageRecord(image: PodmanInspectImageRecord, raw: string): InspectImagesItem {
     // This is effectively doing firstOrDefault on the RepoTags for the image. If there are any values
     // in RepoTags, the first one will be parsed and returned as the tag name for the image.
     const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(image.RepoTags?.[0]);
@@ -89,6 +89,6 @@ export function normalizePodmanInspectImageRecord(image: PodmanInspectImageRecor
         operatingSystem: os,
         createdAt: dayjs(image.Created).toDate(),
         user: image?.User || undefined,
-        raw: JSON.stringify(image),
+        raw,
     };
 }

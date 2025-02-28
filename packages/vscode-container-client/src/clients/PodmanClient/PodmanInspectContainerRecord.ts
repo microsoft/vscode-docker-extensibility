@@ -82,7 +82,7 @@ export const PodmanInspectContainerRecordSchema = z.object({
 
 type PodmanInspectContainerRecord = z.infer<typeof PodmanInspectContainerRecordSchema>;
 
-export function normalizePodmanInspectContainerRecord(container: PodmanInspectContainerRecord): InspectContainersItem {
+export function normalizePodmanInspectContainerRecord(container: PodmanInspectContainerRecord, raw: string): InspectContainersItem {
     // Parse the environment variables assigned to the container at runtime
     const environmentVariables = parseDockerLikeEnvironmentVariables(container.Config?.Env || []);
 
@@ -169,6 +169,6 @@ export function normalizePodmanInspectContainerRecord(container: PodmanInspectCo
         finishedAt: finishedAt && (finishedAt.isSame(createdAt) || finishedAt.isAfter(createdAt))
             ? finishedAt.toDate()
             : undefined,
-        raw: JSON.stringify(container),
+        raw,
     };
 }

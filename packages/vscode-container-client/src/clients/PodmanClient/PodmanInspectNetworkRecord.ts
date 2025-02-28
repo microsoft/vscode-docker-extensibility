@@ -19,7 +19,7 @@ export const PodmanInspectNetworkRecordSchema = z.object({
 
 type PodmanInspectNetworkRecord = z.infer<typeof PodmanInspectNetworkRecordSchema>;
 
-export function normalizePodmanInspectNetworkRecord(network: PodmanInspectNetworkRecord): InspectNetworksItem {
+export function normalizePodmanInspectNetworkRecord(network: PodmanInspectNetworkRecord, raw: string): InspectNetworksItem {
     return {
         name: network.name,
         id: network.id,
@@ -32,6 +32,6 @@ export function normalizePodmanInspectNetworkRecord(network: PodmanInspectNetwor
         attachable: undefined,
         ingress: undefined,
         ipam: undefined,
-        raw: JSON.stringify(network),
+        raw,
     };
 }

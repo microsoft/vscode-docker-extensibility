@@ -83,7 +83,7 @@ export const DockerInspectContainerRecordSchema = z.object({
 });
 type DockerInspectContainerRecord = z.infer<typeof DockerInspectContainerRecordSchema>;
 
-export function normalizeDockerInspectContainerRecord(container: DockerInspectContainerRecord): InspectContainersItem {
+export function normalizeDockerInspectContainerRecord(container: DockerInspectContainerRecord, raw: string): InspectContainersItem {
     // Parse the environment variables assigned to the container at runtime
     const environmentVariables = parseDockerLikeEnvironmentVariables(container.Config?.Env || []);
 
@@ -170,6 +170,6 @@ export function normalizeDockerInspectContainerRecord(container: DockerInspectCo
         finishedAt: finishedAt && (finishedAt.isSame(createdAt) || finishedAt.isAfter(createdAt))
             ? finishedAt.toDate()
             : undefined,
-        raw: JSON.stringify(container),
+        raw,
     };
 }

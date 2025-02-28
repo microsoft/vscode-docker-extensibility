@@ -19,7 +19,7 @@ export const DockerInspectVolumeRecordSchema = z.object({
 
 type DockerInspectVolumeRecord = z.infer<typeof DockerInspectVolumeRecordSchema>;
 
-export function normalizeDockerInspectVolumeRecord(volume: DockerInspectVolumeRecord): InspectVolumesItem {
+export function normalizeDockerInspectVolumeRecord(volume: DockerInspectVolumeRecord, raw: string): InspectVolumesItem {
     const createdAt = dayjs.utc(volume.CreatedAt);
 
     // Return the normalized InspectVolumesItem record
@@ -31,6 +31,6 @@ export function normalizeDockerInspectVolumeRecord(volume: DockerInspectVolumeRe
         labels: volume.Labels,
         options: volume.Options,
         createdAt: createdAt.toDate(),
-        raw: JSON.stringify(volume),
+        raw,
     };
 }

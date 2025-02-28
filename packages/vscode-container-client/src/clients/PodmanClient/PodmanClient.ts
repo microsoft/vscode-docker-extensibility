@@ -92,7 +92,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     //#region Version Command
 
     protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
-        const version = PodmanVersionRecordSchema.parse(output);
+        const version = PodmanVersionRecordSchema.parse(JSON.parse(output));
 
         return {
             client: version.Client.APIVersion,
@@ -136,7 +136,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
             try {
                 // Parse a line at a time
-                const item = PodmanEventRecordSchema.parse(line);
+                const item = PodmanEventRecordSchema.parse(JSON.parse(line));
 
                 // Yield the parsed data
                 yield {
@@ -144,7 +144,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                     action: item.Status,
                     actor: { id: item.Name, attributes: item.Attributes || {} },
                     timestamp: new Date(item.time || item.Time || ''),
-                    raw: JSON.stringify(line),
+                    raw: line,
                 };
             } catch (err) {
                 if (strict) {
@@ -227,10 +227,10 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectImagesItem>();
 
         try {
-            const resultRaw = PodmanInspectImageRecordSchema.array().parse(output);
+            const resultRaw = PodmanInspectImageRecordSchema.array().parse(JSON.parse(output));
 
             for (const inspect of resultRaw) {
-                results.push(normalizePodmanInspectImageRecord(inspect));
+                results.push(normalizePodmanInspectImageRecord(inspect, output));
             }
         } catch (err) {
             if (strict) {
@@ -249,7 +249,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const containers = new Array<ListContainersItem>();
 
         try {
-            const rawContainers = PodmanListContainerRecordSchema.array().parse(output);
+            const rawContainers = PodmanListContainerRecordSchema.array().parse(JSON.parse(output));
             rawContainers.forEach((rawContainer: PodmanListContainerRecord) => {
                 try {
                     const name = rawContainer.Names?.[0].trim();
@@ -311,10 +311,10 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectContainersItem>();
 
         try {
-            const resultRaw = PodmanInspectContainerRecordSchema.array().parse(output);
+            const resultRaw = PodmanInspectContainerRecordSchema.array().parse(JSON.parse(output));
 
             for (const inspect of resultRaw) {
-                results.push(normalizePodmanInspectContainerRecord(inspect));
+                results.push(normalizePodmanInspectContainerRecord(inspect, output));
             }
         } catch (err) {
             if (strict) {
@@ -334,7 +334,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<ListNetworkItem>();
 
         try {
-            const resultRaw = PodmanListNetworkRecordSchema.array().parse(output);
+            const resultRaw = PodmanListNetworkRecordSchema.array().parse(JSON.parse(output));
 
             for (const network of resultRaw) {
                 results.push({
@@ -380,10 +380,10 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectNetworksItem>();
 
         try {
-            const resultRaw = PodmanInspectNetworkRecordSchema.array().parse(output);
+            const resultRaw = PodmanInspectNetworkRecordSchema.array().parse(JSON.parse(output));
 
             for (const network of resultRaw) {
-                results.push(normalizePodmanInspectNetworkRecord(network));
+                results.push(normalizePodmanInspectNetworkRecord(network, output));
             }
         } catch (err) {
             if (strict) {
@@ -425,10 +425,10 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectVolumesItem>();
 
         try {
-            const resultRaw = PodmanInspectVolumeRecordSchema.array().parse(output);
+            const resultRaw = PodmanInspectVolumeRecordSchema.array().parse(JSON.parse(output));
 
             for (const volume of resultRaw) {
-                results.push(normalizePodmanInspectVolumeRecord(volume));
+                results.push(normalizePodmanInspectVolumeRecord(volume, output));
             }
         } catch (err) {
             if (strict) {

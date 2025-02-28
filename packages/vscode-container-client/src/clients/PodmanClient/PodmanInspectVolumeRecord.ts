@@ -18,7 +18,7 @@ export const PodmanInspectVolumeRecordSchema = z.object({
 
 type PodmanInspectVolumeRecord = z.infer<typeof PodmanInspectVolumeRecordSchema>;
 
-export function normalizePodmanInspectVolumeRecord(volume: PodmanInspectVolumeRecord): InspectVolumesItem {
+export function normalizePodmanInspectVolumeRecord(volume: PodmanInspectVolumeRecord, raw: string): InspectVolumesItem {
     return {
         name: volume.Name,
         driver: volume.Driver,
@@ -27,6 +27,6 @@ export function normalizePodmanInspectVolumeRecord(volume: PodmanInspectVolumeRe
         labels: volume.Labels || {},
         scope: volume.Scope,
         options: volume.Options || {},
-        raw: JSON.stringify(volume),
+        raw,
     };
 }
