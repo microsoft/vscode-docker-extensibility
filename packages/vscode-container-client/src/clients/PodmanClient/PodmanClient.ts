@@ -3,9 +3,6 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dayjs from 'dayjs';
-import * as customParseFormat from 'dayjs/plugin/customParseFormat';
-import * as utc from 'dayjs/plugin/utc';
 import * as readline from 'readline';
 import {
     EventItem,
@@ -37,6 +34,7 @@ import {
     PruneVolumesItem,
     VersionItem
 } from '../../contracts/ContainerClient';
+import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { isPodmanListContainerRecord } from './PodmanListContainerRecord';
 import { isPodmanListImageRecord } from './PodmanListImageRecord';
@@ -51,9 +49,6 @@ import { isPodmanInspectContainerRecord, normalizePodmanInspectContainerRecord }
 import { isPodmanListNetworkRecord } from './PodmanListNetworkRecord';
 import { isPodmanInspectNetworkRecord, normalizePodmanInspectNetworkRecord } from './PodmanInspectNetworkRecord';
 import { isPodmanInspectVolumeRecord, normalizePodmanInspectVolumeRecord } from './PodmanInspectVolumeRecord';
-
-dayjs.extend(customParseFormat);
-dayjs.extend(utc);
 
 export class PodmanClient extends DockerClientBase implements IContainersClient {
     /**
