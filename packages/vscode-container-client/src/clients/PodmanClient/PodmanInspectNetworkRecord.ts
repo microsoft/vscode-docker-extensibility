@@ -14,7 +14,7 @@ export const PodmanInspectNetworkRecordSchema = z.object({
     ipv6_enabled: z.boolean().optional(), // Not in v3
     internal: z.boolean().optional(), // Not in v3
     name: z.string(),
-    labels: z.record(z.string()).optional(),
+    labels: z.record(z.string()).optional().nullable(),
 });
 
 type PodmanInspectNetworkRecord = z.infer<typeof PodmanInspectNetworkRecordSchema>;
