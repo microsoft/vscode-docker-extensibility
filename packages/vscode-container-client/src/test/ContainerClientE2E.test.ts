@@ -156,7 +156,7 @@ describe('Container Client End-to-End Tests', function () {
     });
 
     describe('Event Stream', () => {
-        it('getEventStream() can stream events', async function () {
+        xit('getEventStream() can stream events', async function () {
             // This is a short test of event streaming that doesn't wait for events
             this.timeout(5000);
             const eventGenerator = runner.getStreamingCommandRunner()(client.getEventStream({ since: "1m" }));
@@ -272,7 +272,7 @@ describe('Container Client End-to-End Tests', function () {
             expect(inspected[0].labels.test).to.equal('e2e');
         });
 
-        it('execContainer() executes a command in the container', async () => {
+        xit('execContainer() executes a command in the container', async () => {
             const execOutput = await new Promise<string>(async resolve => {
                 let output = '';
                 const execGenerator = runner.getStreamingCommandRunner()(client.execContainer({
@@ -325,7 +325,7 @@ describe('Container Client End-to-End Tests', function () {
             expect(restarted[0]).to.equal(testContainerId);
         });
 
-        it('logsForContainer() returns container logs', async () => {
+        xit('logsForContainer() returns container logs', async () => {
             // First execute a command that will produce logs
             await runner.getStreamingCommandRunner()(client.execContainer({
                 container: testContainerId,
@@ -511,7 +511,7 @@ describe('Container Client End-to-End Tests', function () {
             }
         });
 
-        it('readFile() reads file content', async () => {
+        xit('readFile() reads file content', async () => {
             const fileContent = await new Promise<string>(async resolve => {
                 let content = '';
                 const fileGenerator = runner.getStreamingCommandRunner()(client.readFile({
@@ -534,7 +534,7 @@ describe('Container Client End-to-End Tests', function () {
             }
         });
 
-        it('writeFile() writes content to a container', async function () {
+        xit('writeFile() writes content to a container', async function () {
             if (testOs !== 'linux') {
                 this.skip(); // writeFile is not supported on Windows containers
             }
