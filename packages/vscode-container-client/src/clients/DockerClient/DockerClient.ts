@@ -67,7 +67,7 @@ export class DockerClient extends DockerClientBase implements IContainersClient 
                         return;
                     }
 
-                    const rawContext = DockerContextRecordSchema.parseJson(contextJson);
+                    const rawContext = DockerContextRecordSchema.parse(JSON.parse(contextJson));
 
                     contexts.push({
                         name: rawContext.Name,
@@ -166,7 +166,7 @@ export class DockerClient extends DockerClientBase implements IContainersClient 
                 }
 
                 try {
-                    const inspect = DockerInspectContextRecordSchema.parseJson(inspectString);
+                    const inspect = DockerInspectContextRecordSchema.parse(JSON.parse(inspectString));
 
                     // Return the normalized InspectVolumesItem record
                     const volume: InspectContextsItem = {

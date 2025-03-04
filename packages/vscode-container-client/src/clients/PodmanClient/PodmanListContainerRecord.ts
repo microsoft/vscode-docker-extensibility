@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from '../../utils/zod';
+import { z } from 'zod';
 
 const PodmanPortBindingSchema = z.object({
     /* eslint-disable @typescript-eslint/naming-convention */

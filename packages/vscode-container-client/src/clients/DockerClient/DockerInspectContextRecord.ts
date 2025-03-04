@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from '../../utils/zod';
+import { z } from 'zod';
 
 export const DockerInspectContextRecordSchema = z.object({
     Name: z.string(),

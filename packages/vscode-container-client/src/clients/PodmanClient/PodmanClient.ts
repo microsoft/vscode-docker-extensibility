@@ -87,7 +87,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     //#region Version Command
 
     protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
-        const version = PodmanVersionRecordSchema.parseJson(output);
+        const version = PodmanVersionRecordSchema.parse(JSON.parse(output));
 
         return {
             client: version.Client.APIVersion,
@@ -131,7 +131,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
             try {
                 // Parse a line at a time
-                const item = PodmanEventRecordSchema.parseJson(line);
+                const item = PodmanEventRecordSchema.parse(JSON.parse(line));
 
                 // Yield the parsed data
                 yield {
@@ -157,7 +157,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const images = new Array<ListImagesItem>();
 
         try {
-            const rawImages = PodmanListImageRecordSchema.array().parseJson(output);
+            const rawImages = PodmanListImageRecordSchema.array().parse(JSON.parse(output));
             rawImages.forEach((rawImage: PodmanListImageRecord) => {
                 try {
                     const createdAt = dayjs.unix(rawImage.Created).toDate();
@@ -222,7 +222,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectImagesItem>();
 
         try {
-            const resultRaw = PodmanInspectImageRecordSchema.array().parseJson(output);
+            const resultRaw = PodmanInspectImageRecordSchema.array().parse(JSON.parse(output));
 
             for (const inspect of resultRaw) {
                 results.push(normalizePodmanInspectImageRecord(inspect, output));
@@ -244,7 +244,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const containers = new Array<ListContainersItem>();
 
         try {
-            const rawContainers = PodmanListContainerRecordSchema.array().parseJson(output);
+            const rawContainers = PodmanListContainerRecordSchema.array().parse(JSON.parse(output));
             rawContainers.forEach((rawContainer: PodmanListContainerRecord) => {
                 try {
                     const name = rawContainer.Names?.[0].trim();
@@ -306,7 +306,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectContainersItem>();
 
         try {
-            const resultRaw = PodmanInspectContainerRecordSchema.array().parseJson(output);
+            const resultRaw = PodmanInspectContainerRecordSchema.array().parse(JSON.parse(output));
 
             for (const inspect of resultRaw) {
                 results.push(normalizePodmanInspectContainerRecord(inspect, output));
@@ -329,7 +329,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<ListNetworkItem>();
 
         try {
-            const resultRaw = PodmanListNetworkRecordSchema.array().parseJson(output);
+            const resultRaw = PodmanListNetworkRecordSchema.array().parse(JSON.parse(output));
 
             for (const network of resultRaw) {
                 results.push({
@@ -375,7 +375,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectNetworksItem>();
 
         try {
-            const resultRaw = PodmanInspectNetworkRecordSchema.array().parseJson(output);
+            const resultRaw = PodmanInspectNetworkRecordSchema.array().parse(JSON.parse(output));
 
             for (const network of resultRaw) {
                 results.push(normalizePodmanInspectNetworkRecord(network, output));
@@ -420,7 +420,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         const results = new Array<InspectVolumesItem>();
 
         try {
-            const resultRaw = PodmanInspectVolumeRecordSchema.array().parseJson(output);
+            const resultRaw = PodmanInspectVolumeRecordSchema.array().parse(JSON.parse(output));
 
             for (const volume of resultRaw) {
                 results.push(normalizePodmanInspectVolumeRecord(volume, output));

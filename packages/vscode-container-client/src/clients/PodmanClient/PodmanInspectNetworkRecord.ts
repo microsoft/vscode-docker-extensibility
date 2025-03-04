@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { z } from 'zod';
 import { InspectNetworksItem } from '../../contracts/ContainerClient';
-import { z } from '../../utils/zod';
 
 export const PodmanInspectNetworkRecordSchema = z.object({
     id: z.string().optional(), // Not in v3

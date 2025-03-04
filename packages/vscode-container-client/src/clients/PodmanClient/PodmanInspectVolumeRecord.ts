@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { z } from 'zod';
 import { InspectVolumesItem } from '../../contracts/ContainerClient';
-import { z } from '../../utils/zod';
 
 export const PodmanInspectVolumeRecordSchema = z.object({
     Name: z.string(),
