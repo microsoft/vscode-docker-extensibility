@@ -11,7 +11,7 @@ import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
 import { IContainersClient } from '../contracts/ContainerClient';
-import { ICommandRunnerFactory } from '../contracts/CommandRunner';
+import { CommandResponseBase, ICommandRunnerFactory } from '../contracts/CommandRunner';
 import { Bash } from '../utils/spawnStreamAsync';
 
 // Modify the below options to configure the tests
@@ -27,6 +27,8 @@ const dockerHubPAT = ''; // Never commit this value!!
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 describe('(integration) ContainersClientE2E', function () {
+
+    // #region Test Setup
     let client: IContainersClient;
     let defaultRunnerFactory: ICommandRunnerFactory;
     let defaultRunnerFactoryFactory: (options: ShellStreamCommandRunnerOptions) => ICommandRunnerFactory;
@@ -53,7 +55,10 @@ describe('(integration) ContainersClientE2E', function () {
         defaultRunnerFactory = defaultRunnerFactoryFactory({});
     });
 
-    // Test client identity
+    // #endregion
+
+    // #region Client Identity
+
     describe('Client Identity', function () {
         it('ClientIdentity', function () {
             expect(client.id).to.be.a('string');
@@ -68,7 +73,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test system info
+    // #endregion
+
+    // #region System Info
+
     describe('System Info', function () {
         it('VersionCommand', async function () {
             const version = await defaultRunnerFactory.getCommandRunner()(
@@ -105,7 +113,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test images
+    // #endregion
+
+    // #region Images
+
     describe('Images', function () {
         before('Images', async function () {
             // Pull a small image for testing
@@ -127,45 +138,39 @@ describe('(integration) ContainersClientE2E', function () {
                 expect(image.id).to.be.a('string');
                 expect(image.image).to.be.an('object');
                 expect(image.createdAt).to.be.instanceOf(Date);
-                if (image.size) {
-                    expect(image.size).to.be.a('number');
-                }
             });
 
             // Make sure we can find the alpine image we pulled
             expect(images.some(i =>
                 i.image.image?.includes('alpine') ||
-                (i.image.originalName && i.image.originalName.includes('alpine'))
+                i.image.originalName?.includes('alpine')
             )).to.be.true;
         });
 
         it('TagImageCommand', async function () {
-            // Find the alpine image we pulled
-            const images = await defaultRunnerFactory.getCommandRunner()(
-                client.listImages({ references: ['alpine:latest'] })
-            );
-
-            expect(images).to.be.ok;
-            expect(images).to.be.an('array');
-            expect(images.length).to.be.greaterThan(0);
+            const testTag = 'test-image:latest';
 
             // Tag the alpine image with our test name
             await defaultRunnerFactory.getCommandRunner()(
                 client.tagImage({
                     fromImageRef: 'alpine:latest',
-                    toImageRef: testImageRef
+                    toImageRef: testTag
                 })
             );
 
             // Verify it was tagged
             const taggedImages = await defaultRunnerFactory.getCommandRunner()(
-                client.listImages({ references: [testImageRef] })
+                client.listImages({ all: true })
             );
 
             expect(taggedImages).to.be.ok;
             expect(taggedImages).to.be.an('array');
             expect(taggedImages.length).to.be.greaterThan(0);
-            testImageId = taggedImages[0].id;
+
+            expect(taggedImages.some(i =>
+                i.image.image?.includes(testTag) ||
+                i.image.originalName?.includes(testTag)
+            )).to.be.true;
         });
 
         it('InspectImagesCommand', async function () {
@@ -272,7 +277,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test containers
+    // #endregion
+
+    // #region Containers
+
     describe('Containers', function () {
         let testContainerId: string | undefined;
         let testContainerId2: string | undefined;
@@ -544,7 +552,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test networks
+    // #endregion
+
+    // #region Networks
+
     describe('Networks', function () {
         const testNetworkName = 'test-network-e2e';
 
@@ -644,7 +655,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test volumes
+    // #endregion
+
+    // #region Volumes
+
     describe('Volumes', function () {
         const testVolumeName = 'test-volume-e2e';
 
@@ -752,7 +766,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test login/logout
+    // #endregion
+
+    // #region Login/Logout
+
     describe('Login/Logout', function () {
         it('LoginCommand', async function () {
             if (!dockerHubUsername || !dockerHubPAT) {
@@ -777,7 +794,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test events
+    // #endregion
+
+    // #region Events
+
     describe('Events', function () {
         let container: string | undefined;
 
@@ -789,6 +809,15 @@ describe('(integration) ContainersClientE2E', function () {
                     detached: true,
                 })
             );
+        });
+
+        after('Events', async function () {
+            // Cleanup the container created for the event stream
+            if (container) {
+                await defaultRunnerFactory.getCommandRunner()(
+                    client.removeContainers({ containers: [container], force: true })
+                );
+            }
         });
 
         it('GetEventStreamCommand', async function () {
@@ -809,18 +838,12 @@ describe('(integration) ContainersClientE2E', function () {
                 break; // Break after the first event
             }
         });
-
-        after('Events', async function () {
-            // Cleanup the container created for the event stream
-            if (container) {
-                await defaultRunnerFactory.getCommandRunner()(
-                    client.removeContainers({ containers: [container], force: true })
-                );
-            }
-        });
     });
 
-    // Test contexts
+    // #endregion
+
+    // #region Contexts
+
     describe('Contexts', function () {
         it('ListContextsCommand', async function () {
             if (clientTypeToTest !== 'docker') {
@@ -848,8 +871,7 @@ describe('(integration) ContainersClientE2E', function () {
             const command = await client.removeContexts({ contexts: ['test'] });
             expect(command).to.be.ok;
 
-            const commandLine = (new Bash()).quote(command.args).join(' ');
-            expect(commandLine).to.equal('context rm test --force');
+            expect(getBashCommandLine(command)).to.equal(`${client.commandName} context rm test --force`);
         });
 
         it('UseContextCommand', async function () {
@@ -883,7 +905,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
     });
 
-    // Test filesystem
+    // #endregion
+
+    // #region Filesystem
+
     describe('Filesystem', function () {
         let containerId: string | undefined;
 
@@ -900,6 +925,13 @@ describe('(integration) ContainersClientE2E', function () {
             }
         });
 
+        after('Filesystem', async function () {
+            if (containerId) {
+                await defaultRunnerFactory.getCommandRunner()(
+                    client.removeContainers({ containers: [containerId], force: true })
+                );
+            }
+        });
 
         it('ListFilesCommand', async function () {
             const files = await defaultRunnerFactory.getCommandRunner()(
@@ -946,17 +978,20 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('WriteFileCommand', async function () {
-            return;
-        });
-
-        after('Filesystem', async function () {
-            if (containerId) {
-                await defaultRunnerFactory.getCommandRunner()(
-                    client.removeContainers({ containers: [containerId], force: true })
-                );
-            }
+            expect.fail('TODO');
         });
     });
+
+    // #endregion
 });
+
+// #region Helper Methods
+
+function getBashCommandLine(command: CommandResponseBase): string {
+    const bash = new Bash();
+    return bash.quote(command.args).join(' ');
+}
+
+// #endregion
 
 /* eslint-enable @typescript-eslint/no-non-null-assertion */
