@@ -135,7 +135,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     /**
      * The default argument given to `--format`
      */
-    public readonly defaultFormatForJson: string = "{{json .}}";
+    protected readonly defaultFormatForJson: string = "{{json .}}";
 
     //#region Information Commands
 

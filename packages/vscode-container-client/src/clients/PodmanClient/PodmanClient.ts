@@ -59,7 +59,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     /**
      * The default argument given to `--format`
      */
-    public readonly defaultFormatForJson: string = "json";
+    protected readonly defaultFormatForJson: string = "json";
 
     /**
      * Constructs a new {@link PodmanClient}
