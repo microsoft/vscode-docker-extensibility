@@ -32,7 +32,7 @@ if (executeInWsl) {
 }
 
 // Remove the x in `xdescribe` to run PodmanClient tests
-xdescribe('PodmanClient', () => {
+xdescribe('(integration) PodmanClient', () => {
     describe('#version()', () => {
         it('successfully parses version end to end', async () => {
             const version = await runner.getCommandRunner()(client.version({}));
