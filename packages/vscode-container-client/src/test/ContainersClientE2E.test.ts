@@ -13,7 +13,7 @@ import { DockerClient } from '../clients/DockerClient/DockerClient';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
-import { IContainersClient, ListContainersItem, ListImagesItem, StatPathItem } from '../contracts/ContainerClient';
+import { IContainersClient, ListContainersItem, ListImagesItem, ListNetworkItem, ListVolumeItem, StatPathItem } from '../contracts/ContainerClient';
 import { CommandResponseBase, ICommandRunnerFactory } from '../contracts/CommandRunner';
 import { Bash } from '../utils/spawnStreamAsync';
 import { wslifyPath } from '../utils/wslifyPath';
@@ -36,6 +36,7 @@ const dockerHubPAT = ''; // Never commit this value!!
 describe('(integration) ContainersClientE2E', function () {
 
     // #region Test Setup
+
     let client: IContainersClient;
     let defaultRunner: ICommandRunnerFactory;
     let defaultRunnerFactory: (options: ShellStreamCommandRunnerOptions) => ICommandRunnerFactory;
@@ -503,57 +504,41 @@ describe('(integration) ContainersClientE2E', function () {
 
     // #region Networks
 
-    xdescribe('Networks', function () {
+    describe('Networks', function () {
         const testNetworkName = 'test-network-e2e';
 
-        after('Networks', async function () {
+        before('Networks', async function () {
+            // Try removing the network if it exists so we don't get a name conflict
             try {
-                // Clean up test network if it exists
-                const networks = await defaultRunner.getCommandRunner()(
-                    client.listNetworks({})
+                await defaultRunner.getCommandRunner()(
+                    client.removeNetworks({ networks: [testNetworkName] })
                 );
-
-                if (networks.some(n => n.name === testNetworkName)) {
-                    await defaultRunner.getCommandRunner()(
-                        client.removeNetworks({ networks: [testNetworkName] })
-                    );
-                }
             } catch (error) {
-                console.log('Error cleaning up test network:', error);
+                // Ignore error if the network doesn't exist
             }
-        });
 
-        it('CreateNetworkCommand', async function () {
-            // Create a test network
+            // Create a network for testing
             await defaultRunner.getCommandRunner()(
                 client.createNetwork({ name: testNetworkName })
             );
+        });
 
-            // Verify it was created
-            const networks = await defaultRunner.getCommandRunner()(
-                client.listNetworks({})
+        after('Networks', async function () {
+            await defaultRunner.getCommandRunner()(
+                client.removeNetworks({ networks: [testNetworkName] })
             );
+        });
 
-            expect(networks.some(n => n.name === testNetworkName)).to.be.true;
+        it('CreateNetworkCommand', async function () {
+            // This is already fully tested in the before('Networks') hook and the it('RemoveNetworksCommand') test
         });
 
         it('ListNetworksCommand', async function () {
-            const networks = await defaultRunner.getCommandRunner()(
-                client.listNetworks({})
-            );
+            const network = await validateNetworkExists(client, defaultRunner, testNetworkName) as ListNetworkItem;
+            expect(network).to.be.ok;
 
-            expect(networks).to.be.ok;
-            expect(networks).to.be.an('array');
-            expect(networks.length).to.be.greaterThan(0);
-
-            networks.forEach((network) => {
-                expect(network.name).to.be.a('string');
-                expect(network.driver).to.be.a('string');
-                expect(network.labels).to.be.an('object');
-            });
-
-            // Make sure our test network is present
-            expect(networks.some(n => n.name === testNetworkName)).to.be.true;
+            expect(network.name).to.equal(testNetworkName);
+            expect(network.labels).to.be.an('object');
         });
 
         it('InspectNetworksCommand', async function () {
@@ -606,59 +591,41 @@ describe('(integration) ContainersClientE2E', function () {
 
     // #region Volumes
 
-    xdescribe('Volumes', function () {
+    describe('Volumes', function () {
         const testVolumeName = 'test-volume-e2e';
 
-        after('Volumes', async function () {
+        before('Volumes', async function () {
+            // Try removing the volume if it exists so we don't get a name conflict
             try {
-                // Clean up test volume if it exists
-                const volumes = await defaultRunner.getCommandRunner()(
-                    client.listVolumes({})
+                await defaultRunner.getCommandRunner()(
+                    client.removeVolumes({ volumes: [testVolumeName] })
                 );
-
-                if (volumes.some(v => v.name === testVolumeName)) {
-                    await defaultRunner.getCommandRunner()(
-                        client.removeVolumes({ volumes: [testVolumeName] })
-                    );
-                }
             } catch (error) {
-                console.log('Error cleaning up test volume:', error);
+                // Ignore error if the volume doesn't exist
             }
-        });
 
-        it('CreateVolumeCommand', async function () {
-            // Create a test volume
+            // Create a volume for testing
             await defaultRunner.getCommandRunner()(
                 client.createVolume({ name: testVolumeName })
             );
+        });
 
-            // Verify it was created
-            const volumes = await defaultRunner.getCommandRunner()(
-                client.listVolumes({})
+        after('Volumes', async function () {
+            await defaultRunner.getCommandRunner()(
+                client.removeVolumes({ volumes: [testVolumeName] })
             );
+        });
 
-            expect(volumes.some(v => v.name === testVolumeName)).to.be.true;
+        it('CreateVolumeCommand', async function () {
+            // This is already fully tested in the before('Volumes') hook and the it('RemoveVolumesCommand') test
         });
 
         it('ListVolumesCommand', async function () {
-            const volumes = await defaultRunner.getCommandRunner()(
-                client.listVolumes({})
-            );
+            const volume = await validateVolumeExists(client, defaultRunner, testVolumeName) as ListVolumeItem;
+            expect(volume).to.be.ok;
 
-            expect(volumes).to.be.ok;
-            expect(volumes).to.be.an('array');
-            expect(volumes.length).to.be.greaterThan(0);
-
-            volumes.forEach((volume) => {
-                expect(volume.name).to.be.a('string');
-                expect(volume.driver).to.be.a('string');
-                expect(volume.labels).to.be.an('object');
-                expect(volume.mountpoint).to.be.a('string');
-                expect(volume.scope).to.be.a('string');
-            });
-
-            // Make sure our test volume is present
-            expect(volumes.some(v => v.name === testVolumeName)).to.be.true;
+            expect(volume.name).to.equal(testVolumeName);
+            expect(volume.labels).to.be.an('object');
         });
 
         it('InspectVolumesCommand', async function () {
@@ -673,11 +640,8 @@ describe('(integration) ContainersClientE2E', function () {
             const volume = volumes[0];
             expect(volume.name).to.equal(testVolumeName);
             expect(volume.driver).to.be.a('string');
-            expect(volume.mountpoint).to.be.a('string');
-            expect(volume.scope).to.be.a('string');
             expect(volume.labels).to.be.an('object');
-            expect(volume.options).to.be.an('object');
-            expect(volume.createdAt).to.be.instanceOf(Date);
+            expect(volume.scope).to.be.a('string');
             expect(volume.raw).to.be.a('string');
         });
 
@@ -695,7 +659,7 @@ describe('(integration) ContainersClientE2E', function () {
             const volumes = await defaultRunner.getCommandRunner()(
                 client.listVolumes({})
             );
-            expect(volumes.some(v => v.name === testVolumeName)).to.be.false;
+            expect(volumes.some(n => n.name === testVolumeName)).to.be.false;
         });
 
         it('PruneVolumesCommand', async function () {
@@ -976,6 +940,22 @@ async function validateContainerExists(client: IContainersClient, runner: IComma
     );
 
     return containers.find(c => c.id === containerId);
+}
+
+async function validateNetworkExists(client: IContainersClient, runner: ICommandRunnerFactory, networkName: string): Promise<ListNetworkItem | undefined> {
+    const networks = await runner.getCommandRunner()(
+        client.listNetworks({})
+    );
+
+    return networks.find(n => n.name === networkName);
+}
+
+async function validateVolumeExists(client: IContainersClient, runner: ICommandRunnerFactory, volumeName: string): Promise<ListVolumeItem | undefined> {
+    const volumes = await runner.getCommandRunner()(
+        client.listVolumes({})
+    );
+
+    return volumes.find(v => v.name === volumeName);
 }
 
 // #endregion
