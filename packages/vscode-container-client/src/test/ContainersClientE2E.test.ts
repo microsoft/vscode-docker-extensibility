@@ -15,16 +15,16 @@ import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
 import { IContainersClient, ListContainersItem, ListImagesItem, ListNetworkItem, ListVolumeItem, StatPathItem } from '../contracts/ContainerClient';
 import { CommandResponseBase, ICommandRunnerFactory } from '../contracts/CommandRunner';
+import { isCommandNotSupportedError } from '../utils/CommandNotSupportedError';
 import { Bash } from '../utils/spawnStreamAsync';
 import { wslifyPath } from '../utils/wslifyPath';
-import { isCommandNotSupportedError } from '../utils/CommandNotSupportedError';
 
 /**
  * WARNING: This test suite will prune unused images, containers, networks, and volumes.
  */
 
 // Modify the below options to configure the tests
-const clientTypeToTest = 'podman' as ClientType;
+const clientTypeToTest: ClientType = 'docker' as ClientType;
 const runInWsl: boolean = false; // Set to true if running in WSL
 
 // Supply to run the login/logout tests
