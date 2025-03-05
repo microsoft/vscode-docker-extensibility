@@ -122,7 +122,7 @@ describe('(integration) ContainersClientE2E', function () {
 
     // #region Images
 
-    xdescribe('Images', function () {
+    describe('Images', function () {
         const imageToTest = 'alpine:latest';
         let testDockerfileContext: string;
         let testDockerfile: string;
@@ -362,18 +362,21 @@ describe('(integration) ContainersClientE2E', function () {
             const content = 'Log entry for testing';
 
             // Generate some logs in a new container
-            await defaultRunner.getCommandRunner()(
+            const testContainerId2 = await defaultRunner.getCommandRunner()(
                 client.runContainer({
                     imageRef: imageToTest,
                     detached: true,
-                    command: ['sh', '-c', `echo "${content}" >&2`]
+                    entrypoint: 'sh',
+                    command: ['-c', `"echo '${content}'"`]
                 })
-            );
+            ) as string;
+
+            expect(testContainerId2).to.be.a('string');
 
             // Get logs
             const logsStream = defaultRunner.getStreamingCommandRunner()(
                 client.logsForContainer({
-                    container: testContainerId,
+                    container: testContainerId2,
                     tail: 10,
                     follow: false,
                 })
@@ -388,11 +391,9 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('StopContainersCommand', async function () {
-            this.timeout(20000); // Increase timeout for stopping containers
-
             // Stop the container
             const stoppedContainers = await defaultRunner.getCommandRunner()(
-                client.stopContainers({ container: [testContainerId] })
+                client.stopContainers({ container: [testContainerId], time: 1 })
             );
 
             expect(stoppedContainers).to.be.ok;
@@ -422,11 +423,9 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('RestartContainersCommand', async function () {
-            this.timeout(20000); // Increase timeout for stopping containers
-
             // Restart the container
             const restartedContainers = await defaultRunner.getCommandRunner()(
-                client.restartContainers({ container: [testContainerId] })
+                client.restartContainers({ container: [testContainerId], time: 1 })
             );
 
             expect(restartedContainers).to.be.ok;
@@ -492,6 +491,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(pruneResult).to.be.ok;
             if (pruneResult.containersDeleted) {
                 expect(pruneResult.containersDeleted).to.be.an('array');
+                expect(pruneResult.containersDeleted.length).to.be.greaterThan(0);
             }
             if (pruneResult.spaceReclaimed !== undefined) {
                 expect(pruneResult.spaceReclaimed).to.be.a('number');
