@@ -24,7 +24,8 @@
     },
     "dependencies": {
         "dayjs": "^1.11.2",
-        "tree-kill": "^1.2.2"
+        "tree-kill": "^1.2.2",
+        "zod": "^3.24.2"
     },
     "devDependencies": {
         "@types/chai": "^4.3.0",
