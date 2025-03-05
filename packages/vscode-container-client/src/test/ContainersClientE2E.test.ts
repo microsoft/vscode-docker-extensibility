@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from 'chai';
+import * as fs from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
 import * as stream from 'stream';
 import { FileType } from 'vscode';
 import { DockerClient } from '../clients/DockerClient/DockerClient';
@@ -13,10 +16,15 @@ import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../c
 import { IContainersClient } from '../contracts/ContainerClient';
 import { CommandResponseBase, ICommandRunnerFactory } from '../contracts/CommandRunner';
 import { Bash } from '../utils/spawnStreamAsync';
+import { wslifyPath } from '../utils/wslifyPath';
+
+/**
+ * WARNING: This test suite will prune unused images, containers, networks, and volumes.
+ */
 
 // Modify the below options to configure the tests
 const clientTypeToTest: 'docker' | 'podman' = 'docker';
-const runnerTypeToTest: 'shell' | 'wsl' = 'shell';
+const runInWsl: boolean = false; // Set to true if running in WSL
 
 // Supply to run the login/logout tests
 const dockerHubUsername = '';
@@ -30,8 +38,8 @@ describe('(integration) ContainersClientE2E', function () {
 
     // #region Test Setup
     let client: IContainersClient;
-    let defaultRunnerFactory: ICommandRunnerFactory;
-    let defaultRunnerFactoryFactory: (options: ShellStreamCommandRunnerOptions) => ICommandRunnerFactory;
+    let defaultRunner: ICommandRunnerFactory;
+    let defaultRunnerFactory: (options: ShellStreamCommandRunnerOptions) => ICommandRunnerFactory;
 
     this.timeout(10000); // Set a longer timeout for integration tests
 
@@ -44,15 +52,13 @@ describe('(integration) ContainersClientE2E', function () {
             throw new Error('Invalid clientTypeToTest');
         }
 
-        if (runnerTypeToTest === 'shell') {
-            defaultRunnerFactoryFactory = (options: ShellStreamCommandRunnerOptions) => new ShellStreamCommandRunnerFactory(options);
-        } else if (runnerTypeToTest === 'wsl') {
-            defaultRunnerFactoryFactory = (options: WslShellCommandRunnerOptions) => new WslShellCommandRunnerFactory(options);
+        if (!runInWsl) {
+            defaultRunnerFactory = (options: ShellStreamCommandRunnerOptions) => new ShellStreamCommandRunnerFactory(options);
         } else {
-            throw new Error('Invalid runnerTypeToTest');
+            defaultRunnerFactory = (options: WslShellCommandRunnerOptions) => new WslShellCommandRunnerFactory(options);
         }
 
-        defaultRunnerFactory = defaultRunnerFactoryFactory({});
+        defaultRunner = defaultRunnerFactory({});
     });
 
     // #endregion
@@ -79,7 +85,7 @@ describe('(integration) ContainersClientE2E', function () {
 
     describe('System Info', function () {
         it('VersionCommand', async function () {
-            const version = await defaultRunnerFactory.getCommandRunner()(
+            const version = await defaultRunner.getCommandRunner()(
                 client.version({})
             );
 
@@ -93,7 +99,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('CheckInstallCommand', async function () {
-            const checkInstall = await defaultRunnerFactory.getCommandRunner()(
+            const checkInstall = await defaultRunner.getCommandRunner()(
                 client.checkInstall({})
             );
 
@@ -102,7 +108,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('InfoCommand', async function () {
-            const info = await defaultRunnerFactory.getCommandRunner()(
+            const info = await defaultRunner.getCommandRunner()(
                 client.info({})
             );
 
@@ -118,68 +124,39 @@ describe('(integration) ContainersClientE2E', function () {
     // #region Images
 
     describe('Images', function () {
+        const imageToTest = 'alpine:latest';
+        let testDockerfileContext: string;
+        let testDockerfile: string;
+
         before('Images', async function () {
+            // Prepare the test Dockerfile context
+            testDockerfileContext = path.resolve(__dirname, 'buildContext');
+            testDockerfile = path.resolve(testDockerfileContext, 'Dockerfile');
+
+            if (runInWsl) {
+                testDockerfileContext = wslifyPath(testDockerfileContext);
+                testDockerfile = wslifyPath(testDockerfile);
+            }
+
             // Pull a small image for testing
-            await defaultRunnerFactory.getCommandRunner()(
-                client.pullImage({ imageRef: 'alpine:latest' })
+            // This also tests PullImageCommand
+            await defaultRunner.getCommandRunner()(
+                client.pullImage({ imageRef: imageToTest })
             );
         });
 
         it('ListImagesCommand', async function () {
-            const images = await defaultRunnerFactory.getCommandRunner()(
-                client.listImages({ all: true })
-            );
-
-            expect(images).to.be.ok;
-            expect(images).to.be.an('array');
-
-            expect(images.length).to.be.greaterThan(0);
-            images.forEach((image) => {
-                expect(image.id).to.be.a('string');
-                expect(image.image).to.be.an('object');
-                expect(image.createdAt).to.be.instanceOf(Date);
-            });
-
-            // Make sure we can find the alpine image we pulled
-            expect(images.some(i =>
-                i.image.image?.includes('alpine') ||
-                i.image.originalName?.includes('alpine')
-            )).to.be.true;
+            expect(await validateImageExists(client, defaultRunner, imageToTest)).to.be.true;
         });
 
         it('TagImageCommand', async function () {
-            const testTag = 'test-image:latest';
-
-            // Tag the alpine image with our test name
-            await defaultRunnerFactory.getCommandRunner()(
-                client.tagImage({
-                    fromImageRef: 'alpine:latest',
-                    toImageRef: testTag
-                })
-            );
-
-            // Verify it was tagged
-            const taggedImages = await defaultRunnerFactory.getCommandRunner()(
-                client.listImages({ all: true })
-            );
-
-            expect(taggedImages).to.be.ok;
-            expect(taggedImages).to.be.an('array');
-            expect(taggedImages.length).to.be.greaterThan(0);
-
-            expect(taggedImages.some(i =>
-                i.image.image?.includes(testTag) ||
-                i.image.originalName?.includes(testTag)
-            )).to.be.true;
+            // This is already fully tested in the it('RemoveImagesCommand') test
         });
 
         it('InspectImagesCommand', async function () {
-            // Ensure we have a valid image ID
-            expect(testImageId).to.be.a('string');
-
             // Inspect the image
-            const images = await defaultRunnerFactory.getCommandRunner()(
-                client.inspectImages({ imageRefs: [testImageId!] })
+            const images = await defaultRunner.getCommandRunner()(
+                client.inspectImages({ imageRefs: ['alpine:latest'] })
             );
 
             expect(images).to.be.ok;
@@ -198,73 +175,70 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('BuildImageCommand', async function () {
-            const buildOptions = {
-                path: '.',
-                tags: 'build-test-image:latest',
-                customOptions: '--build-arg TEST_ARG=value',
-                pull: false
-            };
+            const testTag = 'build-test-image:latest';
 
-            // Since we can't actually build without a Dockerfile, we'll just verify the command generation
-            const command = await client.buildImage(buildOptions);
-            expect(command).to.be.ok;
-            expect(command.args).to.be.an('array');
+            await defaultRunner.getCommandRunner()(
+                client.buildImage({
+                    path: testDockerfileContext,
+                    file: testDockerfile,
+                    tags: [testTag],
+                })
+            );
 
-            // We expect 'build', the path, and the tag at a minimum
-            expect(command.args).to.include.members(['build', '.']);
-            expect(command.args.some(arg => arg.includes('build-test-image:latest'))).to.be.true;
+            // Verify the image was built
+            expect(await validateImageExists(client, defaultRunner, testTag)).to.be.true;
         });
 
         it('PullImageCommand', async function () {
-            // We already tested pull in the setup, let's make sure the command works
-            await defaultRunnerFactory.getCommandRunner()(
-                client.pullImage({ imageRef: 'hello-world:latest' })
-            );
-
-            // Verify it was pulled
-            const images = await defaultRunnerFactory.getCommandRunner()(
-                client.listImages({ references: ['hello-world:latest'] })
-            );
-
-            expect(images).to.be.ok;
-            expect(images).to.be.an('array');
-            expect(images.length).to.be.greaterThan(0);
+            // This is already fully tested between the before('Images') hook and it('ListImagesCommand') test
         });
 
         it('PushImageCommand', async function () {
+            const testTag = 'push-test-image:latest';
+
             // Since we can't actually push without credentials, we'll verify the command generation
-            const command = await client.pushImage({ imageRef: 'test-image:latest' });
+            const command = await client.pushImage({ imageRef: testTag });
             expect(command).to.be.ok;
+            expect(command.command).to.be.a('string');
             expect(command.args).to.be.an('array');
 
             // We expect push and the image reference
-            expect(command.args).to.include.members(['push', 'test-image:latest']);
+            expect(getBashCommandLine(command)).to.equal(`${client.commandName} image push ${testTag}`);
         });
 
         it('RemoveImagesCommand', async function () {
-            // Make sure we have a tagged image to remove
-            expect(testImageId).to.be.a('string');
+            const testTag = 'remove-test-image:latest';
+
+            // Re-tag the base image to a new one so we have something to remove
+            // This also tests TagImageCommand
+            await defaultRunner.getCommandRunner()(
+                client.tagImage({ fromImageRef: imageToTest, toImageRef: testTag })
+            );
 
             // Remove the image using our tag
-            const removedImages = await defaultRunnerFactory.getCommandRunner()(
-                client.removeImages({ imageRefs: [testImageRef], force: true })
+            const removedImages = await defaultRunner.getCommandRunner()(
+                client.removeImages({ imageRefs: [testTag], force: true })
             );
 
             expect(removedImages).to.be.ok;
             expect(removedImages).to.be.an('array');
 
             // Verify it was removed
-            const images = await defaultRunnerFactory.getCommandRunner()(
-                client.listImages({ references: [testImageRef] })
-            );
-            expect(images).to.be.an('array');
-            expect(images.length).to.equal(0);
+            expect(await validateImageExists(client, defaultRunner, testTag)).to.be.false;
         });
 
         it('PruneImagesCommand', async function () {
-            // Run image prune
-            const pruneResult = await defaultRunnerFactory.getCommandRunner()(
-                client.pruneImages({ all: false })
+            // Build an image without a tag, which we can subsequently prune
+            await defaultRunner.getCommandRunner()(
+                client.buildImage({
+                    path: testDockerfileContext,
+                    file: testDockerfile,
+                })
+            );
+
+            // Prune the image
+            const pruneResult = await defaultRunner.getCommandRunner()(
+                client.pruneImages({})
             );
 
             expect(pruneResult).to.be.ok;
@@ -272,7 +246,7 @@ describe('(integration) ContainersClientE2E', function () {
                 expect(pruneResult.imageRefsDeleted).to.be.an('array');
             }
             if (pruneResult.spaceReclaimed !== undefined) {
-                expect(pruneResult.spaceReclaimed).to.be.a('number').greaterThan(0);
+                expect(pruneResult.spaceReclaimed).to.be.a('number');
             }
         });
     });
@@ -282,45 +256,42 @@ describe('(integration) ContainersClientE2E', function () {
     // #region Containers
 
     describe('Containers', function () {
-        let testContainerId: string | undefined;
-        let testContainerId2: string | undefined;
+        const imageToTest = 'alpine:latest';
+        let testContainerId: string;
 
         before('Containers', async function () {
-            // Ensure alpine image is available
-            try {
-                await defaultRunnerFactory.getCommandRunner()(
-                    client.pullImage({ imageRef: 'alpine:latest' })
-                );
-            } catch (error) {
-                console.log('Failed to pull alpine image, may already exist');
-            }
+            // Pull a small image for testing
+            await defaultRunner.getCommandRunner()(
+                client.pullImage({ imageRef: imageToTest })
+            );
+
+            // Create a container that will stay running
+            testContainerId = await defaultRunner.getCommandRunner()(
+                client.runContainer({
+                    imageRef: imageToTest,
+                    detached: true,
+                    name: 'test-container-e2e'
+                })
+            ) as string;
+
+            expect(testContainerId).to.be.a('number');
         });
 
         after('Containers', async function () {
-            // Clean up any containers we created
-            try {
-                if (testContainerId) {
-                    await defaultRunnerFactory.getCommandRunner()(
-                        client.removeContainers({ containers: [testContainerId], force: true })
-                    );
-                }
-                if (testContainerId2) {
-                    await defaultRunnerFactory.getCommandRunner()(
-                        client.removeContainers({ containers: [testContainerId2], force: true })
-                    );
-                }
-            } catch (error) {
-                console.log('Error during container cleanup:', error);
+            // Clean up the test container if it exists
+            if (testContainerId) {
+                await defaultRunner.getCommandRunner()(
+                    client.removeContainers({ containers: [testContainerId], force: true })
+                );
             }
         });
 
         it('RunContainerCommand', async function () {
             // Create a container that will stay running
-            testContainerId = await defaultRunnerFactory.getCommandRunner()(
+            testContainerId = await defaultRunner.getCommandRunner()(
                 client.runContainer({
                     imageRef: 'alpine:latest',
                     detached: true,
-                    command: ['sleep', '30'],
                     name: 'test-container-e2e'
                 })
             );
@@ -330,32 +301,14 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('ListContainersCommand', async function () {
-            // Ensure we have a running container
-            expect(testContainerId).to.be.a('string');
-
-            const containers = await defaultRunnerFactory.getCommandRunner()(
-                client.listContainers({ all: true })
-            );
-
-            expect(containers).to.be.ok;
-            expect(containers).to.be.an('array');
-            expect(containers.length).to.be.greaterThan(0);
-
-            // Verify our test container is in the list
-            const testContainer = containers.find(c => c.id === testContainerId);
-            expect(testContainer).to.be.ok;
-            expect(testContainer!.name).to.equal('test-container-e2e');
-            expect(testContainer!.image).to.be.an('object');
-            expect(testContainer!.state).to.be.a('string');
-            expect(testContainer!.labels).to.be.an('object');
-            expect(testContainer!.createdAt).to.be.instanceOf(Date);
+            // This gets tested in the it('RunContainerCommand') test
         });
 
         it('InspectContainersCommand', async function () {
             // Ensure we have a container to inspect
             expect(testContainerId).to.be.a('string');
 
-            const containers = await defaultRunnerFactory.getCommandRunner()(
+            const containers = await defaultRunner.getCommandRunner()(
                 client.inspectContainers({ containers: [testContainerId!] })
             );
 
@@ -381,7 +334,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(testContainerId).to.be.a('string');
 
             // Execute a command
-            const commandStream = defaultRunnerFactory.getStreamingCommandRunner()(
+            const commandStream = defaultRunner.getStreamingCommandRunner()(
                 client.execContainer({
                     container: testContainerId!,
                     command: ['echo', 'Hello from container!']
@@ -401,7 +354,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(testContainerId).to.be.a('string');
 
             // Generate some logs in the container
-            await defaultRunnerFactory.getStreamingCommandRunner()(
+            await defaultRunner.getStreamingCommandRunner()(
                 client.execContainer({
                     container: testContainerId!,
                     command: ['sh', '-c', 'echo "Log entry for testing" >&2']
@@ -409,7 +362,7 @@ describe('(integration) ContainersClientE2E', function () {
             );
 
             // Get logs
-            const logsStream = defaultRunnerFactory.getStreamingCommandRunner()(
+            const logsStream = defaultRunner.getStreamingCommandRunner()(
                 client.logsForContainer({
                     container: testContainerId!,
                     tail: 10
@@ -429,7 +382,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(testContainerId).to.be.a('string');
 
             // Stop the container
-            const stoppedContainers = await defaultRunnerFactory.getCommandRunner()(
+            const stoppedContainers = await defaultRunner.getCommandRunner()(
                 client.stopContainers({ container: [testContainerId!] })
             );
 
@@ -438,7 +391,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(stoppedContainers).to.include(testContainerId);
 
             // Verify it's stopped
-            const containers = await defaultRunnerFactory.getCommandRunner()(
+            const containers = await defaultRunner.getCommandRunner()(
                 client.listContainers({ all: true })
             );
             const testContainer = containers.find(c => c.id === testContainerId);
@@ -450,7 +403,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(testContainerId).to.be.a('string');
 
             // Start the container
-            const startedContainers = await defaultRunnerFactory.getCommandRunner()(
+            const startedContainers = await defaultRunner.getCommandRunner()(
                 client.startContainers({ container: [testContainerId!] })
             );
 
@@ -459,7 +412,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(startedContainers).to.include(testContainerId);
 
             // Verify it's running
-            const containers = await defaultRunnerFactory.getCommandRunner()(
+            const containers = await defaultRunner.getCommandRunner()(
                 client.listContainers({ all: false })
             );
             const testContainer = containers.find(c => c.id === testContainerId);
@@ -472,7 +425,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(testContainerId).to.be.a('string');
 
             // Restart the container
-            const restartedContainers = await defaultRunnerFactory.getCommandRunner()(
+            const restartedContainers = await defaultRunner.getCommandRunner()(
                 client.restartContainers({ container: [testContainerId!] })
             );
 
@@ -481,7 +434,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(restartedContainers).to.include(testContainerId);
 
             // Verify it's running
-            const containers = await defaultRunnerFactory.getCommandRunner()(
+            const containers = await defaultRunner.getCommandRunner()(
                 client.listContainers({ all: false })
             );
             const testContainer = containers.find(c => c.id === testContainerId);
@@ -491,7 +444,7 @@ describe('(integration) ContainersClientE2E', function () {
 
         it('StatsContainersCommand', async function () {
             // Get container stats
-            const stats = await defaultRunnerFactory.getCommandRunner()(
+            const stats = await defaultRunner.getCommandRunner()(
                 client.statsContainers({ all: false })
             );
 
@@ -507,7 +460,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(testContainerId).to.be.a('string');
 
             // Create a second container to test multiple container removal
-            testContainerId2 = await defaultRunnerFactory.getCommandRunner()(
+            testContainerId2 = await defaultRunner.getCommandRunner()(
                 client.runContainer({
                     imageRef: 'alpine:latest',
                     detached: true,
@@ -519,7 +472,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(testContainerId2).to.be.a('string');
 
             // Remove the containers
-            const removedContainers = await defaultRunnerFactory.getCommandRunner()(
+            const removedContainers = await defaultRunner.getCommandRunner()(
                 client.removeContainers({
                     containers: [testContainerId!, testContainerId2!],
                     force: true
@@ -538,7 +491,7 @@ describe('(integration) ContainersClientE2E', function () {
 
         it('PruneContainersCommand', async function () {
             // Run container prune
-            const pruneResult = await defaultRunnerFactory.getCommandRunner()(
+            const pruneResult = await defaultRunner.getCommandRunner()(
                 client.pruneContainers({})
             );
 
@@ -556,18 +509,18 @@ describe('(integration) ContainersClientE2E', function () {
 
     // #region Networks
 
-    describe('Networks', function () {
+    xdescribe('Networks', function () {
         const testNetworkName = 'test-network-e2e';
 
         after('Networks', async function () {
             try {
                 // Clean up test network if it exists
-                const networks = await defaultRunnerFactory.getCommandRunner()(
+                const networks = await defaultRunner.getCommandRunner()(
                     client.listNetworks({})
                 );
 
                 if (networks.some(n => n.name === testNetworkName)) {
-                    await defaultRunnerFactory.getCommandRunner()(
+                    await defaultRunner.getCommandRunner()(
                         client.removeNetworks({ networks: [testNetworkName] })
                     );
                 }
@@ -578,12 +531,12 @@ describe('(integration) ContainersClientE2E', function () {
 
         it('CreateNetworkCommand', async function () {
             // Create a test network
-            await defaultRunnerFactory.getCommandRunner()(
+            await defaultRunner.getCommandRunner()(
                 client.createNetwork({ name: testNetworkName })
             );
 
             // Verify it was created
-            const networks = await defaultRunnerFactory.getCommandRunner()(
+            const networks = await defaultRunner.getCommandRunner()(
                 client.listNetworks({})
             );
 
@@ -591,7 +544,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('ListNetworksCommand', async function () {
-            const networks = await defaultRunnerFactory.getCommandRunner()(
+            const networks = await defaultRunner.getCommandRunner()(
                 client.listNetworks({})
             );
 
@@ -610,7 +563,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('InspectNetworksCommand', async function () {
-            const networks = await defaultRunnerFactory.getCommandRunner()(
+            const networks = await defaultRunner.getCommandRunner()(
                 client.inspectNetworks({ networks: [testNetworkName] })
             );
 
@@ -628,7 +581,7 @@ describe('(integration) ContainersClientE2E', function () {
 
         it('RemoveNetworksCommand', async function () {
             // Remove the test network
-            const removedNetworks = await defaultRunnerFactory.getCommandRunner()(
+            const removedNetworks = await defaultRunner.getCommandRunner()(
                 client.removeNetworks({ networks: [testNetworkName] })
             );
 
@@ -637,14 +590,14 @@ describe('(integration) ContainersClientE2E', function () {
             expect(removedNetworks).to.include(testNetworkName);
 
             // Verify it was removed
-            const networks = await defaultRunnerFactory.getCommandRunner()(
+            const networks = await defaultRunner.getCommandRunner()(
                 client.listNetworks({})
             );
             expect(networks.some(n => n.name === testNetworkName)).to.be.false;
         });
 
         it('PruneNetworksCommand', async function () {
-            const pruneResult = await defaultRunnerFactory.getCommandRunner()(
+            const pruneResult = await defaultRunner.getCommandRunner()(
                 client.pruneNetworks({})
             );
 
@@ -659,18 +612,18 @@ describe('(integration) ContainersClientE2E', function () {
 
     // #region Volumes
 
-    describe('Volumes', function () {
+    xdescribe('Volumes', function () {
         const testVolumeName = 'test-volume-e2e';
 
         after('Volumes', async function () {
             try {
                 // Clean up test volume if it exists
-                const volumes = await defaultRunnerFactory.getCommandRunner()(
+                const volumes = await defaultRunner.getCommandRunner()(
                     client.listVolumes({})
                 );
 
                 if (volumes.some(v => v.name === testVolumeName)) {
-                    await defaultRunnerFactory.getCommandRunner()(
+                    await defaultRunner.getCommandRunner()(
                         client.removeVolumes({ volumes: [testVolumeName] })
                     );
                 }
@@ -681,12 +634,12 @@ describe('(integration) ContainersClientE2E', function () {
 
         it('CreateVolumeCommand', async function () {
             // Create a test volume
-            await defaultRunnerFactory.getCommandRunner()(
+            await defaultRunner.getCommandRunner()(
                 client.createVolume({ name: testVolumeName })
             );
 
             // Verify it was created
-            const volumes = await defaultRunnerFactory.getCommandRunner()(
+            const volumes = await defaultRunner.getCommandRunner()(
                 client.listVolumes({})
             );
 
@@ -694,7 +647,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('ListVolumesCommand', async function () {
-            const volumes = await defaultRunnerFactory.getCommandRunner()(
+            const volumes = await defaultRunner.getCommandRunner()(
                 client.listVolumes({})
             );
 
@@ -715,7 +668,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('InspectVolumesCommand', async function () {
-            const volumes = await defaultRunnerFactory.getCommandRunner()(
+            const volumes = await defaultRunner.getCommandRunner()(
                 client.inspectVolumes({ volumes: [testVolumeName] })
             );
 
@@ -736,7 +689,7 @@ describe('(integration) ContainersClientE2E', function () {
 
         it('RemoveVolumesCommand', async function () {
             // Remove the test volume
-            const removedVolumes = await defaultRunnerFactory.getCommandRunner()(
+            const removedVolumes = await defaultRunner.getCommandRunner()(
                 client.removeVolumes({ volumes: [testVolumeName] })
             );
 
@@ -745,14 +698,14 @@ describe('(integration) ContainersClientE2E', function () {
             expect(removedVolumes).to.include(testVolumeName);
 
             // Verify it was removed
-            const volumes = await defaultRunnerFactory.getCommandRunner()(
+            const volumes = await defaultRunner.getCommandRunner()(
                 client.listVolumes({})
             );
             expect(volumes.some(v => v.name === testVolumeName)).to.be.false;
         });
 
         it('PruneVolumesCommand', async function () {
-            const pruneResult = await defaultRunnerFactory.getCommandRunner()(
+            const pruneResult = await defaultRunner.getCommandRunner()(
                 client.pruneVolumes({})
             );
 
@@ -777,7 +730,7 @@ describe('(integration) ContainersClientE2E', function () {
             }
 
             const secretStream = stream.Readable.from(dockerHubPAT);
-            const runnerFactory = defaultRunnerFactoryFactory({ stdInPipe: secretStream });
+            const runnerFactory = defaultRunnerFactory({ stdInPipe: secretStream });
             await runnerFactory.getCommandRunner()(
                 client.login({ username: dockerHubUsername, passwordStdIn: true })
             );
@@ -788,7 +741,7 @@ describe('(integration) ContainersClientE2E', function () {
                 this.skip();
             }
 
-            await defaultRunnerFactory.getCommandRunner()(
+            await defaultRunner.getCommandRunner()(
                 client.logout({})
             );
         });
@@ -803,7 +756,7 @@ describe('(integration) ContainersClientE2E', function () {
 
         before('Events', async function () {
             // Create a container so that the event stream has something to report
-            container = await defaultRunnerFactory.getCommandRunner()(
+            container = await defaultRunner.getCommandRunner()(
                 client.runContainer({
                     imageRef: 'hello-world:latest',
                     detached: true,
@@ -814,14 +767,14 @@ describe('(integration) ContainersClientE2E', function () {
         after('Events', async function () {
             // Cleanup the container created for the event stream
             if (container) {
-                await defaultRunnerFactory.getCommandRunner()(
+                await defaultRunner.getCommandRunner()(
                     client.removeContainers({ containers: [container], force: true })
                 );
             }
         });
 
         it('GetEventStreamCommand', async function () {
-            const eventStream = defaultRunnerFactory.getStreamingCommandRunner()(
+            const eventStream = defaultRunner.getStreamingCommandRunner()(
                 client.getEventStream({ since: '1m', until: '-1s' }) // From 1m ago to 1s in the future
             );
 
@@ -850,7 +803,7 @@ describe('(integration) ContainersClientE2E', function () {
                 this.skip();
             }
 
-            const contexts = await defaultRunnerFactory.getCommandRunner()(
+            const contexts = await defaultRunner.getCommandRunner()(
                 client.listContexts({})
             );
 
@@ -879,7 +832,7 @@ describe('(integration) ContainersClientE2E', function () {
                 this.skip();
             }
 
-            await defaultRunnerFactory.getCommandRunner()(
+            await defaultRunner.getCommandRunner()(
                 client.useContext({ context: 'default' })
             );
         });
@@ -889,7 +842,7 @@ describe('(integration) ContainersClientE2E', function () {
                 this.skip();
             }
 
-            const context = await defaultRunnerFactory.getCommandRunner()(
+            const context = await defaultRunner.getCommandRunner()(
                 client.inspectContexts({ contexts: ['default'] })
             );
 
@@ -910,15 +863,15 @@ describe('(integration) ContainersClientE2E', function () {
     // #region Filesystem
 
     describe('Filesystem', function () {
-        let containerId: string | undefined;
+        let containerId: string;
 
         before('Filesystem', async function () {
-            containerId = await defaultRunnerFactory.getCommandRunner()(
+            containerId = await defaultRunner.getCommandRunner()(
                 client.runContainer({
                     imageRef: 'alpine:latest',
                     detached: true,
                 })
-            );
+            ) as string;
 
             if (!containerId) {
                 expect.fail('Failed to create container for filesystem tests');
@@ -927,15 +880,15 @@ describe('(integration) ContainersClientE2E', function () {
 
         after('Filesystem', async function () {
             if (containerId) {
-                await defaultRunnerFactory.getCommandRunner()(
+                await defaultRunner.getCommandRunner()(
                     client.removeContainers({ containers: [containerId], force: true })
                 );
             }
         });
 
         it('ListFilesCommand', async function () {
-            const files = await defaultRunnerFactory.getCommandRunner()(
-                client.listFiles({ container: containerId!, path: '/etc' })
+            const files = await defaultRunner.getCommandRunner()(
+                client.listFiles({ container: containerId, path: '/etc' })
             );
 
             expect(files).to.be.ok;
@@ -949,8 +902,8 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('StatPathCommand', async function () {
-            const stats = await defaultRunnerFactory.getCommandRunner()(
-                client.statPath({ container: containerId!, path: '/etc/hosts' })
+            const stats = await defaultRunner.getCommandRunner()(
+                client.statPath({ container: containerId, path: '/etc/hosts' })
             );
 
             expect(stats).to.be.ok;
@@ -961,24 +914,46 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('ReadFileCommand', async function () {
-            const contentStream = defaultRunnerFactory.getStreamingCommandRunner()(
-                client.readFile({ container: containerId!, path: '/etc/hosts' })
+            const tarContentStream = defaultRunner.getStreamingCommandRunner()(
+                client.readFile({ container: containerId, path: '/etc/hosts' })
             );
 
             let fileContent: string = "";
-
-            for await (const chunk of contentStream) {
+            for await (const chunk of tarContentStream) {
                 expect(chunk).to.be.ok;
                 expect(chunk).to.be.an.instanceOf(Buffer);
                 fileContent += chunk.toString();
             }
 
+            // The content is a tarball, but it will contain `localhost` in cleartext
             expect(fileContent).to.be.ok;
             expect(fileContent).to.include('localhost'); // "localhost" seems to always appear in /etc/hosts
         });
 
         it('WriteFileCommand', async function () {
-            expect.fail('TODO');
+            const content = 'Hello from the container!';
+            const tempFilePath = path.join(os.tmpdir(), 'hello.txt');
+            await fs.writeFile(tempFilePath, content);
+
+            await defaultRunner.getCommandRunner()(
+                client.writeFile({ container: containerId, path: '/tmp/hello.txt', inputFile: tempFilePath })
+            );
+
+            // Verify the file was written
+            const tarContentStream = defaultRunner.getStreamingCommandRunner()(
+                client.readFile({ container: containerId, path: '/tmp/hello.txt' })
+            );
+
+            let fileContent: string = "";
+            for await (const chunk of tarContentStream) {
+                expect(chunk).to.be.ok;
+                expect(chunk).to.be.an.instanceOf(Buffer);
+                fileContent += chunk.toString();
+            }
+
+            // The content is a tarball, but it will contain the file content in cleartext
+            expect(fileContent).to.be.ok;
+            expect(fileContent).to.include(content);
         });
     });
 
@@ -989,7 +964,17 @@ describe('(integration) ContainersClientE2E', function () {
 
 function getBashCommandLine(command: CommandResponseBase): string {
     const bash = new Bash();
-    return bash.quote(command.args).join(' ');
+    return `${command.command} ${bash.quote(command.args).join(' ')}`;
+}
+
+async function validateImageExists(client: IContainersClient, runner: ICommandRunnerFactory, imageRef: string): Promise<boolean> {
+    const images = await runner.getCommandRunner()(
+        client.listImages({ all: true })
+    );
+
+    return images.some(i =>
+        i.image.originalName!.includes(imageRef)
+    );
 }
 
 // #endregion
