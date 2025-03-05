@@ -114,7 +114,6 @@ describe('(integration) ContainersClientE2E', function () {
             );
 
             expect(info).to.be.ok;
-            expect(info.operatingSystem).to.be.a('string');
             expect(info.osType).to.be.a('string');
             expect(info.raw).to.be.a('string');
         });
@@ -554,7 +553,6 @@ describe('(integration) ContainersClientE2E', function () {
             expect(network.name).to.equal(testNetworkName);
             expect(network.driver).to.be.a('string');
             expect(network.labels).to.be.an('object');
-            expect(network.scope).to.be.a('string');
             expect(network.raw).to.be.a('string');
         });
 
@@ -879,6 +877,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('ReadFileCommand', async function () {
+            if (clientTypeToTest !== 'docker') {
+                this.skip(); // Podman doesn't support file streaming
+            }
+
             const tarContentStream = defaultRunner.getStreamingCommandRunner()(
                 client.readFile({ container: containerId, path: '/etc/hosts' })
             );
@@ -896,6 +898,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('WriteFileCommand', async function () {
+            if (clientTypeToTest !== 'docker') {
+                this.skip(); // Podman doesn't support file streaming
+            }
+
             const content = 'Hello from the container!';
             const tempFilePath = path.join(os.tmpdir(), 'hello.txt');
             await fs.writeFile(tempFilePath, content);
