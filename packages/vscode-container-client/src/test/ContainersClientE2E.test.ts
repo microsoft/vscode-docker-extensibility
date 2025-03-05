@@ -24,7 +24,7 @@ import { isCommandNotSupportedError } from '../utils/CommandNotSupportedError';
  */
 
 // Modify the below options to configure the tests
-const clientTypeToTest: 'docker' | 'podman' = 'docker';
+const clientTypeToTest = 'podman' as ClientType;
 const runInWsl: boolean = false; // Set to true if running in WSL
 
 // Supply to run the login/logout tests
@@ -32,6 +32,7 @@ const dockerHubUsername = '';
 const dockerHubPAT = ''; // Never commit this value!!
 
 // No need to modify below this
+type ClientType = 'docker' | 'podman';
 
 describe('(integration) ContainersClientE2E', function () {
 
@@ -149,7 +150,7 @@ describe('(integration) ContainersClientE2E', function () {
             const image = await validateImageExists(client, defaultRunner, imageToTest);
 
             expect(image).to.be.ok;
-            expect(image?.image.originalName).to.equal(imageToTest);
+            expect(image?.image.originalName).to.include(imageToTest);
             expect(image?.id).to.be.a('string');
             expect(image?.createdAt).to.be.instanceOf(Date);
         });
@@ -287,6 +288,8 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         after('Containers', async function () {
+            this.timeout(20000); // Increase timeout for cleanup
+
             // Clean up the test container if it exists
             if (testContainerId) {
                 await defaultRunner.getCommandRunner()(
@@ -319,7 +322,7 @@ describe('(integration) ContainersClientE2E', function () {
 
             const container = containers[0];
             expect(container.id).to.equal(testContainerId);
-            expect(container.name).to.equal(`/${testContainerName}`);
+            expect(container.name).to.include(testContainerName);
             expect(container.image).to.be.an('object');
             expect(container.environmentVariables).to.be.an('object');
             expect(container.ports).to.be.an('array');
@@ -692,7 +695,7 @@ describe('(integration) ContainersClientE2E', function () {
             const secretStream = stream.Readable.from(dockerHubPAT);
             const runnerFactory = defaultRunnerFactory({ stdInPipe: secretStream });
             await runnerFactory.getCommandRunner()(
-                client.login({ username: dockerHubUsername, passwordStdIn: true })
+                client.login({ username: dockerHubUsername, passwordStdIn: true, registry: client.defaultRegistry })
             );
         });
 
@@ -702,7 +705,7 @@ describe('(integration) ContainersClientE2E', function () {
             }
 
             await defaultRunner.getCommandRunner()(
-                client.logout({})
+                client.logout({ registry: client.defaultRegistry })
             );
         });
     });
@@ -839,6 +842,8 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         after('Filesystem', async function () {
+            this.timeout(20000); // Increase timeout for cleanup
+
             if (containerId) {
                 await defaultRunner.getCommandRunner()(
                     client.removeContainers({ containers: [containerId], force: true })
@@ -932,8 +937,7 @@ async function validateImageExists(client: IContainersClient, runner: ICommandRu
         client.listImages({ all: true })
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return images.find(i => i.image.originalName!.includes(imageRef));
+    return images.find(i => i.image.originalName?.includes(imageRef));
 }
 
 async function validateContainerExists(client: IContainersClient, runner: ICommandRunnerFactory, containerId: string): Promise<ListContainersItem | undefined> {
