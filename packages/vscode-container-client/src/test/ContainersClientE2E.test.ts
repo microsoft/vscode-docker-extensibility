@@ -192,6 +192,15 @@ describe('(integration) ContainersClientE2E', function () {
 
             // Verify the image was built
             expect(await validateImageExists(client, defaultRunner, testTag)).to.be.ok;
+
+            // Remove the image using our tag
+            const removedImages = await defaultRunner.getCommandRunner()(
+                client.removeImages({ imageRefs: [testTag], force: true })
+            );
+
+            expect(removedImages).to.be.ok;
+            expect(removedImages).to.be.an('array');
+            expect(await validateImageExists(client, defaultRunner, testTag)).to.not.be.ok;
         });
 
         it('PullImageCommand', async function () {
@@ -212,24 +221,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('RemoveImagesCommand', async function () {
-            const testTag = 'remove-test-image:latest';
-
-            // Re-tag the base image to a new one so we have something to remove
-            // This also tests TagImageCommand
-            await defaultRunner.getCommandRunner()(
-                client.tagImage({ fromImageRef: imageToTest, toImageRef: testTag })
-            );
-
-            // Remove the image using our tag
-            const removedImages = await defaultRunner.getCommandRunner()(
-                client.removeImages({ imageRefs: [testTag], force: true })
-            );
-
-            expect(removedImages).to.be.ok;
-            expect(removedImages).to.be.an('array');
-
-            // Verify it was removed
-            expect(await validateImageExists(client, defaultRunner, testTag)).to.not.be.ok;
+            // This is already fully tested in the it('BuildImageCommand') test
         });
 
         it('PruneImagesCommand', async function () {
@@ -524,9 +516,14 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         after('Networks', async function () {
-            await defaultRunner.getCommandRunner()(
-                client.removeNetworks({ networks: [testNetworkName] })
-            );
+            // Try removing the test network
+            try {
+                await defaultRunner.getCommandRunner()(
+                    client.removeNetworks({ networks: [testNetworkName] })
+                );
+            } catch (error) {
+                // Ignore error if the network doesn't exist
+            }
         });
 
         it('CreateNetworkCommand', async function () {
@@ -611,9 +608,14 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         after('Volumes', async function () {
-            await defaultRunner.getCommandRunner()(
-                client.removeVolumes({ volumes: [testVolumeName] })
-            );
+            // Try removing the test volume
+            try {
+                await defaultRunner.getCommandRunner()(
+                    client.removeVolumes({ volumes: [testVolumeName] })
+                );
+            } catch (error) {
+                // Ignore error if the volume doesn't exist
+            }
         });
 
         it('CreateVolumeCommand', async function () {
