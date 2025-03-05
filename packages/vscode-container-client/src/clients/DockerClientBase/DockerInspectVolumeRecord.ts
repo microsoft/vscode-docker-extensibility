@@ -12,8 +12,8 @@ export const DockerInspectVolumeRecordSchema = z.object({
     Driver: z.string(),
     Mountpoint: z.string(),
     Scope: z.string(),
-    Labels: z.record(z.string()),
-    Options: z.record(z.unknown()),
+    Labels: z.record(z.string()).nullish(),
+    Options: z.record(z.unknown()).nullish(),
     CreatedAt: z.string(),
 });
 
@@ -28,8 +28,8 @@ export function normalizeDockerInspectVolumeRecord(volume: DockerInspectVolumeRe
         driver: volume.Driver,
         mountpoint: volume.Mountpoint,
         scope: volume.Scope,
-        labels: volume.Labels,
-        options: volume.Options,
+        labels: volume.Labels || {},
+        options: volume.Options || {},
         createdAt: createdAt.toDate(),
         raw,
     };
