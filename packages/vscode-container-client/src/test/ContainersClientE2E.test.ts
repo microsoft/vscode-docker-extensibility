@@ -155,7 +155,24 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('TagImageCommand', async function () {
-            // This is already fully tested in the it('RemoveImagesCommand') test
+            const testTag = 'tag-test-image:latest';
+
+            // Tag the image
+            await defaultRunner.getCommandRunner()(
+                client.tagImage({ fromImageRef: imageToTest, toImageRef: testTag })
+            );
+
+            // Verify the image was tagged
+            expect(await validateImageExists(client, defaultRunner, testTag)).to.be.ok;
+
+            // Remove the image using our tag
+            const removedImages = await defaultRunner.getCommandRunner()(
+                client.removeImages({ imageRefs: [testTag], force: true })
+            );
+
+            expect(removedImages).to.be.ok;
+            expect(removedImages).to.be.an('array');
+            expect(await validateImageExists(client, defaultRunner, testTag)).to.not.be.ok;
         });
 
         it('InspectImagesCommand', async function () {
