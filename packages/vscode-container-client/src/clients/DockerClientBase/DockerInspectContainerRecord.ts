@@ -44,7 +44,7 @@ const DockerInspectContainerNetworkSchema = z.object({
 
 const DockerInspectContainerConfigSchema = z.object({
     Image: z.string(),
-    Status: z.string(),
+    Status: z.string().optional(),
     Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]),
     Cmd: z.union([z.array(z.string()), z.string(), z.null()]),
     Env: z.union([z.array(z.string()), z.null()]).optional(),
