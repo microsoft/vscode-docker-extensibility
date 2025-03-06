@@ -300,7 +300,7 @@ describe('(integration) ContainersClientE2E', function () {
             ) as string;
 
             expect(testContainerId).to.be.a('string');
-            expect(await validateContainerExists(client, defaultRunner, testContainerId)).to.be.ok;
+            expect(await validateContainerExists(client, defaultRunner, { containerId: testContainerId })).to.be.ok;
         });
 
         after('Containers', async function () {
@@ -319,7 +319,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('ListContainersCommand', async function () {
-            const container = await validateContainerExists(client, defaultRunner, testContainerId) as ListContainersItem;
+            const container = await validateContainerExists(client, defaultRunner, { containerId: testContainerId }) as ListContainersItem;
             expect(container).to.be.ok;
             expect(container.name).to.equal(testContainerName);
             expect(container.state).to.be.a('string');
@@ -413,7 +413,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(stoppedContainers).to.include(testContainerId);
 
             // Verify it's stopped
-            const stoppedContainer = await validateContainerExists(client, defaultRunner, testContainerId) as ListContainersItem;
+            const stoppedContainer = await validateContainerExists(client, defaultRunner, { containerId: testContainerId }) as ListContainersItem;
             expect(stoppedContainer).to.be.ok;
             expect(stoppedContainer.state.toLowerCase()).to.equal('exited');
         });
@@ -429,7 +429,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(startedContainers).to.include(testContainerId);
 
             // Verify it's running
-            const startedContainer = await validateContainerExists(client, defaultRunner, testContainerId) as ListContainersItem;
+            const startedContainer = await validateContainerExists(client, defaultRunner, { containerId: testContainerId }) as ListContainersItem;
             expect(startedContainer).to.be.ok;
             expect(startedContainer.state.toLowerCase()).to.equal('running');
         });
@@ -445,7 +445,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(restartedContainers).to.include(testContainerId);
 
             // Verify it's running
-            const restartedContainer = await validateContainerExists(client, defaultRunner, testContainerId) as ListContainersItem;
+            const restartedContainer = await validateContainerExists(client, defaultRunner, { containerId: testContainerId }) as ListContainersItem;
             expect(restartedContainer).to.be.ok;
             expect(restartedContainer.state.toLowerCase()).to.equal('running');
         });
@@ -491,7 +491,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(removedContainers).to.include(testContainerId2);
 
             // Verify it was removed
-            expect(await validateContainerExists(client, defaultRunner, testContainerId2)).to.not.be.ok;
+            expect(await validateContainerExists(client, defaultRunner, { containerId: testContainerId2 })).to.not.be.ok;
         });
 
         it('PruneContainersCommand', async function () {
@@ -963,12 +963,18 @@ async function validateImageExists(client: IContainersClient, runner: ICommandRu
     return images.find(i => i.image.originalName?.includes(imageRef));
 }
 
-async function validateContainerExists(client: IContainersClient, runner: ICommandRunnerFactory, containerId: string): Promise<ListContainersItem | undefined> {
+export async function validateContainerExists(client: IContainersClient, runner: ICommandRunnerFactory, reference: { containerId?: string, containerName?: string }): Promise<ListContainersItem | undefined> {
     const containers = await runner.getCommandRunner()(
         client.listContainers({ all: true })
     );
 
-    return containers.find(c => c.id === containerId);
+    if (reference.containerId) {
+        return containers.find(c => c.id === reference.containerId);
+    } else if (reference.containerName) {
+        return containers.find(c => c.name === reference.containerName);
+    }
+
+    throw new Error('Either containerId or containerName must be provided');
 }
 
 async function validateNetworkExists(client: IContainersClient, runner: ICommandRunnerFactory, networkName: string): Promise<ListNetworkItem | undefined> {

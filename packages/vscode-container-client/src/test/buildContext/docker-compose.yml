@@ -1,0 +1,10 @@
+services:
+  frontend:
+    image: alpine:latest
+
+  backend:
+    image: alpine:latest
+    entrypoint: ["echo", "Log entry for testing"]
+
+volumes:
+  test-volume:
