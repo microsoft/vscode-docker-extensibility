@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from 'fs';
 import * as path from 'path';
 import * as stream from 'stream';
 import { describe, it } from 'mocha';
@@ -21,8 +22,21 @@ const executeInWsl = true; // Change this to false to run the tests on the host 
 
 const client = new PodmanClient();
 let runner: ShellStreamCommandRunnerFactory<ShellStreamCommandRunnerOptions> | WslShellCommandRunnerFactory;
+
+const dockerfileContent = `
+FROM alpine:latest
+
+EXPOSE 8080
+`;
+
 let testDockerfileContext: string = path.resolve(__dirname, 'buildContext');
 let testDockerfile: string = path.resolve(testDockerfileContext, 'Dockerfile');
+
+// Create the build context directory if it doesn't exist
+fs.mkdirSync(testDockerfileContext, { recursive: true });
+// Write the Dockerfile to the build context directory
+fs.writeFileSync(testDockerfile, dockerfileContent);
+
 if (executeInWsl) {
     runner = new WslShellCommandRunnerFactory({ strict: true });
     testDockerfileContext = wslifyPath(testDockerfileContext);
