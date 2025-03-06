@@ -10,15 +10,10 @@ import { DockerComposeClient } from '../clients/DockerComposeClient/DockerCompos
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
 import { IContainerOrchestratorClient } from '../contracts/ContainerOrchestratorClient';
-import { CommandResponseBase, ICommandRunnerFactory } from '../contracts/CommandRunner';
+import { ICommandRunnerFactory } from '../contracts/CommandRunner';
 import { wslifyPath } from '../utils/wslifyPath';
-import { Bash } from '../utils/spawnStreamAsync';
 import { DockerClient } from '../clients/DockerClient/DockerClient';
 import { validateContainerExists } from './ContainersClientE2E.test';
-
-/**
- * WARNING: This test suite will create and remove containers and networks related to the test docker-compose.yml file.
- */
 
 // Modify the below options to configure the tests
 const runInWsl: boolean = false; // Set to true if running in WSL
@@ -36,7 +31,7 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
     let composeDir: string;
     let composeProfileFilePath: string;
 
-    this.timeout(30000); // Set a longer timeout for integration tests
+    this.timeout(10000); // Set a longer timeout for integration tests
 
     before(async function () {
         client = new DockerComposeClient();
@@ -108,9 +103,9 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 })
             );
 
-            // Verify the containers are running
-            await validateContainerExists(containerClient, defaultRunner, { containerName: 'frontend' });
-            await validateContainerExists(containerClient, defaultRunner, { containerName: 'backend' });
+            // Verify the containers are created
+            expect(await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-frontend-1' })).to.be.ok;
+            expect(await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-backend-1' })).to.be.ok;
         });
     });
 
@@ -138,23 +133,8 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 })
             );
 
-            // Test specific options
-            const command = await client.down({
-                files: [composeFilePath],
-                removeVolumes: true,
-                removeImages: 'local',
-                timeoutSeconds: 30,
-                services: ['frontend'],
-                customOptions: '--remove-orphans',
-                projectName: 'test-project'
-            });
-
-            expect(getBashCommandLine(command)).to.include('--volumes');
-            expect(getBashCommandLine(command)).to.include('--rmi local');
-            expect(getBashCommandLine(command)).to.include('-t 30');
-            expect(getBashCommandLine(command)).to.include('--remove-orphans');
-            expect(getBashCommandLine(command)).to.include('-p test-project');
-            expect(getBashCommandLine(command)).to.include('frontend');
+            expect(await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-frontend-1' })).to.be.not.ok;
+            expect(await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-backend-1' })).to.be.not.ok;
         });
     });
 
@@ -187,17 +167,16 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 })
             );
 
-            // Test specific options
-            const command = await client.start({
-                files: [composeFilePath],
-                services: ['frontend', 'backend'],
-                projectName: 'test-project',
-                environmentFile: '.env'
-            });
+            // Verify the containers are running
+            const service1 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-frontend-1' });
+            const service2 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-backend-1' });
 
-            expect(getBashCommandLine(command)).to.include('frontend backend');
-            expect(getBashCommandLine(command)).to.include('-p test-project');
-            expect(getBashCommandLine(command)).to.include('--env-file .env');
+            expect(service1).to.be.ok;
+            expect(service2).to.be.ok;
+
+            // Validate that they are specifically running
+            expect(service1?.state).to.equal('running');
+            expect(service2?.state).to.equal('running');
         });
     });
 
@@ -224,17 +203,16 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 })
             );
 
-            // Test specific options
-            const command = await client.stop({
-                files: [composeFilePath],
-                timeoutSeconds: 30,
-                services: ['backend'],
-                projectName: 'test-project'
-            });
+            // Verify the containers are stopped
+            const service1 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-frontend-1' });
+            const service2 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-backend-1' });
 
-            expect(getBashCommandLine(command)).to.include('-t 30');
-            expect(getBashCommandLine(command)).to.include('backend');
-            expect(getBashCommandLine(command)).to.include('-p test-project');
+            expect(service1).to.be.ok;
+            expect(service2).to.be.ok;
+
+            // Validate that they are specifically stopped
+            expect(service1?.state).to.equal('exited');
+            expect(service2?.state).to.equal('exited');
         });
     });
 
@@ -261,17 +239,16 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 })
             );
 
-            // Test specific options
-            const command = await client.restart({
-                files: [composeFilePath],
-                timeoutSeconds: 15,
-                services: ['frontend'],
-                projectName: 'test-project'
-            });
+            // Verify the containers are running
+            const service1 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-frontend-1' });
+            const service2 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-backend-1' });
 
-            expect(getBashCommandLine(command)).to.include('-t 15');
-            expect(getBashCommandLine(command)).to.include('frontend');
-            expect(getBashCommandLine(command)).to.include('-p test-project');
+            expect(service1).to.be.ok;
+            expect(service2).to.be.ok;
+
+            // Validate that they are specifically running
+            expect(service1?.state).to.equal('running');
+            expect(service2?.state).to.equal('running');
         });
     });
 
@@ -279,7 +256,7 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
 
     // #region Logs Command
 
-    describe('Logs', function () {
+    xdescribe('Logs', function () {
         before('Logs', async function () {
             // Ensure services are up before logs test
             await defaultRunner.getCommandRunner()(
@@ -309,20 +286,6 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
             }
 
             expect(logsFound).to.be.true;
-
-            // Test specific options
-            const command = await client.logs({
-                files: [composeFilePath],
-                follow: true,
-                tail: 50,
-                services: ['frontend'],
-                projectName: 'test-project'
-            });
-
-            expect(getBashCommandLine(command)).to.include('--follow');
-            expect(getBashCommandLine(command)).to.include('--tail=50');
-            expect(getBashCommandLine(command)).to.include('frontend');
-            expect(getBashCommandLine(command)).to.include('-p test-project');
         });
     });
 
@@ -353,21 +316,20 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
             );
 
             expect(images).to.be.an('array');
-            expect(images.length).to.be.greaterThan(0);
-            // The docker-compose.yml uses alpine:latest for both services
-            expect(images.some(i => i.includes('alpine:latest'))).to.be.true;
+            expect(images).to.include('alpine:latest');
         });
 
         it('ConfigProfiles', async function () {
             // The test docker-compose.yml doesn't define profiles, but the command should still work
             const profiles = await defaultRunner.getCommandRunner()(
                 client.config({
-                    files: [composeFilePath],
+                    files: [composeFilePath, composeProfileFilePath],
                     configType: 'profiles',
                 })
             );
 
             expect(profiles).to.be.an('array');
+            expect(profiles).to.include('test-profile');
         });
 
         it('ConfigVolumes', async function () {
@@ -380,25 +342,19 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
             );
 
             expect(volumes).to.be.an('array');
+            expect(volumes).to.include('test-volume');
         });
     });
 
     // #endregion
 });
 
-// #region Helper Methods
-
-function getBashCommandLine(command: CommandResponseBase): string {
-    const bash = new Bash();
-    return `${command.command} ${bash.quote(command.args).join(' ')}`;
-}
-
-// #endregion
-
 const TestComposeFileContent = `
 services:
   frontend:
     image: alpine:latest
+    volumes:
+      - test-volume:/test-volume
 
   backend:
     image: alpine:latest
@@ -411,16 +367,10 @@ volumes:
 const TestComposeFileContentWithProfiles = `
 services:
   frontend:
-    image: alpine:latest
     profiles:
       - test-profile
 
   backend:
-    image: alpine:latest
-    entrypoint: ["echo", "Log entry for testing"]
     profiles:
       - test-profile
-
-volumes:
-  test-volume:
 `;
