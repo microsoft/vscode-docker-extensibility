@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from 'chai';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DockerComposeClient } from '../clients/DockerComposeClient/DockerComposeClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
@@ -33,10 +34,11 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
     let defaultRunnerFactory: (options: ShellStreamCommandRunnerOptions) => ICommandRunnerFactory;
     let composeFilePath: string;
     let composeDir: string;
+    let composeProfileFilePath: string;
 
     this.timeout(30000); // Set a longer timeout for integration tests
 
-    before(function () {
+    before(async function () {
         client = new DockerComposeClient();
         containerClient = new DockerClient(); // Used for validating that the containers are created and removed correctly
 
@@ -51,10 +53,17 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         // Set up paths for test docker-compose file
         composeDir = path.resolve(__dirname, 'buildContext');
         composeFilePath = path.resolve(composeDir, 'docker-compose.yml');
+        composeProfileFilePath = path.resolve(composeDir, 'docker-compose.profiles.yml');
+
+        // Create the test docker-compose.yml file
+        await fs.mkdir(composeDir, { recursive: true });
+        await fs.writeFile(composeFilePath, TestComposeFileContent);
+        await fs.writeFile(composeProfileFilePath, TestComposeFileContentWithProfiles);
 
         if (runInWsl) {
             composeDir = wslifyPath(composeDir);
             composeFilePath = wslifyPath(composeFilePath);
+            composeProfileFilePath = wslifyPath(composeProfileFilePath);
         }
     });
 
@@ -385,3 +394,33 @@ function getBashCommandLine(command: CommandResponseBase): string {
 }
 
 // #endregion
+
+const TestComposeFileContent = `
+services:
+  frontend:
+    image: alpine:latest
+
+  backend:
+    image: alpine:latest
+    entrypoint: ["echo", "Log entry for testing"]
+
+volumes:
+  test-volume:
+`;
+
+const TestComposeFileContentWithProfiles = `
+services:
+  frontend:
+    image: alpine:latest
+    profiles:
+      - test-profile
+
+  backend:
+    image: alpine:latest
+    entrypoint: ["echo", "Log entry for testing"]
+    profiles:
+      - test-profile
+
+volumes:
+  test-volume:
+`;

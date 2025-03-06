@@ -136,7 +136,7 @@ describe('(integration) ContainersClientE2E', function () {
             // Create the test Dockerfile and context if it doesn't exist
             try {
                 await fs.mkdir(testDockerfileContext, { recursive: true });
-                await fs.writeFile(testDockerfile, 'FROM alpine:latest\nEXPOSE 8080');
+                await fs.writeFile(testDockerfile, TestDockerfileContent);
             } catch (error) {
                 // Ignore error
             }
@@ -1002,3 +1002,8 @@ async function validateVolumeExists(client: IContainersClient, runner: ICommandR
 }
 
 // #endregion
+
+const TestDockerfileContent = `
+FROM alpine:latest
+EXPOSE 8080
+`;
