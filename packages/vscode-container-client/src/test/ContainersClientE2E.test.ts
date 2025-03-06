@@ -133,6 +133,14 @@ describe('(integration) ContainersClientE2E', function () {
             testDockerfileContext = path.resolve(__dirname, 'buildContext');
             testDockerfile = path.resolve(testDockerfileContext, 'Dockerfile');
 
+            // Create the test Dockerfile and context if it doesn't exist
+            try {
+                await fs.mkdir(testDockerfileContext, { recursive: true });
+                await fs.writeFile(testDockerfile, 'FROM alpine:latest\nEXPOSE 8080');
+            } catch (error) {
+                // Ignore error
+            }
+
             if (runInWsl) {
                 testDockerfileContext = wslifyPath(testDockerfileContext);
                 testDockerfile = wslifyPath(testDockerfile);
