@@ -256,7 +256,7 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
 
     // #region Logs Command
 
-    xdescribe('Logs', function () {
+    describe('Logs', function () {
         before('Logs', async function () {
             // Ensure services are up before logs test
             await defaultRunner.getCommandRunner()(
@@ -277,15 +277,14 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 })
             );
 
-            // Read some of the logs (don't need to read all)
-            let logsFound = false;
+            let logsOutput = '';
             for await (const chunk of logsStream) {
                 expect(chunk).to.be.a('string');
-                logsFound = true;
-                break; // Just need to verify we can get some logs
+                logsOutput += chunk;
             }
 
-            expect(logsFound).to.be.true;
+            // Check if the logs contain the expected output
+            expect(logsOutput).to.include('Log entry for testing');
         });
     });
 
