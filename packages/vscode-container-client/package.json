@@ -19,8 +19,8 @@
         "lint": "eslint --max-warnings 0 . --ext ts",
         "package": "npm pack",
         "test": "mocha",
-        "testintegration": "mocha --grep (integration)",
-        "testintegrationcov": "nyc --reporter=html mocha --grep (integration)"
+        "testintegration": "mocha --grep \"(integration)\"",
+        "testintegrationcov": "nyc --reporter=html mocha --grep \"(integration)\""
     },
     "dependencies": {
         "dayjs": "^1.11.2",
