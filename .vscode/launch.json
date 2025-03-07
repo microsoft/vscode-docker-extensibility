@@ -5,10 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Container client tests",
+            "name": "Container client unit tests",
             "request": "launch",
             "runtimeArgs": [
                 "test",
+                "--workspace=packages/vscode-container-client"
+            ],
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
+            "name": "Container client integration tests",
+            "request": "launch",
+            "runtimeArgs": [
+                "run",
+                "testintegration",
                 "--workspace=packages/vscode-container-client"
             ],
             "runtimeExecutable": "npm",
