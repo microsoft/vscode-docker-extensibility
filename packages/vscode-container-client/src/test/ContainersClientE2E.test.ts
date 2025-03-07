@@ -928,8 +928,12 @@ describe('(integration) ContainersClientE2E', function () {
             }
 
             const content = 'Hello from the container!';
-            const tempFilePath = path.join(os.tmpdir(), 'hello.txt');
+            let tempFilePath = path.join(os.tmpdir(), 'hello.txt');
             await fs.writeFile(tempFilePath, content);
+
+            if (runInWsl) {
+                tempFilePath = wslifyPath(tempFilePath);
+            }
 
             await defaultRunner.getCommandRunner()(
                 client.writeFile({ container: containerId, path: '/tmp/hello.txt', inputFile: tempFilePath })
