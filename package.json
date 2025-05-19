@@ -11,5 +11,9 @@
         "build": "npm run -ws build",
         "package": "npm run -ws package",
         "test": "npm run -ws test"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^22.15.19"
     }
 }
