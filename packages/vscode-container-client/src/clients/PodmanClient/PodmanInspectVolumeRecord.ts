@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { InspectVolumesItem } from '../../contracts/ContainerClient';
 
 export const PodmanInspectVolumeRecordSchema = z.object({
@@ -11,9 +11,9 @@ export const PodmanInspectVolumeRecordSchema = z.object({
     Driver: z.string(),
     Mountpoint: z.string(),
     CreatedAt: z.string(),
-    Labels: z.record(z.string()).optional(),
+    Labels: z.record(z.string(), z.string()).optional(),
     Scope: z.string(),
-    Options: z.record(z.unknown()).optional(),
+    Options: z.record(z.string(), z.unknown()).optional(),
 });
 
 type PodmanInspectVolumeRecord = z.infer<typeof PodmanInspectVolumeRecordSchema>;

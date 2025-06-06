@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { ImageNameInfo, InspectImagesItem, PortBinding } from '../../contracts/ContainerClient';
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
@@ -14,8 +14,8 @@ const PodmanInspectImageConfigSchema = z.object({
     Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
     Cmd: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
     Env: z.array(z.string()).optional(),
-    ExposedPorts: z.record(z.unknown()).nullable().optional(),
-    Volumes: z.record(z.unknown()).nullable().optional(),
+    ExposedPorts: z.record(z.string(), z.unknown()).nullable().optional(),
+    Volumes: z.record(z.string(), z.unknown()).nullable().optional(),
     WorkingDir: z.string().nullable().optional(),
     User: z.string().nullable().optional(),
 });
@@ -27,7 +27,7 @@ export const PodmanInspectImageRecordSchema = z.object({
     RepoDigests: z.array(z.string()),
     Architecture: z.string(),
     Os: z.string(),
-    Labels: z.record(z.string()).nullable(),
+    Labels: z.record(z.string(), z.string()).nullable(),
     Created: z.string(),
     User: z.string().optional(),
 });
