@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { InspectNetworksItem, NetworkIpamConfig } from '../../contracts/ContainerClient';
 import { dayjs } from '../../utils/dayjs';
 
@@ -22,7 +22,7 @@ export const DockerInspectNetworkRecordSchema = z.object({
     Name: z.string(),
     Driver: z.string(),
     Scope: z.string(),
-    Labels: z.record(z.string()),
+    Labels: z.record(z.string(), z.string()),
     IPAM: DockerIpamSchema,
     EnableIPv6: z.boolean(),
     Internal: z.boolean(),

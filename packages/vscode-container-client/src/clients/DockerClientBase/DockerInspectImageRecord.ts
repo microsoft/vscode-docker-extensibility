@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { ImageNameInfo, InspectImagesItem, PortBinding } from "../../contracts/ContainerClient";
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from "../../utils/parseDockerLikeImageName";
@@ -14,9 +14,9 @@ const DockerInspectImageConfigSchema = z.object({
     Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
     Cmd: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
     Env: z.array(z.string()).optional(),
-    Labels: z.record(z.string()).nullable().optional(),
-    ExposedPorts: z.record(z.unknown()).nullable().optional(),
-    Volumes: z.record(z.unknown()).nullable().optional(),
+    Labels: z.record(z.string(), z.string()).nullable().optional(),
+    ExposedPorts: z.record(z.string(), z.unknown()).nullable().optional(),
+    Volumes: z.record(z.string(), z.unknown()).nullable().optional(),
     WorkingDir: z.string().nullable().optional(),
     User: z.string().nullable().optional(),
 });

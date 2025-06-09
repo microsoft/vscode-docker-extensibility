@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { InspectContainersItem, InspectContainersItemMount, InspectContainersItemNetwork, PortBinding } from '../../contracts/ContainerClient';
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
@@ -48,7 +48,7 @@ const DockerInspectContainerConfigSchema = z.object({
     Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]),
     Cmd: z.union([z.array(z.string()), z.string(), z.null()]),
     Env: z.union([z.array(z.string()), z.null()]).optional(),
-    Labels: z.union([z.record(z.string()), z.null()]).optional(),
+    Labels: z.union([z.record(z.string(), z.string()), z.null()]).optional(),
     WorkingDir: z.union([z.string(), z.null()]).optional(),
 });
 
@@ -58,9 +58,9 @@ const DockerInspectContainerHostConfigSchema = z.object({
 });
 
 const DockerInspectContainerNetworkSettingsSchema = z.object({
-    Networks: z.record(DockerInspectContainerNetworkSchema).nullable().optional(),
+    Networks: z.record(z.string(), DockerInspectContainerNetworkSchema).nullable().optional(),
     IPAddress: z.string().optional(),
-    Ports: z.record(z.array(DockerInspectContainerPortHostSchema)).nullable().optional(),
+    Ports: z.record(z.string(), z.array(DockerInspectContainerPortHostSchema)).nullable().optional(),
 });
 
 const DockerInspectContainerStateSchema = z.object({

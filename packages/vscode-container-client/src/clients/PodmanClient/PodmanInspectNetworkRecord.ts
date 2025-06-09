@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { InspectNetworksItem } from '../../contracts/ContainerClient';
 
 export const PodmanInspectNetworkRecordSchema = z.object({
@@ -14,7 +14,7 @@ export const PodmanInspectNetworkRecordSchema = z.object({
     ipv6_enabled: z.boolean().optional(), // Not in v3
     internal: z.boolean().optional(), // Not in v3
     name: z.string(),
-    labels: z.record(z.string()).optional().nullable(),
+    labels: z.record(z.string(), z.string()).optional().nullable(),
 });
 
 type PodmanInspectNetworkRecord = z.infer<typeof PodmanInspectNetworkRecordSchema>;
