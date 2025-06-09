@@ -16,7 +16,7 @@ import { DockerClient } from '../clients/DockerClient/DockerClient';
 import { validateContainerExists } from './ContainersClientE2E.test';
 
 // Modify the below options to configure the tests
-const runInWsl: boolean = false; // Set to true if running in WSL
+const runInWsl: boolean = !!process.env.RUN_IN_WSL || false; // Set to true if running in WSL
 
 // No need to modify below this
 describe('(integration) ContainerOrchestratorClientE2E', function () {
