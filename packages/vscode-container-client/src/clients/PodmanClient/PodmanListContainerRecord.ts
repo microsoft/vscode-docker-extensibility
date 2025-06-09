@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const PodmanPortBindingSchema = z.object({
     /* eslint-disable @typescript-eslint/naming-convention */
@@ -20,7 +20,7 @@ export const PodmanListContainerRecordSchema = z.object({
     Image: z.string(),
     Ports: z.array(PodmanPortBindingSchema).optional().nullable(),
     Networks: z.array(z.string()).optional().nullable(),
-    Labels: z.record(z.string()).optional().nullable(),
+    Labels: z.record(z.string(), z.string()).optional().nullable(),
     Created: z.number(),
     State: z.string(),
     Status: z.string(),
