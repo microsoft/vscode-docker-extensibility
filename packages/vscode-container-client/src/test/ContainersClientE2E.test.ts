@@ -28,8 +28,8 @@ const clientTypeToTest: ClientType = 'docker' as ClientType;
 const runInWsl: boolean = false; // Set to true if running in WSL
 
 // Supply to run the login/logout tests
-const dockerHubUsername = '';
-const dockerHubPAT = ''; // Never commit this value!!
+const dockerHubUsername = process.env.DOCKER_HUB_USERNAME || ''; // Set your Docker Hub username in an environment variable or here
+const dockerHubPAT = process.env.DOCKER_HUB_PAT || ''; // Never commit this value!!
 
 // No need to modify below this
 type ClientType = 'docker' | 'podman';
