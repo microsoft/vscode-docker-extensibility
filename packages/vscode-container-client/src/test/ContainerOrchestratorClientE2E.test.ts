@@ -117,12 +117,21 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 client.up({
                     files: [composeFilePath],
                     detached: true,
+                    forceRecreate: true, // Force recreate to ensure containers are created fresh
+                    timeoutSeconds: 1, // The services may already exist, so they need to be shut down quickly and re-upped
                 })
             );
 
-            // Verify the containers are created
-            expect(await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-frontend-1' })).to.be.ok;
-            expect(await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-backend-1' })).to.be.ok;
+            // Verify the containers are running
+            const service1 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-frontend-1' });
+            const service2 = await validateContainerExists(containerClient, defaultRunner, { containerName: 'buildcontext-backend-1' });
+
+            expect(service1).to.be.ok;
+            expect(service2).to.be.ok;
+
+            // Validate that they are specifically running
+            expect(service1?.state).to.equal('running');
+            expect(service2?.state).to.equal('running');
         });
     });
 
@@ -137,6 +146,8 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 client.up({
                     files: [composeFilePath],
                     detached: true,
+                    forceRecreate: true, // Force recreate to ensure containers are created fresh
+                    timeoutSeconds: 1, // The services may already exist, so they need to be shut down quickly and re-upped
                 })
             );
         });
@@ -167,13 +178,9 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 client.up({
                     files: [composeFilePath],
                     detached: true,
-                })
-            );
-
-            await defaultRunner.getCommandRunner()(
-                client.stop({
-                    files: [composeFilePath],
-                    timeoutSeconds: 1,
+                    forceRecreate: true, // Force recreate to ensure containers are created fresh
+                    timeoutSeconds: 1, // The services may already exist, so they need to be shut down quickly and re-upped
+                    noStart: true, // Ensure the containers are created but not started
                 })
             );
         });
@@ -210,6 +217,8 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 client.up({
                     files: [composeFilePath],
                     detached: true,
+                    forceRecreate: true, // Force recreate to ensure containers are created fresh
+                    timeoutSeconds: 1, // The services may already exist, so they need to be shut down quickly and re-upped
                 })
             );
         });
@@ -247,6 +256,8 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 client.up({
                     files: [composeFilePath],
                     detached: true,
+                    forceRecreate: true, // Force recreate to ensure containers are created fresh
+                    timeoutSeconds: 1, // The services may already exist, so they need to be shut down quickly and re-upped
                 })
             );
         });
@@ -284,6 +295,8 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
                 client.up({
                     files: [composeWithLogsFilePath],
                     detached: true,
+                    forceRecreate: true, // Force recreate to ensure containers are created fresh
+                    timeoutSeconds: 1, // The services may already exist, so they need to be shut down quickly and re-upped
                 })
             );
         });
