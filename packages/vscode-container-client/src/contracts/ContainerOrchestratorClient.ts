@@ -54,7 +54,7 @@ export type UpCommandOptions = CommonOrchestratorCommandOptions & {
      */
     scale?: Record<string, number>;
     /**
-     * If set to 'force', the `--force-recreate` flag is added, even if nothing has changed.
+     * If set to 'force', the `--force-recreate` flag is added, and containers will be recreated even if nothing has changed.
      * If set to `no`, the `--no-recreate` flag is added, and existing containers are not recreated.
      * If not set, no recreate flags are added.
      * NOTE: Current Podman versions implicitly assume `force` if no recreate flag is set.
