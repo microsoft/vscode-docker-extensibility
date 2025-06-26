@@ -20,7 +20,7 @@ import { ClientType, validateContainerExists } from './ContainersClientE2E.test'
 
 // Modify the below options to configure the tests
 const clientTypeToTest: ClientType = (process.env.CONTAINER_CLIENT_TYPE || 'docker') as ClientType;
-const runInWsl: boolean = !!process.env.RUN_IN_WSL || false; // Set to true if running in WSL
+const runInWsl: boolean = (process.env.RUN_IN_WSL === '1' || process.env.RUN_IN_WSL === 'true') || false; // Set to true if running in WSL
 
 // No need to modify below this
 
