@@ -464,7 +464,7 @@ describe('(integration) ContainersClientE2E', function () {
             expect(command.command).to.be.a('string');
             expect(command.args).to.be.an('array');
 
-            // We expect push and the image reference
+            // We expect `container stats --all`
             expect(getBashCommandLine(command)).to.equal(`${client.commandName} container stats --all`);
         });
 
