@@ -6,25 +6,30 @@
 import { expect } from 'chai';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { DockerClient } from '../clients/DockerClient/DockerClient';
 import { DockerComposeClient } from '../clients/DockerComposeClient/DockerComposeClient';
+import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
+import { PodmanComposeClient } from '../clients/PodmanComposeClient/PodmanComposeClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
+import { IContainersClient } from '../contracts/ContainerClient';
 import { IContainerOrchestratorClient } from '../contracts/ContainerOrchestratorClient';
 import { ICommandRunnerFactory } from '../contracts/CommandRunner';
 import { wslifyPath } from '../utils/wslifyPath';
-import { DockerClient } from '../clients/DockerClient/DockerClient';
-import { validateContainerExists } from './ContainersClientE2E.test';
+import { ClientType, validateContainerExists } from './ContainersClientE2E.test';
 
 // Modify the below options to configure the tests
+const clientTypeToTest: ClientType = (process.env.CONTAINER_CLIENT_TYPE || 'docker') as ClientType;
 const runInWsl: boolean = !!process.env.RUN_IN_WSL || false; // Set to true if running in WSL
 
 // No need to modify below this
+
 describe('(integration) ContainerOrchestratorClientE2E', function () {
 
     // #region Test Setup
 
     let client: IContainerOrchestratorClient;
-    let containerClient: DockerClient;
+    let containerClient: IContainersClient;
     let defaultRunner: ICommandRunnerFactory;
     let defaultRunnerFactory: (options: ShellStreamCommandRunnerOptions) => ICommandRunnerFactory;
     let composeDir: string;
@@ -35,8 +40,15 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
     this.timeout(10000); // Set a longer timeout for integration tests
 
     before(async function () {
-        client = new DockerComposeClient();
-        containerClient = new DockerClient(); // Used for validating that the containers are created and removed correctly
+        if (clientTypeToTest === 'docker') {
+            containerClient = new DockerClient(); // Used for validating that the containers are created and removed correctly
+            client = new DockerComposeClient();
+        } else if (clientTypeToTest === 'podman') {
+            containerClient = new PodmanClient(); // Used for validating that the containers are created and removed correctly
+            client = new PodmanComposeClient();
+        } else {
+            throw new Error('Invalid clientTypeToTest');
+        }
 
         if (!runInWsl) {
             defaultRunnerFactory = (options: ShellStreamCommandRunnerOptions) => new ShellStreamCommandRunnerFactory(options);

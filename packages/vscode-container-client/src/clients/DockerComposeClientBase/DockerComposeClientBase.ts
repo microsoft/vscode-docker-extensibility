@@ -43,47 +43,13 @@ function withComposeArg(composeV2: boolean): CommandLineCurryFn {
     return withArg(composeV2 ? 'compose' : undefined);
 }
 
-export class DockerComposeClient extends ConfigurableClient implements IContainerOrchestratorClient {
-    /**
-     * The ID of the Docker Compose client
-     */
-    public static ClientId = 'com.microsoft.visualstudio.orchestrators.dockercompose';
+export abstract class DockerComposeClientBase extends ConfigurableClient implements IContainerOrchestratorClient {
 
     /**
-     * Constructs a new {@link DockerComposeClient}
-     * @param commandName (Optional, default `docker`) The command that will be run
-     * as the base command. If quoting is necessary, it is the responsibility of the
-     * caller to add.
-     * @param displayName (Optional, default 'Docker Compose') The human-friendly display
-     * name of the client
-     * @param description (Optional, with default) The human-friendly description of
-     * the client
-     * @param composeV2 (Optional, default `true`) If true, `compose` will be added as the
-     * first argument to all commands. The base command should be `docker`.
+     * Whether to use Docker Compose V2 or not.
+     * If true, the command will be like `docker compose` instead of `docker-compose`.
      */
-    public constructor(
-        commandName?: string,
-        displayName: string = 'Docker Compose',
-        description: string = 'Runs orchestrator commands using the Docker Compose CLI',
-        composeV2: boolean = true
-    ) {
-        super(
-            DockerComposeClient.ClientId,
-            commandName || composeV2 ? 'docker' : 'docker-compose',
-            displayName,
-            description
-        );
-        this.#composeV2 = composeV2;
-    }
-
-    #composeV2: boolean;
-    public get composeV2(): boolean {
-        return this.#composeV2;
-    }
-
-    public set composeV2(value: boolean) {
-        this.#composeV2 = value;
-    }
+    public composeV2: boolean = true;
 
     //#region Up command
 

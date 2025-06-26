@@ -29,6 +29,12 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+            "env": {
+                "CONTAINER_CLIENT_TYPE": "docker",
+                "RUN_IN_WSL": "false",
+                "DOCKER_HUB_USERNAME": "", // Replace, but never commit!
+                "DOCKER_HUB_PAT": "" // Replace, but never commit!
+            },
             "type": "node"
         },
         {
