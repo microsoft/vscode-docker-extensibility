@@ -298,6 +298,8 @@ describe('(integration) ContainersClientE2E', function () {
             }
 
             // Create a container that will stay running
+            // For fun we'll add a network, volume, a bind mount, and some ports to it and verify those in both
+            // it('ListContainersCommand') and it('InspectContainersCommand')
             testContainerId = await defaultRunner.getCommandRunner()(
                 client.runContainer({
                     imageRef: imageToTest,
@@ -305,9 +307,6 @@ describe('(integration) ContainersClientE2E', function () {
                     name: testContainerName,
                 })
             ) as string;
-
-            expect(testContainerId).to.be.a('string');
-            expect(await validateContainerExists(client, defaultRunner, { containerId: testContainerId })).to.be.ok;
         });
 
         after('Containers', async function () {
@@ -322,16 +321,28 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('RunContainerCommand', async function () {
-            // This is already fully tested in the before('Containers') hook and the it('StopContainersCommand') test
+            // Ensure the container was created
+            expect(testContainerId).to.be.a('string');
+            expect(await validateContainerExists(client, defaultRunner, { containerId: testContainerId })).to.be.ok;
         });
 
         it('ListContainersCommand', async function () {
             const container = await validateContainerExists(client, defaultRunner, { containerId: testContainerId }) as ListContainersItem;
             expect(container).to.be.ok;
+
+            // Validate some important properties
             expect(container.name).to.equal(testContainerName);
             expect(container.state).to.be.a('string');
             expect(container.image).to.be.an('object');
             expect(container.createdAt).to.be.instanceOf(Date);
+
+            // Validate the network
+
+            // Validate the bind mount
+
+            // Validate the volume
+
+            // Validate the ports
         });
 
         it('InspectContainersCommand', async function () {
@@ -344,16 +355,26 @@ describe('(integration) ContainersClientE2E', function () {
             expect(containers.length).to.equal(1);
 
             const container = containers[0];
+
+            // Validate some important properties
             expect(container.id).to.equal(testContainerId);
             expect(container.name).to.include(testContainerName);
             expect(container.image).to.be.an('object');
             expect(container.environmentVariables).to.be.an('object');
-            expect(container.ports).to.be.an('array');
             expect(container.labels).to.be.an('object');
             expect(container.entrypoint).to.be.an('array');
             expect(container.command).to.be.an('array');
             expect(container.createdAt).to.be.instanceOf(Date);
             expect(container.raw).to.be.a('string');
+
+            // Validate the network
+
+            // Validate the bind mount
+
+            // Validate the volume
+
+            // Validate the ports
+            expect(container.ports).to.be.an('array');
         });
 
         it('ExecContainerCommand', async function () {
