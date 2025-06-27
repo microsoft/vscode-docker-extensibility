@@ -95,7 +95,7 @@ export function normalizeDockerInspectContainerRecord(container: DockerInspectCo
             gateway: dockerNetwork.Gateway || undefined,
             ipAddress: dockerNetwork.IPAddress || undefined,
             macAddress: dockerNetwork.MacAddress || undefined,
-        };
+        } satisfies InspectContainersItemNetwork;
     });
 
     // Parse the exposed ports for the container and normalize to a PortBinding record
@@ -110,7 +110,7 @@ export function normalizeDockerInspectContainerRecord(container: DockerInspectCo
                 : protocol.toLowerCase() === 'udp'
                     ? 'udp'
                     : undefined,
-        };
+        } satisfies PortBinding;
     });
 
     // Parse the volume and bind mounts associated with the given runtime and normalize to
