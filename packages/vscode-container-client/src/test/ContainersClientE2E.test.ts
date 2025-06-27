@@ -280,15 +280,25 @@ describe('(integration) ContainersClientE2E', function () {
     describe('Containers', function () {
         const imageToTest = 'alpine:latest';
         const testContainerName = 'test-container-e2e';
+        const testContainerNetworkName = 'test-networkForContainer-e2e';
+        const testContainerVolumeName = 'test-volumeForContainer-e2e';
+        let testContainerBindMountSource: string;
         let testContainerId: string;
 
         before('Containers', async function () {
+            testContainerBindMountSource = __dirname;
+
+            // If running in WSL, convert the bind mount source path to WSL format
+            if (runInWsl) {
+                testContainerBindMountSource = wslifyPath(testContainerBindMountSource);
+            }
+
             // Pull a small image for testing
             await defaultRunner.getCommandRunner()(
                 client.pullImage({ imageRef: imageToTest })
             );
 
-            // Try removing the container if it exists so we don't get a name conflict
+            // Try removing the container if it exists so we don't get a name/port conflict
             try {
                 await defaultRunner.getCommandRunner()(
                     client.removeContainers({ containers: [testContainerName], force: true })
@@ -297,14 +307,50 @@ describe('(integration) ContainersClientE2E', function () {
                 // Ignore error if the container doesn't exist
             }
 
+            // Try removing the network if it exists so we don't get a name conflict
+            try {
+                await defaultRunner.getCommandRunner()(
+                    client.removeNetworks({ networks: [testContainerNetworkName] })
+                );
+            } catch (error) {
+                // Ignore error if the network doesn't exist
+            }
+
+            // Try removing the volume if it exists so we don't get a name conflict
+            try {
+                await defaultRunner.getCommandRunner()(
+                    client.removeVolumes({ volumes: [testContainerVolumeName] })
+                );
+            } catch (error) {
+                // Ignore error if the volume doesn't exist
+            }
+
+            // Create a network for the container
+            await defaultRunner.getCommandRunner()(
+                client.createNetwork({ name: testContainerNetworkName })
+            );
+
+            // Create a volume for the container
+            await defaultRunner.getCommandRunner()(
+                client.createVolume({ name: testContainerVolumeName })
+            );
+
             // Create a container that will stay running
-            // For fun we'll add a network, volume, a bind mount, and some ports to it and verify those in both
+            // For fun we'll add a network, a bind mount, a volume, and some ports to it and verify those in both
             // it('ListContainersCommand') and it('InspectContainersCommand')
             testContainerId = await defaultRunner.getCommandRunner()(
                 client.runContainer({
                     imageRef: imageToTest,
                     detached: true,
                     name: testContainerName,
+                    network: testContainerNetworkName,
+                    mounts: [
+                        { type: 'bind', source: testContainerBindMountSource, destination: '/data1', readOnly: true },
+                        { type: 'volume', source: testContainerVolumeName, destination: '/data2', readOnly: false }
+                    ],
+                    ports: [{ hostPort: 8080, containerPort: 80 }],
+                    exposePorts: [3000], // Uses the `--expose` flag to expose a port without binding it
+                    publishAllPorts: true, // Which will then get bound to a random port on the host, due to this flag
                 })
             ) as string;
         });
@@ -317,6 +363,24 @@ describe('(integration) ContainersClientE2E', function () {
                 await defaultRunner.getCommandRunner()(
                     client.removeContainers({ containers: [testContainerId], force: true })
                 );
+            }
+
+            // Try removing the network if it exists so we don't get a name conflict
+            try {
+                await defaultRunner.getCommandRunner()(
+                    client.removeNetworks({ networks: [testContainerNetworkName] })
+                );
+            } catch (error) {
+                // Ignore error if the network doesn't exist
+            }
+
+            // Try removing the volume if it exists so we don't get a name conflict
+            try {
+                await defaultRunner.getCommandRunner()(
+                    client.removeVolumes({ volumes: [testContainerVolumeName] })
+                );
+            } catch (error) {
+                // Ignore error if the volume doesn't exist
             }
         });
 
@@ -337,12 +401,15 @@ describe('(integration) ContainersClientE2E', function () {
             expect(container.createdAt).to.be.instanceOf(Date);
 
             // Validate the network
-
-            // Validate the bind mount
-
-            // Validate the volume
+            expect(container.networks).to.be.an('array');
+            expect(container.networks).to.include(testContainerNetworkName);
 
             // Validate the ports
+            expect(container.ports).to.be.an('array');
+            expect(container.ports.some(p => p.hostPort === 8080 && p.containerPort === 80)).to.be.true;
+            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
+
+            // Volumes and bind mounts do not show up in ListContainersCommand, so we won't validate those here
         });
 
         it('InspectContainersCommand', async function () {
@@ -368,13 +435,21 @@ describe('(integration) ContainersClientE2E', function () {
             expect(container.raw).to.be.a('string');
 
             // Validate the network
+            expect(container.networks).to.be.an('array');
+            expect(container.networks.some(n => n.name === testContainerNetworkName)).to.be.true;
 
             // Validate the bind mount
+            expect(container.mounts).to.be.an('array');
+            expect(container.mounts.some(m => m.type === 'bind' && m.source === testContainerBindMountSource && m.destination === '/data1' && m.readOnly === true)).to.be.true;
 
             // Validate the volume
+            expect(container.mounts).to.be.an('array');
+            expect(container.mounts.some(m => m.type === 'volume' && m.source === testContainerVolumeName && m.destination === '/data2' && m.readOnly === false)).to.be.true;
 
             // Validate the ports
             expect(container.ports).to.be.an('array');
+            expect(container.ports.some(p => p.hostPort === 8080 && p.containerPort === 80)).to.be.true;
+            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
         });
 
         it('ExecContainerCommand', async function () {
