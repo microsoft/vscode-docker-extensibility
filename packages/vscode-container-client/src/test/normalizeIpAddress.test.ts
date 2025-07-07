@@ -36,5 +36,4 @@ describe('(unit) normalizeIpAddress', () => {
         const normalized = normalizeIpAddress(ip);
         expect(normalized).to.be.undefined;
     });
-
 });
