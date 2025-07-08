@@ -55,7 +55,7 @@
             "src/test/**/*.test.ts"
         ],
         "grep": [
-            "(unit)"
+            "spawnStreamAsync"
         ],
         "watch-files": [
             "src/**/*.ts"
