@@ -7,7 +7,6 @@ import { z } from 'zod/v4';
 import { InspectContainersItem, InspectContainersItemBindMount, InspectContainersItemMount, InspectContainersItemNetwork, InspectContainersItemVolumeMount, PortBinding } from '../../contracts/ContainerClient';
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
-import { toArray } from '../../utils/toArray';
 import { normalizeIpAddress } from '../DockerClientBase/normalizeIpAddress';
 import { parseDockerLikeEnvironmentVariables } from '../DockerClientBase/parseDockerLikeEnvironmentVariables';
 

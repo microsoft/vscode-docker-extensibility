@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Bash, escaped, Powershell } from '@microsoft/vscode-processutils';
 import { expect } from 'chai';
 import * as crypto from 'crypto';
 import { describe, it } from 'mocha';
@@ -12,8 +13,6 @@ import {
     DockerClient,
 } from '../clients/DockerClient/DockerClient';
 import { BuildImageCommandOptions, RunContainerCommandOptions } from '../contracts/ContainerClient';
-import { escaped } from '../utils/commandLineBuilder';
-import { Bash, Powershell } from '../utils/spawnStreamAsync';
 
 describe('(unit) DockerClient', () => {
     const client = new DockerClient();
@@ -211,19 +210,19 @@ describe('DockerClient (unit)', () => {
         const args = commandResponse.args;
 
         // Find the position of --platform flag
-        const platformFlagIndex = args.findIndex(arg => 
+        const platformFlagIndex = args.findIndex(arg =>
             typeof arg === 'string' ? arg === '--platform' : arg.value === '--platform'
         );
-        
+
         // Verify that --platform flag is present
         expect(platformFlagIndex).to.be.greaterThan(-1);
-        
+
         // Verify that the value after --platform matches our expected platform
         const platformValue = args[platformFlagIndex + 1];
-        const platformValueStr = typeof platformValue === 'string' 
-            ? platformValue 
+        const platformValueStr = typeof platformValue === 'string'
+            ? platformValue
             : platformValue.value;
-        
+
         expect(platformValueStr).to.equal('linux/arm64');
     });
 });
