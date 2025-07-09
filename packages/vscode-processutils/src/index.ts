@@ -13,3 +13,5 @@ export * from './utils/commandLineBuilder';
 export * from './utils/getSafeExecPath';
 export * from './utils/Shell';
 export * from './utils/spawnStreamAsync';
+export * from './utils/streamToGenerator';
+export * from './utils/toArray';
