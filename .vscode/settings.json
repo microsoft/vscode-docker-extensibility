@@ -3,9 +3,9 @@
         "typescript"
     ],
     "eslint.workingDirectories": [
+        "./packages/vscode-processutils",
         "./packages/vscode-container-client",
-        "./packages/vscode-docker-registries",
-        "./packages/vscode-processutils"
+        "./packages/vscode-docker-registries"
     ],
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,

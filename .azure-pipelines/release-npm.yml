@@ -7,9 +7,9 @@ parameters:
     displayName: Package to Publish
     type: string
     values:
+      - microsoft-vscode-processutils
       - microsoft-vscode-container-client
       - microsoft-vscode-docker-registries
-      - microsoft-vscode-processutils
   - name: publishVersion
     displayName: Publish Version
     type: string
