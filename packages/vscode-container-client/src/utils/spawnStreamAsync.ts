@@ -202,6 +202,11 @@ export class NoShell extends Shell {
     }
 }
 
+/**
+ * Options for spawning a process with pipe streaming capabilities.
+ * This extends the standard {@link SpawnOptions} to include additional features
+ * such as command logging, cancellation support, and shell customization.
+ */
 export type StreamSpawnOptions = SpawnOptions & {
     /**
      * A callback that is invoked with the full command line that is being executed.
