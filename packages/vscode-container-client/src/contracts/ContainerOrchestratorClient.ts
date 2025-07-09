@@ -30,10 +30,15 @@ export type CommonOrchestratorCommandOptions = CommonCommandOptions & {
 // CheckOrchestratorInstall Command Types
 export type CheckOrchestratorInstallCommandOptions = {
     /**
-     * If true, the command will specifically check for a Compose V2 or similar installation.
-     * That is, it will check for the presence of `docker compose` or similar, as opposed to `docker-compose`.
+     * For runtimes that support a "Compose V2" style execution, e.g. `docker compose`
+     * instead of `docker-compose`, this option allows the command to specify which
+     * version of the compose command to use.
+     * - `v1` will use the legacy e.g. `docker-compose` command.
+     * - `v2` will use the modern e.g. `docker compose` command.
+     * - If unspecified, it will use the configured default for the client, typically the
+     *   `composeV2` property on the client.
      */
-    forceCheckV2?: boolean;
+    composeVersion?: 'v1' | 'v2';
 };
 
 type CheckOrchestratorInstallCommand = {

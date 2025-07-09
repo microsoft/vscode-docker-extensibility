@@ -55,8 +55,21 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
     //#region Check orchestrator install command
 
     protected getCheckOrchestratorInstallCommandArgs(options: CheckOrchestratorInstallCommandOptions): CommandLineArgs {
+        let checkComposeV2: boolean;
+        switch (options.composeVersion) {
+            case 'v1':
+                checkComposeV2 = false;
+                break;
+            case 'v2':
+                checkComposeV2 = true;
+                break;
+            default:
+                checkComposeV2 = this.composeV2;
+                break;
+        }
+
         return composeArgs(
-            withComposeArg(options.forceCheckV2 ?? this.composeV2),
+            withComposeArg(checkComposeV2),
             withArg('version'),
         )();
     }
