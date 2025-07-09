@@ -1,0 +1,62 @@
+{
+    "name": "@microsoft/vscode-processutils",
+    "author": "Microsoft Corporation",
+    "version": "0.1.0",
+    "description": "Library support for building command lines and running external processes, primarily for use in VS Code.",
+    "license": "See LICENSE in the project root for license information.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/microsoft/vscode-docker-extensibility"
+    },
+    "bugs": {
+        "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
+    },
+    "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-processutils/README.md",
+    "main": "lib/index.js",
+    "scripts": {
+        "build": "tsc",
+        "clean": "tsc --build --clean",
+        "lint": "eslint --max-warnings 0 . --ext ts",
+        "package": "npm pack",
+        "test": "mocha"
+    },
+    "dependencies": {
+        "tree-kill": "^1.2.2",
+        "which": "^5.0.0"
+    },
+    "devDependencies": {
+        "@types/chai": "^4.3.0",
+        "@types/mocha": "^9.1.0",
+        "@types/node": "18.x",
+        "@types/vscode": "1.63.1",
+        "@types/which": "^3.0.4",
+        "@typescript-eslint/eslint-plugin": "^5.10.2",
+        "@typescript-eslint/parser": "^5.10.2",
+        "chai": "^4.3.6",
+        "eslint": "^8.8.0",
+        "mocha": "^10.0.0",
+        "nyc": "^17.1.0",
+        "ts-node": "^10.9.2",
+        "tsconfig-paths": "^4.0.0",
+        "typescript": "^5.8.3",
+        "vscode-jsonrpc": "^8.0.1"
+    },
+    "mocha": {
+        "extension": [
+            "ts"
+        ],
+        "require": [
+            "ts-node/register",
+            "./src/test/tsconfig-paths-bootstrap.js"
+        ],
+        "spec": [
+            "src/test/**/*.test.ts"
+        ],
+        "grep": [
+            "(unit)"
+        ],
+        "watch-files": [
+            "src/**/*.ts"
+        ]
+    }
+}

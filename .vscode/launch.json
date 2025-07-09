@@ -38,6 +38,19 @@
             "type": "node"
         },
         {
+            "name": "Process utils unit tests",
+            "request": "launch",
+            "runtimeArgs": [
+                "test",
+                "--workspace=packages/vscode-processutils"
+            ],
+            "runtimeExecutable": "npm",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node"
+        },
+        {
             "name": "Docker registries tests",
             "request": "launch",
             "runtimeArgs": [
