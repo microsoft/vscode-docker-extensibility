@@ -114,7 +114,7 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         it('CheckOrchestratorInstallCommand', async function () {
             const response = await defaultRunner.getCommandRunner()(
                 client.checkOrchestratorInstall({
-                    forceCheckV2: true, // Force check for V2
+                    composeVersion: 'v2', // Force check for V2
                 })
             );
 
