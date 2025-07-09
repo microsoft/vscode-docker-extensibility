@@ -5,7 +5,7 @@
 
 // Reexport the stuff from the vscode-processutils package,
 // so that when we run the Mocha tests we can use the things in there.
-export * from '../vscode-processutils/vscode';
+export * from '@microsoft/vscode-processutils/vscode';
 
 /**
  * This file is used to provide vscode specific types when running mocha test cases
