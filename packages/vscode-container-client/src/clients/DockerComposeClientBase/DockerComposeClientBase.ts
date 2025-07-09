@@ -5,6 +5,7 @@
 
 import { GeneratorCommandResponse, PromiseCommandResponse, VoidCommandResponse } from '../../contracts/CommandRunner';
 import {
+    CheckOrchestratorInstallCommandOptions,
     CommonOrchestratorCommandOptions,
     ConfigCommandOptions,
     ConfigItem,
@@ -50,6 +51,30 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
      * If true, the command will be like `docker compose` instead of `docker-compose`.
      */
     public composeV2: boolean = true;
+
+    //#region Check orchestrator install command
+
+    protected getCheckOrchestratorInstallCommandArgs(options: CheckOrchestratorInstallCommandOptions): CommandLineArgs {
+        return composeArgs(
+            withComposeArg(options.forceCheckV2 ?? this.composeV2),
+            withArg('version'),
+        )();
+    }
+
+    /**
+     * Generates the necessary information for running of an orchestrator install check command for Docker Compose
+     * @param options Command options
+     * @returns A CommandResponse indicating how to run an orchestrator install check command for Docker Compose
+     */
+    public async checkOrchestratorInstall(options: CheckOrchestratorInstallCommandOptions): Promise<PromiseCommandResponse<string>> {
+        return {
+            command: this.commandName,
+            args: this.getCheckOrchestratorInstallCommandArgs(options),
+            parse: (output) => Promise.resolve(output),
+        };
+    }
+
+    //#endregion Check orchestrator install command
 
     //#region Up command
 

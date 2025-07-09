@@ -27,6 +27,24 @@ export type CommonOrchestratorCommandOptions = CommonCommandOptions & {
     profiles?: Array<string>;
 };
 
+// CheckOrchestratorInstall Command Types
+export type CheckOrchestratorInstallCommandOptions = {
+    /**
+     * If true, the command will specifically check for a Compose V2 or similar installation.
+     * That is, it will check for the presence of `docker compose` or similar, as opposed to `docker-compose`.
+     */
+    forceCheckV2?: boolean;
+};
+
+type CheckOrchestratorInstallCommand = {
+    /**
+     * Generate a CommandResponse to check if the orchestrator runtime is installed. The
+     * command will return a non-zero exit code if the orchestrator runtime is not installed.
+     * @param options Command options
+     */
+    checkOrchestratorInstall(options: CheckOrchestratorInstallCommandOptions): Promise<PromiseCommandResponse<string>>;
+};
+
 // Up command types
 export type UpCommandOptions = CommonOrchestratorCommandOptions & {
     /**
@@ -215,6 +233,7 @@ type ConfigCommand = {
  */
 export interface IContainerOrchestratorClient extends
     ClientIdentity,
+    CheckOrchestratorInstallCommand,
     UpCommand,
     DownCommand,
     StartCommand,
