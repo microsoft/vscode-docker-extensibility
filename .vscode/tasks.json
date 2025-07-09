@@ -19,6 +19,22 @@
             "isBackground": true
         },
         {
+            "label": "tsc-watch: vscode-processutils",
+            "type": "typescript",
+            "tsconfig": "packages/vscode-processutils/tsconfig.json",
+            "option": "watch",
+            "problemMatcher": [
+                "$tsc-watch"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "presentation": {
+                "reveal": "never"
+            },
+            "isBackground": true
+        },
+        {
             "label": "tsc-watch: vscode-docker-registries",
             "type": "typescript",
             "tsconfig": "packages/vscode-docker-registries/tsconfig.json",
