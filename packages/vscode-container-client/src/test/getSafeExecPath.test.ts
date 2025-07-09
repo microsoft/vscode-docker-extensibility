@@ -8,7 +8,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { getSafeExecPath } from '../utils/getSafeExecPath';
 
-describe('(unit) getSafeExecPath tests', () => {
+describe('(unit) getSafeExecPath', () => {
     it('Should return the command as is on non-Windows platforms', function () {
         if (os.platform() === 'win32') {
             this.skip(); // Skip this test on Windows
