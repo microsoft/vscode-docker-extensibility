@@ -5,6 +5,7 @@
 
 import { expect } from 'chai';
 import * as os from 'os';
+import * as path from 'path';
 import { getSafeExecPath } from '../utils/getSafeExecPath';
 
 describe('(unit) getSafeExecPath tests', () => {
@@ -25,9 +26,11 @@ describe('(unit) getSafeExecPath tests', () => {
             this.skip(); // Skip this test on non-Windows
         }
 
-        expect(getSafeExecPath('notepad').toLowerCase()).to.include('\\notepad.exe').and.to.include('c:\\'); // Ensure it resolves to a path that includes 'notepad.exe' and is on C drive
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        expect(getSafeExecPath(process.env.COMSPEC!)).to.equal(process.env.COMSPEC);
+        const absoluteCommand = process.env.COMSPEC!;
+
+        expect(getSafeExecPath(path.basename(absoluteCommand)).toLowerCase()).to.equal(absoluteCommand.toLowerCase()); // 'cmd' should resolve to the COMSPEC environment variable on Windows
+        expect(getSafeExecPath(absoluteCommand)).to.equal(absoluteCommand); // An already-absolute path should not change at all even in casing
     });
 
     it('Should not alter explicitly relative-pathed commands on Windows', function () {
