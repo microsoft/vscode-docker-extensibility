@@ -41,5 +41,9 @@ describe('(unit) getSafeExecPath', () => {
         expect(getSafeExecPath('./relative-command')).to.equal('./relative-command');
         expect(getSafeExecPath('../relative-command')).to.equal('../relative-command');
         expect(getSafeExecPath('relative/command')).to.equal('relative/command');
+
+        expect(getSafeExecPath('.\\relative-command')).to.equal('.\\relative-command');
+        expect(getSafeExecPath('..\\relative-command')).to.equal('..\\relative-command');
+        expect(getSafeExecPath('relative\\command')).to.equal('relative\\command');
     });
 });
