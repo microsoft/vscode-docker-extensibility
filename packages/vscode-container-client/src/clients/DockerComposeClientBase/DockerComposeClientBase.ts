@@ -7,6 +7,7 @@ import {
     CommandLineArgs,
     CommandLineCurryFn,
     composeArgs,
+    stringStreamToGenerator,
     withArg,
     withFlagArg,
     withNamedArg,

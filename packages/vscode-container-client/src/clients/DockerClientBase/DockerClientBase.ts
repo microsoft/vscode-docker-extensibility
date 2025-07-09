@@ -4,10 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    byteStreamToGenerator,
     CancellationError,
     CancellationTokenLike,
     CommandLineArgs,
     composeArgs,
+    stringStreamToGenerator,
+    toArray,
     withArg,
     withFlagArg,
     withNamedArg,
