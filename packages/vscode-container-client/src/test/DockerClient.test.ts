@@ -152,7 +152,7 @@ test_network2`, true);
     });
 });
 
-describe('DockerClient (unit)', () => {
+describe('(unit) DockerClient s\'more', () => {
     const client = new DockerClient();
 
     it('Should produce the expected lack of quoting/escaping customOptions', async () => {
