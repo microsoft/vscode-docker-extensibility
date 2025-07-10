@@ -7,6 +7,9 @@ Library support for multiple container runtimes.
 ### [vscode-docker-registries](https://github.com/microsoft/vscode-docker-extensibility/tree/main/packages/vscode-docker-registries)
 Unified container registry provider model.
 
+### [vscode-processutils](https://github.com/microsoft/vscode-docker-extensibility/tree/main/packages/vscode-processutils)
+Library support for building command lines and running external processes, primarily for use in VS Code.
+
 ## Contributing
 
 See [the contribution guidelines](CONTRIBUTING.md) for ideas and guidance on how to make improvements. Thank you!

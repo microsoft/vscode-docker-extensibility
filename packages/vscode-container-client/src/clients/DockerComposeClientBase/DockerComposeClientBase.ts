@@ -3,8 +3,19 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import {
+    CommandLineArgs,
+    CommandLineCurryFn,
+    composeArgs,
+    stringStreamToGenerator,
+    withArg,
+    withFlagArg,
+    withNamedArg,
+    withVerbatimArg
+} from '@microsoft/vscode-processutils';
 import { GeneratorCommandResponse, PromiseCommandResponse, VoidCommandResponse } from '../../contracts/CommandRunner';
 import {
+    CheckOrchestratorInstallCommandOptions,
     CommonOrchestratorCommandOptions,
     ConfigCommandOptions,
     ConfigItem,
@@ -16,16 +27,6 @@ import {
     StopCommandOptions,
     UpCommandOptions,
 } from '../../contracts/ContainerOrchestratorClient';
-import {
-    CommandLineArgs,
-    CommandLineCurryFn,
-    composeArgs,
-    withArg,
-    withFlagArg,
-    withNamedArg,
-    withVerbatimArg,
-} from '../../utils/commandLineBuilder';
-import { stringStreamToGenerator } from '../../utils/streamToGenerator';
 import { ConfigurableClient } from '../ConfigurableClient';
 
 function withCommonOrchestratorArgs(options: CommonOrchestratorCommandOptions): CommandLineCurryFn {
@@ -50,6 +51,43 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
      * If true, the command will be like `docker compose` instead of `docker-compose`.
      */
     public composeV2: boolean = true;
+
+    //#region Check orchestrator install command
+
+    protected getCheckOrchestratorInstallCommandArgs(options: CheckOrchestratorInstallCommandOptions): CommandLineArgs {
+        let checkComposeV2: boolean;
+        switch (options.composeVersion) {
+            case 'v1':
+                checkComposeV2 = false;
+                break;
+            case 'v2':
+                checkComposeV2 = true;
+                break;
+            default:
+                checkComposeV2 = this.composeV2;
+                break;
+        }
+
+        return composeArgs(
+            withComposeArg(checkComposeV2),
+            withArg('version'),
+        )();
+    }
+
+    /**
+     * Generates the necessary information for running of an orchestrator install check command for Docker Compose
+     * @param options Command options
+     * @returns A CommandResponse indicating how to run an orchestrator install check command for Docker Compose
+     */
+    public async checkOrchestratorInstall(options: CheckOrchestratorInstallCommandOptions): Promise<PromiseCommandResponse<string>> {
+        return {
+            command: this.commandName,
+            args: this.getCheckOrchestratorInstallCommandArgs(options),
+            parse: (output) => Promise.resolve(output),
+        };
+    }
+
+    //#endregion Check orchestrator install command
 
     //#region Up command
 
