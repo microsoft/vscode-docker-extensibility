@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { spawn, SpawnOptions } from 'child_process';
+import * as os from 'os';
 import * as treeKill from 'tree-kill';
 
 import { CancellationTokenLike } from '../typings/CancellationTokenLike';
@@ -83,16 +84,25 @@ export async function spawnStreamAsync(
     }
 
     const safeCommand = !!options.allowUnsafeExecutablePath ? command : getSafeExecPath(command);
+    const quotedSafeCommand = `"${safeCommand}"`;
+    const finalCommand = !!shell ? quotedSafeCommand : safeCommand;
+
+    // If we're not using a shell, and on Windows, we must use `windowsVerbatimArguments`
+    // If we use `windowsVerbatimArguments`, we must also set `argv0` to the quoted command
+    const windowsVerbatimArguments = options.windowsVerbatimArguments ?? (os.platform() === 'win32' && shell === false);
+    const argv0 = options.argv0 ?? (windowsVerbatimArguments ? quotedSafeCommand : undefined); // TODO: Do we need to consider `options.allowUnsafeExecutablePath` here?
 
     if (options.onCommand) {
-        options.onCommand([safeCommand, ...normalizedArgs].join(' '));
+        options.onCommand([finalCommand, ...normalizedArgs].join(' '));
     }
 
     const childProcess = spawn(
-        safeCommand,
+        finalCommand,
         normalizedArgs,
         {
             ...options,
+            windowsVerbatimArguments,
+            argv0,
             shell,
             // Ignore stdio streams if not needed to avoid backpressure issues
             stdio: [
