@@ -43,6 +43,10 @@ export class BasicOAuthProvider extends BasicAuthProvider implements Authenticat
                     'service': this.oAuthService,
                     'scope': [...this.defaultScopes ?? [], ...scopes].join(' '),
                 },
+                query: {
+                    'service': this.oAuthService,
+                    'scope': [...this.defaultScopes ?? [], ...scopes].join(' '),
+                },
             };
 
             const oAuthResponse = await httpRequest<{ token: string }>(this.oAuthEndpoint.toString(), request);
