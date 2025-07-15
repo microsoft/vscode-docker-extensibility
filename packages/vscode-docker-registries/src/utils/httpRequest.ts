@@ -39,18 +39,18 @@ export interface ResponseLike<T> extends Response {
 
 export async function httpRequest<T>(url: string, request: RequestLike, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
     const { query, ...requestOptions } = request;
-    let url_with_query = url;
+    let urlWithQuery = url;
 
     if (query && Object.keys(query).length > 0) {
         const params = new URLSearchParams();
         for (const [key, value] of Object.entries(query)) {
             params.append(key, value);
         }
-        url_with_query += url_with_query.includes("?") ? "&" : "?";
-        url_with_query += params.toString();
+        urlWithQuery += urlWithQuery.includes("?") ? "&" : "?";
+        urlWithQuery += params.toString();
     }
 
-    const fetchRequest = new Request(url_with_query, requestOptions);
+    const fetchRequest = new Request(urlWithQuery, requestOptions);
     const response: Response = await fetch(fetchRequest);
 
     if (throwOnFailure && response.status === 401) {
