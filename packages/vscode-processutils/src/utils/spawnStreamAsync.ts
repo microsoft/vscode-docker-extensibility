@@ -84,12 +84,12 @@ export async function spawnStreamAsync(
     }
 
     let finalCommand: string;
-
     if (!!options.allowUnsafeExecutablePath) {
         // If allowUnsafeExecutablePath is true, we assume the command is a full command line
         // and we do not apply any quoting or checks.
         finalCommand = command;
     } else {
+        // Otherwise, we do some checks and quoting.
         const safeCommand = getSafeExecPath(command);
         const quotedSafeCommand = `"${safeCommand}"`;
         finalCommand = !!shell ? quotedSafeCommand : safeCommand;
