@@ -68,4 +68,23 @@ describe('(integration) spawnStreamAsync', () => {
 
         expect(await errAccumulator.getString()).to.be.empty;
     });
+
+    it('Should be able to run command lines with special options', async () => {
+        const outAccumulator = new AccumulatorStream();
+        const errAccumulator = new AccumulatorStream();
+
+        await spawnStreamAsync('docker image ls', [], {
+            stdOutPipe: outAccumulator,
+            stdErrPipe: errAccumulator,
+            shellProvider: Shell.getShellOrDefault(),
+            allowUnsafeExecutablePath: true,
+        });
+
+        const output = await outAccumulator.getString();
+        expect(output).to.not.be.empty;
+        expect(output).to.include('alpine');
+        expect(output).to.include('latest');
+
+        expect(await errAccumulator.getString()).to.be.empty;
+    });
 });

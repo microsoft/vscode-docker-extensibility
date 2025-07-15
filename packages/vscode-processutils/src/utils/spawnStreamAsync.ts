@@ -85,12 +85,12 @@ export async function spawnStreamAsync(
 
     const safeCommand = !!options.allowUnsafeExecutablePath ? command : getSafeExecPath(command);
     const quotedSafeCommand = `"${safeCommand}"`;
-    const finalCommand = !!shell ? quotedSafeCommand : safeCommand;
+    const finalCommand = !!shell && !options.allowUnsafeExecutablePath ? quotedSafeCommand : safeCommand;
 
     // If we're not using a shell, and on Windows, we must use `windowsVerbatimArguments`
     // If we use `windowsVerbatimArguments`, we must also set `argv0` to the quoted command
-    const windowsVerbatimArguments = options.windowsVerbatimArguments ?? (os.platform() === 'win32' && shell === false);
-    const argv0 = options.argv0 ?? (windowsVerbatimArguments ? quotedSafeCommand : undefined); // TODO: Do we need to consider `options.allowUnsafeExecutablePath` here?
+    const windowsVerbatimArguments = options.windowsVerbatimArguments ?? (os.platform() === 'win32' && shell === false && !options.allowUnsafeExecutablePath);
+    const argv0 = options.argv0 ?? (windowsVerbatimArguments && !options.allowUnsafeExecutablePath ? quotedSafeCommand : undefined);
 
     if (options.onCommand) {
         options.onCommand([finalCommand, ...normalizedArgs].join(' '));
