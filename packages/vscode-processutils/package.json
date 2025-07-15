@@ -18,7 +18,8 @@
         "clean": "tsc --build --clean",
         "lint": "eslint --max-warnings 0 . --ext ts",
         "package": "npm pack",
-        "test": "mocha"
+        "test": "mocha",
+        "testintegration": "mocha --grep \"(integration)\""
     },
     "dependencies": {
         "tree-kill": "^1.2.2",
