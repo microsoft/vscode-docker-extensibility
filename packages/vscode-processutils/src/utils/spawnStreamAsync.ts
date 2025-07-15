@@ -83,14 +83,23 @@ export async function spawnStreamAsync(
         throw new CancellationError('Command cancelled', cancellationToken);
     }
 
-    const safeCommand = !!options.allowUnsafeExecutablePath ? command : getSafeExecPath(command);
-    const quotedSafeCommand = `"${safeCommand}"`;
-    const finalCommand = !!shell && !options.allowUnsafeExecutablePath ? quotedSafeCommand : safeCommand;
+    let finalCommand: string;
 
-    // If we're not using a shell, and on Windows, we must use `windowsVerbatimArguments`
-    // If we use `windowsVerbatimArguments`, we must also set `argv0` to the quoted command
-    const windowsVerbatimArguments = options.windowsVerbatimArguments ?? (os.platform() === 'win32' && shell === false && !options.allowUnsafeExecutablePath);
-    const argv0 = options.argv0 ?? (windowsVerbatimArguments && !options.allowUnsafeExecutablePath ? quotedSafeCommand : undefined);
+    if (!!options.allowUnsafeExecutablePath) {
+        // If allowUnsafeExecutablePath is true, we assume the command is a full command line
+        // and we do not apply any quoting or checks.
+        finalCommand = command;
+    } else {
+        const safeCommand = getSafeExecPath(command);
+        const quotedSafeCommand = `"${safeCommand}"`;
+        finalCommand = !!shell ? quotedSafeCommand : safeCommand;
+
+        // If we're not using a shell, and on Windows, we must use `windowsVerbatimArguments`
+        options.windowsVerbatimArguments ??= os.platform() === 'win32' && shell === false;
+
+        // If we use `windowsVerbatimArguments`, we must also set `argv0` to the quoted command
+        options.argv0 ??= options.windowsVerbatimArguments ? quotedSafeCommand : undefined;
+    }
 
     if (options.onCommand) {
         options.onCommand([finalCommand, ...normalizedArgs].join(' '));
@@ -101,8 +110,6 @@ export async function spawnStreamAsync(
         normalizedArgs,
         {
             ...options,
-            windowsVerbatimArguments,
-            argv0,
             shell,
             // Ignore stdio streams if not needed to avoid backpressure issues
             stdio: [
