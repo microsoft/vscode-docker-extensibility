@@ -91,11 +91,11 @@ export async function spawnStreamAsync(
     } else {
         // Otherwise, we do some checks and quoting.
         const safeCommand = getSafeExecPath(command);
-        const quotedSafeCommand = `"${safeCommand}"`;
+        const quotedSafeCommand = quoteExecutableCommandIfNeeded(safeCommand);
         finalCommand = !!shell ? quotedSafeCommand : safeCommand;
 
-        // If we're not using a shell, and on Windows, we must use `windowsVerbatimArguments`
-        options.windowsVerbatimArguments ??= os.platform() === 'win32' && shell === false;
+        // If we're on Windows and not using a shell, we must use `windowsVerbatimArguments`
+        options.windowsVerbatimArguments ??= os.platform() === 'win32' && !shell;
 
         // If we use `windowsVerbatimArguments`, we must also set `argv0` to the quoted command
         options.argv0 ??= options.windowsVerbatimArguments ? quotedSafeCommand : undefined;
@@ -164,4 +164,17 @@ export async function spawnStreamAsync(
             }
         });
     });
+}
+
+/**
+ * Gets a double-quoted version of the executable command, if it contains any spaces
+ * Useful when the command is expected to be executed in a shell, or if it needs to
+ * be supplied as {@link SpawnOptions.argv0} when using {@link SpawnOptions.windowsVerbatimArguments}.
+ * @param command The executable command
+ */
+function quoteExecutableCommandIfNeeded(command: string): string {
+    if (command.includes(' ') && !command.startsWith('"') && !command.endsWith('"')) {
+        return `"${command}"`;
+    }
+    return command;
 }
