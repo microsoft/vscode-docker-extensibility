@@ -1,4 +1,4 @@
-## 0.1.1 - 15 July 2025
+## 0.1.1 - 22 July 2025
 ### Fixed
 * Fixed an issue involving non-shell execution on Windows. [#280](https://github.com/microsoft/vscode-docker-extensibility/issues/280)
 

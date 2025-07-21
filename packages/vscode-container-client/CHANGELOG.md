@@ -1,4 +1,4 @@
-## 0.4.1 - 15 July 2025
+## 0.4.1 - 22 July 2025
 ### Fixed
 * Now depends on `@microsoft/vscode-container-client` v0.1.1, in order to get a fix. [#280](https://github.com/microsoft/vscode-docker-extensibility/issues/280)
 
