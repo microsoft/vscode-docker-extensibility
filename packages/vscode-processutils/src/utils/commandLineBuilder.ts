@@ -115,7 +115,7 @@ export function withNamedArg(
                 if (arg) {
                     const normalizedArg = shouldQuote ? quoted(arg) : escaped(arg);
                     if (assignValue) {
-                        return withArg(`${name}=${normalizedArg?.value}`)(allArgs); // TODO: This is stripping off the quoting option!
+                        return withArg(`${name}=${normalizedArg?.value}`)(allArgs);
                     }
 
                     return withArg(name, normalizedArg)(allArgs);
