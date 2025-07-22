@@ -26,6 +26,7 @@ export type HeadersLike = Headers;
 
 export type RequestLike = RequestInit & {
     headers: Record<string, string>;
+    query?: Record<string, string>;
 };
 
 export interface ResponseLike<T> extends Response {
@@ -37,7 +38,19 @@ export interface ResponseLike<T> extends Response {
 }
 
 export async function httpRequest<T>(url: string, request: RequestLike, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
-    const fetchRequest = new Request(url, request);
+    const { query, ...requestOptions } = request;
+    let urlWithQuery = url;
+
+    if (query && Object.keys(query).length > 0) {
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(query)) {
+            params.append(key, value);
+        }
+        urlWithQuery += urlWithQuery.includes("?") ? "&" : "?";
+        urlWithQuery += params.toString();
+    }
+
+    const fetchRequest = new Request(urlWithQuery, requestOptions);
     const response: Response = await fetch(fetchRequest);
 
     if (throwOnFailure && response.status === 401) {
