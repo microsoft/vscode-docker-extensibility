@@ -149,6 +149,14 @@ export class Cmd extends Shell {
             }
         });
     }
+
+    public override getShellOrDefault(shell?: string | boolean): string | boolean | undefined {
+        if (typeof shell !== 'string' && shell !== false) {
+            return 'cmd.exe';
+        }
+
+        return shell;
+    }
 }
 
 /**
@@ -177,12 +185,10 @@ export class NoShell extends Shell {
             // Windows requires special quoting behavior even when running without a shell
             // to allow us to use windowsVerbatimArguments: true
             if (this.isWindows) {
-                switch (quotedArg.quoting) {
-                    case ShellQuoting.Weak:
-                    case ShellQuoting.Strong:
-                        return `"${quotedArg.value.replace(/["]/g, windowsEscape)}"`;
-                    default:
-                        return quotedArg.value;
+                if (quotedArg.value.match(/[" ]/)) {
+                    return `"${quotedArg.value.replace(/["]/g, windowsEscape)}"`;
+                } else {
+                    return quotedArg.value;
                 }
             }
 
