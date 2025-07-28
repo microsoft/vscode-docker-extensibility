@@ -102,6 +102,7 @@ export class Powershell extends Shell {
 export class Bash extends Shell {
     public quote(args: CommandLineArgs): Array<string> {
         const escape = (value: string) => `\\${value}`;
+        const singleEscape = (value: string) => `'\\${value}'`;
 
         return args.map((quotedArg) => {
             // If it's a verbatim argument, return it as-is.
@@ -117,7 +118,7 @@ export class Bash extends Shell {
                 case ShellQuoting.Weak:
                     return `"${quotedArg.value.replace(/["]/g, escape)}"`;
                 case ShellQuoting.Strong:
-                    return `'${quotedArg.value.replace(/[']/g, escape)}'`;
+                    return `'${quotedArg.value.replace(/[']/g, singleEscape)}'`;
             }
         });
     }
