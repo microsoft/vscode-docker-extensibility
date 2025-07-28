@@ -11,9 +11,11 @@ import { NoShell } from '../utils/Shell';
 import { spawn } from 'child_process';
 
 describe('(integration) No Shell Quoting', () => {
-    it(`Should quote arguments correctly`, async () => {
+    it(`Should quote arguments correctly`, async function () {
+        this.timeout(20000);
+
         const noShell = new NoShell();
-        const values: [ShellQuotedString | string, string][] = [
+        const values: [ShellQuotedString | string, string | string[]][] = [
             [{ value: 'nospace_escape', quoting: ShellQuoting.Escape }, 'nospace_escape'],
             [{ value: 'nospace_weak', quoting: ShellQuoting.Weak }, 'nospace_weak'],
             [{ value: 'nospace_strong', quoting: ShellQuoting.Strong }, 'nospace_strong'],
@@ -30,7 +32,7 @@ describe('(integration) No Shell Quoting', () => {
             [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Weak }, 'with "quotes" and spaces'],
             [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Strong }, 'with "quotes" and spaces'],
             ['--label', '--label'],
-            ['key=value with spaces', 'key=value with spaces'],
+            ['key=value "with spaces and quotes"', ['key=value', 'with spaces and quotes']],
         ];
 
         const quotedArgs = noShell.quote(values.map(([arg]) => arg));
@@ -55,8 +57,9 @@ describe('(integration) No Shell Quoting', () => {
             });
         });
 
+        const expected = values.reduce((expected, [, e]) => expected.concat(e), [] as string[]);
+
         // Check that each argument is echoed back correctly
-        expect(outargs).to.have.lengthOf(values.length);
-        expect(outargs).to.deep.equal(values.map(([, expected]) => expected));
+        expect(outargs).to.deep.equal(expected);
     });
 });

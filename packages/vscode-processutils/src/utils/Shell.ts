@@ -185,7 +185,7 @@ export class NoShell extends Shell {
             // Windows requires special quoting behavior even when running without a shell
             // to allow us to use windowsVerbatimArguments: true
             if (this.isWindows) {
-                if (quotedArg.value.match(/[" ]/)) {
+                if (quotedArg.value.match(/[" ]/g)) {
                     return `"${quotedArg.value.replace(/["]/g, windowsEscape)}"`;
                 } else {
                     return quotedArg.value;
