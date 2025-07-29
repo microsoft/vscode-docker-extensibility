@@ -48,11 +48,9 @@ describe('(integration) Shell Quoting', () => {
                     [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Escape }, 'with "quotes" and spaces'],
                     [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Weak }, 'with "quotes" and spaces'],
                     [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Strong }, 'with "quotes" and spaces'],
-                    [{ value: 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~', quoting: ShellQuoting.Escape }, 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~'],
-                    [{ value: 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~', quoting: ShellQuoting.Weak }, 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~'],
-                    [{ value: 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~', quoting: ShellQuoting.Strong }, 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~'],
-                    //['--label', '--label'],
-                    //['key=value "with spaces and quotes"', ['key=value', 'with spaces and quotes']],
+                    [{ value: 'with "quotes" and spaces and \'single quotes\' and &@^*${}[]{}|;:<>?`~', quoting: ShellQuoting.Escape }, 'with "quotes" and spaces and \'single quotes\' and &@^*${}[]{}|;:<>?`~'],
+                    [{ value: 'with "quotes" and spaces and \'single quotes\' and &@^*${}[]{}|;:<>?`~', quoting: ShellQuoting.Weak }, 'with "quotes" and spaces and \'single quotes\' and &@^*${}[]{}|;:<>?`~'],
+                    [{ value: 'with "quotes" and spaces and \'single quotes\' and &@^*${}[]{}|;:<>?`~', quoting: ShellQuoting.Strong }, 'with "quotes" and spaces and \'single quotes\' and &@^*${}[]{}|;:<>?`~'],
                 ];
 
                 let cmd = toolCmd;

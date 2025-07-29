@@ -115,9 +115,9 @@ export class Bash extends Shell {
 
             switch (quotedArg.quoting) {
                 case ShellQuoting.Escape:
-                    return quotedArg.value.replace(/[ "']/g, escape);
+                    return quotedArg.value.replace(/[ "'&$<>|;`]/g, escape);
                 case ShellQuoting.Weak:
-                    return `"${quotedArg.value.replace(/["]/g, escape)}"`;
+                    return `"${quotedArg.value.replace(/["$`]/g, escape)}"`;
                 case ShellQuoting.Strong:
                     return `'${quotedArg.value.replace(/[']/g, singleEscape)}'`;
             }
