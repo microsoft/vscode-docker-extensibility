@@ -63,14 +63,15 @@ export class Powershell extends Shell {
                 return quotedArg;
             }
 
-            switch (quotedArg.quoting) {
+            return argvQuote(quotedArg.value);
+            /*switch (quotedArg.quoting) {
                 case ShellQuoting.Escape:
                     return quotedArg.value.replace(/[ "'()]/g, escape);
                 case ShellQuoting.Weak:
-                    return `"${quotedArg.value.replace(/["]/g, escape)}"`;
+                    return `"${quotedArg.value.replace(/[" ]/g, escape)}"`;
                 case ShellQuoting.Strong:
                     return `'${quotedArg.value.replace(/[']/g, escape)}'`;
-            }
+            }*/
         });
     }
 
@@ -140,14 +141,13 @@ export class Cmd extends Shell {
                 return quotedArg;
             }
 
-            switch (quotedArg.quoting) {
-                case ShellQuoting.Escape:
-                    return quotedArg.value.replace(/[ "^&\\<>|]/g, escape);
-                case ShellQuoting.Weak:
-                    return quotedArg.value.replace(/[ "^&\\<>|]/g, escape);
-                case ShellQuoting.Strong:
-                    return `"${quotedArg.value.replace(/["]/g, escapeQuote)}"`;
-            }
+            return argvQuote(quotedArg.value);
+
+            /*if (quotedArg.value.match(/[ "]/)) {
+                return `"${quotedArg.value.replace(/["]/g, escapeQuote)}"`;
+            } else {
+                return quotedArg.value.replace(/[^&\\<>|]/g, escape);
+            }*/
         });
     }
 
@@ -159,6 +159,39 @@ export class Cmd extends Shell {
         return shell;
     }
 }
+
+const argvQuote = (arg: string): string => {
+    //
+    // Unless we're told otherwise, don't quote unless we actually
+    // need to do so --- hopefully avoid problems if programs won't
+    // parse quotes properly
+    //
+
+    if (arg.length && !arg.match(/[ \t\n\v"]/)) {
+        return arg;
+    } else {
+        let newArg = '"';
+        let numBackslashes = 0;
+        for (let i = 0; i < arg.length; i++) {
+            switch (arg[i]) {
+                case '\\':
+                    numBackslashes++;
+                    continue;
+                case '"':
+                    newArg += '\\'.repeat(numBackslashes * 2 + 1) + '"';
+                    numBackslashes = 0;
+                    continue;
+                default:
+                    newArg += '\\'.repeat(numBackslashes) + arg[i];
+                    numBackslashes = 0;
+                    continue;
+            }
+        }
+
+        newArg += '\\'.repeat(numBackslashes * 2) + '"';
+        return newArg;
+    }
+};
 
 /**
  * Quoting/escaping rules for no shell

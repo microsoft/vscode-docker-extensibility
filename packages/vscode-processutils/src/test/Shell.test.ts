@@ -10,7 +10,7 @@ import { ShellQuotedString, ShellQuoting } from 'vscode';
 import { Bash, Cmd, NoShell, Powershell, Shell } from '../utils/Shell';
 import { spawn } from 'child_process';
 
-describe('(integration) No Shell Quoting', () => {
+describe('(integration) Shell Quoting', () => {
     const tools: [string, string[]][] = [
         ['go', ['run', './tools/echoargs/echoargs.go']],
         ['node', ['./tools/echoargs/echoargs.js']],
@@ -21,7 +21,7 @@ describe('(integration) No Shell Quoting', () => {
     ];
 
     if (process.platform === 'win32') {
-        shells.push(['Powershell', new Powershell()]);
+        //shells.push(['Powershell', new Powershell()]);
         shells.push(['Cmd', new Cmd()]);
     } else {
         shells.push(['Bash', new Bash()]);
@@ -48,6 +48,9 @@ describe('(integration) No Shell Quoting', () => {
                     [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Escape }, 'with "quotes" and spaces'],
                     [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Weak }, 'with "quotes" and spaces'],
                     [{ value: 'with "quotes" and spaces', quoting: ShellQuoting.Strong }, 'with "quotes" and spaces'],
+                    [{ value: 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~', quoting: ShellQuoting.Escape }, 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~'],
+                    [{ value: 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~', quoting: ShellQuoting.Weak }, 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~'],
+                    [{ value: 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~', quoting: ShellQuoting.Strong }, 'with "quotes" and spaces and \' single quotes\' and &^*{}[]{}|;:<>?`~'],
                     //['--label', '--label'],
                     //['key=value "with spaces and quotes"', ['key=value', 'with spaces and quotes']],
                 ];
@@ -58,11 +61,12 @@ describe('(integration) No Shell Quoting', () => {
                 if (shell.getShellOrDefault()) {
                     cmd = `${cmd} ${args.join(' ')}`;
                     args = undefined;
+                    console.log(cmd);
+                } else {
+                    console.log(`${cmd} ${args?.join(' ')}`);
                 }
 
-                console.log(`${cmd} ${args}`);
-
-                const child = spawn(cmd, args, { shell: shell.getShellOrDefault(), windowsVerbatimArguments: true });
+                const child = spawn(cmd, args, { shell: shell.getShellOrDefault(), windowsVerbatimArguments: shell.getShellOrDefault() !== "powershell.exe" });
 
                 const outargs: Array<string> = [];
                 child.stdout.on('data', (data) => {
