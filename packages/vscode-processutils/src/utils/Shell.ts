@@ -160,6 +160,42 @@ export class Cmd extends Shell {
     }
 }
 
+/**
+ * Quoting/escaping rules for no shell
+ */
+export class NoShell extends Shell {
+    private readonly isWindows: boolean;
+
+    public constructor(isWindows?: boolean) {
+        super();
+
+        this.isWindows = typeof isWindows === 'boolean' ? isWindows : os.platform() === 'win32';
+    }
+
+    public quote(args: CommandLineArgs): Array<string> {
+        return args.map((quotedArg) => {
+            // If it's a verbatim argument, return it as-is.
+            // The overwhelming majority of arguments are `ShellQuotedString`, so
+            // verbatim arguments will only show up if `withVerbatimArg` is used.
+            if (typeof quotedArg === 'string') {
+                return quotedArg;
+            }
+
+            // Windows requires special quoting behavior even when running without a shell
+            // to allow us to use windowsVerbatimArguments: true
+            if (this.isWindows) {
+                return argvQuote(quotedArg.value);
+            }
+
+            return quotedArg.value;
+        });
+    }
+
+    public override getShellOrDefault(shell?: string | boolean | undefined): string | boolean | undefined {
+        return false;
+    }
+}
+
 const argvQuote = (arg: string): string => {
     //
     // Unless we're told otherwise, don't quote unless we actually
@@ -192,45 +228,3 @@ const argvQuote = (arg: string): string => {
         return newArg;
     }
 };
-
-/**
- * Quoting/escaping rules for no shell
- */
-export class NoShell extends Shell {
-    private readonly isWindows: boolean;
-
-    public constructor(isWindows?: boolean) {
-        super();
-
-        this.isWindows = typeof isWindows === 'boolean' ? isWindows : os.platform() === 'win32';
-    }
-
-    public quote(args: CommandLineArgs): Array<string> {
-        const windowsEscape = (value: string) => `\\${value}`;
-
-        return args.map((quotedArg) => {
-            // If it's a verbatim argument, return it as-is.
-            // The overwhelming majority of arguments are `ShellQuotedString`, so
-            // verbatim arguments will only show up if `withVerbatimArg` is used.
-            if (typeof quotedArg === 'string') {
-                return quotedArg;
-            }
-
-            // Windows requires special quoting behavior even when running without a shell
-            // to allow us to use windowsVerbatimArguments: true
-            if (this.isWindows) {
-                if (quotedArg.value.match(/[" ]/g)) {
-                    return `"${quotedArg.value.replace(/["]/g, windowsEscape)}"`;
-                } else {
-                    return quotedArg.value;
-                }
-            }
-
-            return quotedArg.value;
-        });
-    }
-
-    public override getShellOrDefault(shell?: string | boolean | undefined): string | boolean | undefined {
-        return false;
-    }
-}
