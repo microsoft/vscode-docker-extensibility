@@ -53,7 +53,7 @@ export class BasicOAuthProvider extends BasicAuthProvider implements Authenticat
             }).toString();
             const requestUri = vscode.Uri.parse(this.oAuthEndpoint.toString()).with({ query: oAuthRequestQuery });
 
-            const oAuthResponse = await httpRequest<{ token: string }>(requestUri.toString(), request);
+            const oAuthResponse = await httpRequest<{ token: string }>(requestUri.toString(true), request);
 
             return {
                 id: 'oauth',
