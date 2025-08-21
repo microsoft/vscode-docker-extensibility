@@ -1,6 +1,6 @@
 ## 0.2.2 - 22 August 2025
 ### Fixed
-* Updated to support VSCode typings beyond 1.96.0. [TODO](TODO)
+* Updated to support VSCode typings beyond 1.96.0. [#287](https://github.com/microsoft/vscode-docker-extensibility/pull/287)
 
 ## 0.2.1 - 31 July 2025
 ### Fixed
