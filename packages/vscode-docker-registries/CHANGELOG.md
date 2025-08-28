@@ -1,3 +1,10 @@
+## 0.3.0 - 29 August 2025
+### Fixed
+* Fixed several 404 errors for certain images in V2 registries, and made the created date lookup more robust. [#TODO](https://github.com/microsoft/vscode-docker-extensibility/pull/TODO)
+
+### Breaking Changes
+* Some breaking changes are present in the `RegistryV2DataProvider` class.
+
 ## 0.2.2 - 22 August 2025
 ### Fixed
 * Updated to support VSCode typings beyond 1.96.0. [#287](https://github.com/microsoft/vscode-docker-extensibility/pull/287)

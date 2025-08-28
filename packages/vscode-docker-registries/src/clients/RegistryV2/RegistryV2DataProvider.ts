@@ -17,6 +17,15 @@ export type V2Registry = CommonRegistry & V2RegistryItem;
 export type V2Repository = CommonRepository & V2RegistryItem;
 export type V2Tag = CommonTag & V2RegistryItem;
 
+// Accepted manifest types
+const acceptManifest = [
+    'application/vnd.docker.distribution.manifest.v2+json',
+    'application/vnd.docker.distribution.manifest.list.v2+json',
+    'application/vnd.oci.image.manifest.v1+json',
+    'application/vnd.oci.image.index.v1+json',
+    '*/*',
+];
+
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public getRoot(): V2RegistryRoot {
         return {
@@ -114,7 +123,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     }
 
     public async getImageDigest(item: CommonTag): Promise<string> {
-        const response = await this.getManifestV2(item);
+        const response = await this.getManifestResponse(item);
 
         const digest = response.headers.get('docker-content-digest');
         if (!digest) {
@@ -124,66 +133,61 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         return digest;
     }
 
-    public async getManifestV1(item: V2Tag): Promise<Manifest> {
-        const repository = item.parent as V2Repository;
-        const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${item.label}` });
-
-        const response = await registryV2Request<Manifest>({
-            authenticationProvider: this.getAuthenticationProvider(repository),
-            method: 'GET',
-            requestUri: requestUrl,
-            scopes: [`repository:${repository.label}:pull`]
-        });
-
-        if (!response.body) {
-            throw new Error(vscode.l10n.t('Could not find manifest for tag {0}', item.label));
-        }
-
-        // Parse the embedded JSON strings in the history
-        try {
-            response.body.history?.forEach(history => {
-                history.v1Compatibility = JSON.parse(history.v1Compatibility as unknown as string || '{}');
-            });
-        } catch {
-            // Best effort
-        }
-
+    public async getManifest(item: V2Tag): Promise<unknown> {
+        const response = await this.getManifestResponse(item);
         return response.body;
     }
 
-    protected async getManifestV2(item: V2Tag): Promise<RegistryV2Response<unknown>> {
+    private async getManifestResponse(item: V2Tag): Promise<RegistryV2Response<unknown>> {
         const repository = item.parent as V2Repository;
-        const requestUrl = repository.baseUrl.with({ path: `v2/${item.parent.label}/manifests/${item.label}` });
+        const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${item.label}` });
 
         return await registryV2Request({
             authenticationProvider: this.getAuthenticationProvider(repository),
             method: 'GET',
             requestUri: requestUrl,
-            scopes: [`repository:${item.parent.label}:pull`],
+            scopes: [`repository:${repository.label}:pull`],
             headers: {
-                'accept': 'application/vnd.docker.distribution.manifest.v2+json,application/vnd.oci.image.index.v1+json'
-            }
+                'accept': acceptManifest.join(','),
+            },
         });
     }
 
-    protected async getTagCreatedDate(item: V2Tag): Promise<Date | undefined> {
-        const manifestv1 = await this.getManifestV1(item);
+    private async getTagCreatedDate(item: V2Tag): Promise<Date | undefined> {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const manifest = await this.getManifest(item) as any;
 
-        const history = manifestv1.history?.[0];
-        return history?.v1Compatibility?.created ? new Date(history.v1Compatibility.created) : undefined;
+        // Depending on the type of manifest, there's a lot of different places the date might be...
+        if (manifest?.history?.[0]?.v1Compatibility) {
+            // Older v1 manifests have a "history" section with double-encoded JSON
+            const v1Compatibility = JSON.parse(manifest.history[0].v1Compatibility);
+            if (v1Compatibility?.created) {
+                return new Date(v1Compatibility.created);
+            }
+        } else if (manifest?.annotations?.['org.opencontainers.image.created']) {
+            // Some OCI manifests have a date annotation
+            return new Date(manifest.annotations['org.opencontainers.image.created']);
+        } else if (manifest?.config?.digest) {
+            // If there's a config, we can request it to find the created date
+            const repository = item.parent as V2Repository;
+            const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/blobs/${manifest.config.digest}` });
+            const configResponse = await registryV2Request<{ created?: string }>({
+                authenticationProvider: this.getAuthenticationProvider(repository),
+                method: 'GET',
+                requestUri: requestUrl,
+                scopes: [`repository:${repository.label}:pull`],
+                headers: {
+                    'accept': 'application/vnd.oci.image.config.v1+json',
+                },
+            });
+
+            if (configResponse.body?.created) {
+                return new Date(configResponse.body.created);
+            }
+        }
+
+        return undefined;
     }
 
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;
-}
-
-interface ManifestHistory {
-    v1Compatibility: ManifestHistoryV1Compatibility; // In the response this is an embedded JSON string but we will double-parse it to make it human-readable
-}
-
-interface ManifestHistoryV1Compatibility {
-    created: string;
-}
-
-interface Manifest {
-    history: ManifestHistory[];
 }
