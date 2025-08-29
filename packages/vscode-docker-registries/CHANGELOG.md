@@ -1,4 +1,4 @@
-## 0.3.0 - 29 August 2025
+## 0.3.0 - 2 September 2025
 ### Fixed
 * Fixed several 404 errors for certain images in V2 registries, and made the created date lookup more robust. [#290](https://github.com/microsoft/vscode-docker-extensibility/pull/290)
 
