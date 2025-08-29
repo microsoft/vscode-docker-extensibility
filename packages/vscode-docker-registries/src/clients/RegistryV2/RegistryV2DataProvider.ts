@@ -221,9 +221,9 @@ type Platform = { os?: string; architecture?: string } | undefined;
 
 const LinuxAndSameArchSelector = (platform: Platform) => {
     return platform?.os === 'linux' &&
-        (platform?.architecture === process.arch || // Best case, exact match
+        (process.arch === platform?.architecture || // Best case, exact match
             (process.arch === 'arm64' && platform?.architecture === 'arm') || // arm64 can run arm
-            (process.arch === 'x64' && platform?.architecture === 'amd64')); // x64 *is* amd64
+            (process.arch === 'x64' && platform?.architecture === 'amd64')); // Node x64 *is* GOARCH amd64
 };
 
 const LinuxAndAmd64Selector = (platform: Platform) => {
