@@ -26,6 +26,13 @@ const acceptManifest = [
     '*/*',
 ];
 
+// Accepted config types
+const acceptConfig = [
+    'application/vnd.oci.image.config.v1+json',
+    'application/vnd.docker.container.image.v1+json',
+    '*/*',
+];
+
 export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider {
     public getRoot(): V2RegistryRoot {
         return {
@@ -123,7 +130,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
     }
 
     public async getImageDigest(item: CommonTag): Promise<string> {
-        const response = await this.getManifestResponse(item);
+        const response = await this.getManifestResponse(item.label, item.parent);
 
         const digest = response.headers.get('docker-content-digest');
         if (!digest) {
@@ -133,14 +140,13 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
         return digest;
     }
 
-    public async getManifest(item: V2Tag): Promise<unknown> {
-        const response = await this.getManifestResponse(item);
+    public async getManifest(item: CommonTag): Promise<unknown> {
+        const response = await this.getManifestResponse(item.label, item.parent);
         return response.body;
     }
 
-    private async getManifestResponse(item: V2Tag): Promise<RegistryV2Response<unknown>> {
-        const repository = item.parent as V2Repository;
-        const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${item.label}` });
+    private async getManifestResponse(reference: string, repository: V2Repository): Promise<RegistryV2Response<unknown>> {
+        const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/manifests/${reference}` });
 
         return await registryV2Request({
             authenticationProvider: this.getAuthenticationProvider(repository),
@@ -169,25 +175,65 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
             return new Date(manifest.annotations['org.opencontainers.image.created']);
         } else if (manifest?.config?.digest) {
             // If there's a config, we can request it to find the created date
-            const repository = item.parent as V2Repository;
-            const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/blobs/${manifest.config.digest}` });
-            const configResponse = await registryV2Request<{ created?: string }>({
-                authenticationProvider: this.getAuthenticationProvider(repository),
-                method: 'GET',
-                requestUri: requestUrl,
-                scopes: [`repository:${repository.label}:pull`],
-                headers: {
-                    'accept': 'application/vnd.oci.image.config.v1+json',
-                },
-            });
+            return await this.getTagCreatedDateFromConfig(manifest.config.digest, item.parent);
+        } else if (Array.isArray(manifest?.manifests)) {
+            // If this is a manifest list / index, we need to look at the individual manifests
+            // Try to pick the "best" manifest based on platform/arch
+            const selectedManifest =
+                manifest.manifests.find(LinuxAndSameArchSelector)
+                || manifest.manifests.find(LinuxAndAmd64Selector)
+                || manifest.manifests.find(LinuxSelector)
+                || manifest.manifests.find(WindowsSelector)
+                || manifest.manifests[0]; // Worst case, just take the first one, if it exists
 
-            if (configResponse.body?.created) {
-                return new Date(configResponse.body.created);
+            if (selectedManifest?.digest) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const selectedManifestResponse = await this.getManifestResponse(selectedManifest.digest, item.parent) as any;
+
+                if (selectedManifestResponse?.body?.config?.digest) {
+                    return await this.getTagCreatedDateFromConfig(selectedManifestResponse.body.config.digest, item.parent);
+                }
             }
         }
 
         return undefined;
     }
 
+    private async getTagCreatedDateFromConfig(configDigest: string, repository: V2Repository): Promise<Date | undefined> {
+        const requestUrl = repository.baseUrl.with({ path: `v2/${repository.label}/blobs/${configDigest}` });
+        const response = await registryV2Request<{ created?: string }>({
+            authenticationProvider: this.getAuthenticationProvider(repository),
+            method: 'GET',
+            requestUri: requestUrl,
+            scopes: [`repository:${repository.label}:pull`],
+            headers: {
+                'accept': acceptConfig.join(','),
+            },
+        });
+
+        return response?.body?.created ? new Date(response.body.created) : undefined;
+    }
+
     protected abstract getAuthenticationProvider(item: V2RegistryItem): AuthenticationProvider<never>;
 }
+
+type Platform = { os?: string; architecture?: string } | undefined;
+
+const LinuxAndSameArchSelector = (platform: Platform) => {
+    return platform?.os === 'linux' &&
+        (platform?.architecture === process.arch || // Best case, exact match
+            (process.arch === 'arm64' && platform?.architecture === 'arm') || // arm64 can run arm
+            (process.arch === 'x64' && platform?.architecture === 'amd64')); // x64 *is* amd64
+};
+
+const LinuxAndAmd64Selector = (platform: Platform) => {
+    return platform?.os === 'linux' && platform?.architecture === 'amd64';
+};
+
+const LinuxSelector = (platform: Platform) => {
+    return platform?.os === 'linux';
+};
+
+const WindowsSelector = (platform: Platform) => {
+    return platform?.os === 'windows';
+};
