@@ -25,12 +25,15 @@
         "unittest": "npm test -- --grep /unit/i",
         "package": "npm pack"
     },
+    "engines": {
+        "vscode": "^1.104.0"
+    },
     "devDependencies": {
         "@types/chai": "^4.2.14",
         "@types/chai-as-promised": "^7.1.3",
         "@types/mocha": "^10.0.0",
-        "@types/node": "18.x",
-        "@types/vscode": "1.96.0",
+        "@types/node": "22.x",
+        "@types/vscode": "1.104.0",
         "@typescript-eslint/eslint-plugin": "^5.3.1",
         "@typescript-eslint/parser": "^5.3.1",
         "chai": "^4.3.0",

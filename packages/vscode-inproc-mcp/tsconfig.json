@@ -3,7 +3,8 @@
     "compilerOptions": {
         "outDir": "lib",
         "rootDir": "src",
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "sourceMap": true,
     },
     "include": [
         "src/**/*.ts"
@@ -12,6 +13,6 @@
         "compilerOptions": {
             "baseUrl": "./",
             "module": "commonjs",
-        }
-    }
+        },
+    },
 }
