@@ -17,13 +17,13 @@ import * as vscode from 'vscode';
 const transports: Record<string, StreamableHTTPServerTransport> = {};
 
 /**
- * Starts a new MCP server instance on a random named pipe (Windows) or Unix socket (Unix).
+ * Starts a new MCP HTTP server instance on a random named pipe (Windows) or Unix socket (Unix).
  * @param getNewMcpServer Function that returns a new MCP server instance. A new server must be created
  * for each MCP session, so this function should not return the same instance each time.
  * @returns An object containing the disposable to stop and clean up the server, the server URI, and headers
  * that should be attached to all requests
  */
-export function startMcpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): { disposable: DisposableLike, serverUri: vscode.Uri, headers: Record<string, string> } {
+export function startInProcHttpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): { disposable: DisposableLike, serverUri: vscode.Uri, headers: Record<string, string> } {
     let socketPath: string | undefined;
 
     try {
