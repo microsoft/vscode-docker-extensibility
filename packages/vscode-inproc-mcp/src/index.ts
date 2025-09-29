@@ -5,7 +5,7 @@
 
 export * from './contracts/CopilotTool';
 export * from './base/CopilotToolBase';
-export * from './mcp/httpServer';
+export * from './mcp/http/httpServer';
 export * from './mcp/McpTool';
 export * from './mcp/McpToolResult';
 export * from './mcp/registerTool';
