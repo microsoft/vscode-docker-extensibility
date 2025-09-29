@@ -1,0 +1,200 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See LICENSE in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import type { DisposableLike } from '@microsoft/vscode-processutils';
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import * as crypto from 'crypto';
+import * as express from 'express';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+
+const transports: Record<string, StreamableHTTPServerTransport> = {};
+
+/**
+ * Starts a new MCP server instance on a random named pipe (Windows) or Unix socket (Unix).
+ * @param getNewMcpServer Function that returns a new MCP server instance. A new server must be created
+ * for each MCP session, so this function should not return the same instance each time.
+ * @returns An object containing the disposable to stop and clean up the server, the server URI, and headers
+ * that should be attached to all requests
+ */
+export function startMcpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): { disposable: DisposableLike, serverUri: string /* TODO: need VSCode types */, headers: Record<string, string> } {
+    let socketPath: string | undefined;
+
+    try {
+        const nonce = crypto.randomUUID();
+        socketPath = getRandomSocketPath();
+
+        const app = express();
+
+        app.use(express.json());
+        app.use((req, res, next) => authMiddleware(nonce, req, res, next));
+
+        app.post('/mcp', (req, res) => handlePost(getNewMcpServer, req, res));
+        app.get('/mcp', handleGetDelete);
+        app.delete('/mcp', handleGetDelete);
+
+        const httpServer = app.listen(socketPath);
+
+        return {
+            disposable: {
+                dispose: () => {
+                    // Clean up all transports
+                    for (const sessionId in transports) {
+                        void transports[sessionId].close();
+                        delete transports[sessionId];
+                    }
+
+                    // Close the Express server
+                    if (httpServer.listening) {
+                        httpServer.close();
+                        httpServer.closeAllConnections();
+                    }
+
+                    // Clean up the socket path
+                    tryCleanupSocket(socketPath);
+                }
+            },
+            serverUri: 'foo', // TODO: need VSCode types
+            headers: {
+                'Authorization': `Nonce ${nonce}`,
+            },
+        };
+    } catch (err) {
+        tryCleanupSocket(socketPath);
+        throw err;
+    }
+}
+
+function authMiddleware(nonce: string, req: express.Request, res: express.Response, next: express.NextFunction): void {
+    if (req.headers.authorization !== `Nonce ${nonce}`) {
+        res.status(401).send('Unauthorized');
+        return;
+    }
+
+    next();
+}
+
+async function handlePost(getNewMcpServer: () => McpServer | Promise<McpServer>, req: express.Request, res: express.Response): Promise<void> {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    let transport: StreamableHTTPServerTransport;
+    if (sessionId && transports[sessionId]) {
+        // Existing session
+        transport = transports[sessionId];
+    } else if (!sessionId && isInitializeRequest(req.body)) {
+        // New session initialization request
+        transport = new StreamableHTTPServerTransport({
+            sessionIdGenerator: () => crypto.randomUUID(),
+            onsessioninitialized: (sessionId) => {
+                transports[sessionId] = transport;
+            },
+            onsessionclosed: (sessionId) => {
+                delete transports[sessionId];
+            },
+            enableDnsRebindingProtection: true,
+            allowedHosts: ['localhost'],
+        });
+
+        const server = await Promise.resolve(getNewMcpServer());
+        await server.connect(transport);
+    } else {
+        // Invalid request
+        res.status(400).json({
+            jsonrpc: '2.0',
+            error: {
+                code: -32000,
+                message: 'Bad Request: No valid session ID provided',
+            },
+            id: null,
+        });
+        return;
+    }
+
+    await transport.handleRequest(req, res, req.body);
+}
+
+async function handleGetDelete(req: express.Request, res: express.Response): Promise<void> {
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    if (!sessionId || !transports[sessionId]) {
+        res.status(400).send('Invalid or missing session ID');
+        return;
+    }
+
+    const transport = transports[sessionId];
+    await transport.handleRequest(req, res);
+}
+
+function getRandomSocketPath(): string {
+    if (os.platform() === 'win32') {
+        // On Windows, use a named pipe
+        return `\\\\.\\pipe\\mcp-${crypto.randomUUID()}.sock`;
+    } else {
+        // On Unix systems, use a file in the temp directory
+        const prefix = path.join(os.tmpdir(), 'mcp-');
+        const tempDir = fs.mkdtempSync(prefix);
+
+        // Set the permissions on the new directory to 0o700
+        fs.chmodSync(tempDir, 0o700);
+
+        return path.join(tempDir, 'mcp.sock');
+    }
+}
+
+function tryCleanupSocket(socketPath: string | undefined): void {
+    try {
+        if (os.platform() === 'win32') {
+            // No cleanup needed for Windows named pipes
+            return;
+        }
+
+        if (!socketPath) {
+            return;
+        }
+
+        // Remove the directory and its contents
+        const dir = path.dirname(socketPath);
+        if (fs.existsSync(dir)) {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    } catch {
+        // Best effort
+    }
+}
+
+/**
+ * Extension activation looks something like this:
+ */
+// vscode.lm.registerMcpServerDefinitionProvider('hello-world', {
+//     provideMcpServerDefinitions(token: vscode.CancellationToken): vscode.McpServerDefinition[] {
+//         return [
+//             new vscode.McpHttpServerDefinition(
+//                 'hello-world',
+//                 vscode.Uri.parse('http://127.0.0.1:3000/mcp'),
+//                 '0.1.0', // TODO: get version from package.json
+//             ),
+//         ];
+//     },
+//     resolveMcpServerDefinition(server: vscode.McpServerDefinition, token: vscode.CancellationToken): vscode.McpServerDefinition {
+//         // TODO: should a new server be started each time this is called?
+//         startMcpServer(); // TODO: destroy the server on deactivate
+//         return server;
+//     }
+// });
+
+/**
+ * package.json contribution looks like this:
+ */
+// "contributes": {
+//     "mcpServerDefinitionProviders": [
+//         {
+//             "id": "hello-world",
+//             "label": "Hello World"
+//         }
+//     ]
+// },

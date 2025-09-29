@@ -1,0 +1,70 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See LICENSE in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import type { z } from 'zod';
+import { ConsentGuidance, CopilotTool, Executor, ToolAnnotations, ToolExecutionExtras, ToolIOSchema } from '../contracts/CopilotTool';
+
+/**
+ * Base implementation for copilot tools, that validates the input and output against the schemas
+ */
+export class CopilotToolBase<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSchema> implements CopilotTool<TInSchema, TOutSchema> {
+    public readonly title?: string;
+    public readonly description?: string;
+    public readonly inputSchema?: TInSchema;
+    public readonly outputSchema?: TOutSchema;
+    public readonly annotations?: ToolAnnotations;
+
+    /**
+     * Constructs a new {@link CopilotToolBase} instance.
+     * @param name The tool name. Required.
+     * @param executeImpl The tool implementation. Required.
+     * @param options Tool options such as title, schemas, and annotations. Optional.
+     * @throws An {@link Error} if the tool is not properly configured.
+     */
+    public constructor(
+        public readonly name: string,
+        protected readonly executeImpl: Executor<TInSchema, TOutSchema>,
+        protected readonly options?: {
+            title?: string,
+            description?: string,
+            inputSchema?: TInSchema,
+            outputSchema?: TOutSchema,
+            annotations?: ToolAnnotations,
+        }
+    ) {
+        this.title = options?.title;
+        this.description = options?.description;
+        this.inputSchema = options?.inputSchema;
+        this.outputSchema = options?.outputSchema;
+        this.annotations = options?.annotations;
+
+        // Always enforce consent for non-read-only tools
+        if (this.annotations?.consentGuidance === ConsentGuidance.NotRequired &&
+            this.annotations?.readOnlyHint !== true) {
+            throw new Error('A tool with "NotRequired" consent guidance must have a read-only hint.');
+        }
+    }
+
+    /**
+     * @inheritdoc
+     * @throws A {@link z.ZodError} if the input does not match the input schema,
+     * or if the output does not match the output schema
+     */
+    public async execute(input: z.infer<TInSchema>, extra?: ToolExecutionExtras): Promise<z.infer<TOutSchema>> {
+        if (!!this.inputSchema) { // TODO: will this throw if the input schema is explicitly `z.void()`?
+            // Will throw a ZodError if incorrect
+            await this.inputSchema.parseAsync(input);
+        }
+
+        const output = await Promise.resolve(this.executeImpl(input, extra));
+
+        if (!!this.outputSchema) { // TODO: will this throw if the output schema is explicitly `z.void()`?
+            // Will throw a ZodError if incorrect
+            await this.outputSchema.parseAsync(output);
+        }
+
+        return output;
+    }
+}
