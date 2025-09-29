@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as util from 'util';
-import type { z } from 'zod';
+import { z } from 'zod';
 import { CopilotToolBase } from '../base/CopilotToolBase';
 import { ToolExecutionExtras, ToolIOSchema } from '../contracts/CopilotTool';
 import { McpToolResult } from './McpToolResult';
@@ -36,7 +36,7 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
         try {
             const result = await this.execute(input, extra);
 
-            if (!!this.outputSchema) { // TODO: will this or the base class throw if output schema is explicitly `z.void()`?
+            if (!!this.outputSchema && !(this.outputSchema instanceof z.ZodVoid)) {
                 // If there is an output schema, assume we want to return structured content to the MCP client
                 // The base class will have already validated that the output matches the schema
                 return {

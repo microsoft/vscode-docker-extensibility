@@ -171,34 +171,3 @@ function tryCleanupSocket(socketPath: string | undefined): void {
         // Best effort
     }
 }
-
-/**
- * Extension activation looks something like this:
- */
-// vscode.lm.registerMcpServerDefinitionProvider('hello-world', {
-//     provideMcpServerDefinitions(token: vscode.CancellationToken): vscode.McpServerDefinition[] {
-//         return [
-//             new vscode.McpHttpServerDefinition(
-//                 'hello-world',
-//                 vscode.Uri.parse('http://127.0.0.1:3000/mcp'),
-//                 '0.1.0', // TODO: get version from package.json
-//             ),
-//         ];
-//     },
-//     resolveMcpServerDefinition(server: vscode.McpServerDefinition, token: vscode.CancellationToken): vscode.McpServerDefinition {
-//         startMcpServer(); // TODO: destroy the server on deactivate
-//         return server;
-//     }
-// });
-
-/**
- * package.json contribution looks like this:
- */
-// "contributes": {
-//     "mcpServerDefinitionProviders": [
-//         {
-//             "id": "hello-world",
-//             "label": "Hello World"
-//         }
-//     ]
-// },

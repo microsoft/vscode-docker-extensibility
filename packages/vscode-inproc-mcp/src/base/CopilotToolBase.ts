@@ -53,14 +53,14 @@ export class CopilotToolBase<TInSchema extends ToolIOSchema, TOutSchema extends 
      * or if the output does not match the output schema
      */
     public async execute(input: z.infer<TInSchema>, extra?: ToolExecutionExtras): Promise<z.infer<TOutSchema>> {
-        if (!!this.inputSchema) { // TODO: will this throw if the input schema is explicitly `z.void()`?
+        if (!!this.inputSchema) {
             // Will throw a ZodError if incorrect
             await this.inputSchema.parseAsync(input);
         }
 
         const output = await Promise.resolve(this.executeImpl(input, extra));
 
-        if (!!this.outputSchema) { // TODO: will this throw if the output schema is explicitly `z.void()`?
+        if (!!this.outputSchema) {
             // Will throw a ZodError if incorrect
             await this.outputSchema.parseAsync(output);
         }
