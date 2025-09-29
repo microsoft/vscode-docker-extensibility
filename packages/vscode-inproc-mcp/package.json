@@ -27,7 +27,7 @@
         "zod": "~3"
     },
     "engines": {
-        "vscode": "^1.104.0"
+        "vscode": "^1.105.0"
     },
     "devDependencies": {
         "@types/chai": "^4.3.0",
