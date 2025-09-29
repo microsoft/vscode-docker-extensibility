@@ -12,6 +12,7 @@ import * as express from 'express';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import * as vscode from 'vscode';
 
 const transports: Record<string, StreamableHTTPServerTransport> = {};
 
@@ -22,7 +23,7 @@ const transports: Record<string, StreamableHTTPServerTransport> = {};
  * @returns An object containing the disposable to stop and clean up the server, the server URI, and headers
  * that should be attached to all requests
  */
-export function startMcpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): { disposable: DisposableLike, serverUri: string /* TODO: need VSCode types */, headers: Record<string, string> } {
+export function startMcpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): { disposable: DisposableLike, serverUri: vscode.Uri, headers: Record<string, string> } {
     let socketPath: string | undefined;
 
     try {
@@ -59,7 +60,11 @@ export function startMcpServer(getNewMcpServer: () => McpServer | Promise<McpSer
                     tryCleanupSocket(socketPath);
                 }
             },
-            serverUri: 'foo', // TODO: need VSCode types
+            serverUri: vscode.Uri.from({
+                scheme: os.platform() === 'win32' ? 'pipe' : 'unix',
+                path: socketPath,
+                fragment: '/mcp', // The express app is configured to serve MCP over the `/mcp` route, and VSCode wants that route in the URI fragment
+            }),
             headers: {
                 'Authorization': `Nonce ${nonce}`,
             },
@@ -181,7 +186,6 @@ function tryCleanupSocket(socketPath: string | undefined): void {
 //         ];
 //     },
 //     resolveMcpServerDefinition(server: vscode.McpServerDefinition, token: vscode.CancellationToken): vscode.McpServerDefinition {
-//         // TODO: should a new server be started each time this is called?
 //         startMcpServer(); // TODO: destroy the server on deactivate
 //         return server;
 //     }
