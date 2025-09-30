@@ -25,6 +25,11 @@ const CancelledMessage = 'Tool execution was cancelled by the user.';
 const UnknownErrorMessage = 'An unknown error occurred.';
 
 /**
+ * Message returned if there are no results from an array-returning tool
+ */
+const NoResultsMessage = 'Tool execution succeeded, but no results were found.';
+
+/**
  * Class for MCP server tools
  */
 export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSchema> extends CopilotToolBase<TInSchema, TOutSchema> {
@@ -66,6 +71,18 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
                 };
             } else if (Array.isArray(result)) {
                 // If it's an array, return JSONified text of each item in the array
+                // But if it's empty, return a special message
+                if (result.length === 0) {
+                    return {
+                        content: [
+                            {
+                                type: 'text',
+                                text: NoResultsMessage,
+                            },
+                        ],
+                    };
+                }
+
                 return {
                     content: result.map(item => ({
                         type: 'text',
