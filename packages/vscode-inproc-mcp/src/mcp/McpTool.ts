@@ -15,6 +15,11 @@ import { McpToolResult } from './McpToolResult';
 const UnknownSuccessMessage = 'Tool execution succeeded, but produced no output.';
 
 /**
+ * Message returned to the MCP client if a tool execution was cancelled by the user
+ */
+const CancelledMessage = 'Tool execution was cancelled by the user.';
+
+/**
  * Message returned to the MCP client if a tool fails and we can't determine the error message
  */
 const UnknownErrorMessage = 'An unknown error occurred.';
@@ -79,7 +84,20 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
                 };
             }
         } catch (error) {
-            // Do our best to extract a meaningful error message
+            // If the abort signal was triggered, return a cancelled message
+            if (extra?.signal?.aborted) {
+                return {
+                    content: [
+                        {
+                            type: 'text',
+                            text: CancelledMessage,
+                        },
+                    ],
+                    isError: true,
+                };
+            }
+
+            // Otherwise, do our best to extract a meaningful error message
             let message: string;
             if (error instanceof Error) {
                 message = error.message;
