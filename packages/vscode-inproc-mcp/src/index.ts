@@ -9,7 +9,7 @@ export * from './base/CopilotToolBase';
 
 export * from './mcp/McpTool';
 export * from './mcp/McpToolResult';
-export * from './mcp/registerTool';
+export * from './mcp/registerMcpTool';
 
 export * from './vscode/inProcHttpServer';
 export * from './vscode/registerMcpHttpProvider';

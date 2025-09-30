@@ -14,7 +14,7 @@ import { McpTool } from './McpTool';
  * @param tool The tool to register
  * @returns The registered tool
  */
-export function registerTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSchema>(
+export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSchema>(
     server: McpServer,
     tool: CopilotTool<TInSchema, TOutSchema>
 ): RegisteredTool {
