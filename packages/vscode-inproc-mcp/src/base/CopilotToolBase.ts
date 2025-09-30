@@ -17,11 +17,11 @@ export class CopilotToolBase<TInSchema extends ToolIOSchema, TOutSchema extends 
     public readonly annotations?: ToolAnnotations;
 
     /**
-     * Constructs a new {@link CopilotToolBase} instance.
-     * @param name The tool name. Required.
-     * @param executeImpl The tool implementation. Required.
-     * @param options Tool options such as title, schemas, and annotations. Optional.
-     * @throws An {@link Error} if the tool is not properly configured.
+     * Constructs a new {@link CopilotToolBase} instance
+     * @param name The tool name
+     * @param executeImpl The tool implementation
+     * @param options Tool options such as title, schemas, and annotations
+     * @throws An {@link Error} if the tool is improperly configured
      */
     public constructor(
         public readonly name: string,
@@ -53,7 +53,6 @@ export class CopilotToolBase<TInSchema extends ToolIOSchema, TOutSchema extends 
     }
 
     /**
-     * @inheritdoc
      * @throws A {@link z.ZodError} if the input does not match the input schema,
      * or if the output does not match the output schema
      */

@@ -37,10 +37,11 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
      * Executes the MCP tool with the given input and extra parameters.
      * Automatically converts the output to the format required by MCP
      * tools. Will never throw an error.
-     * @param input The input for the tool.
+     * @param input The input for the tool
      * @param extra Additional execution parameters. The base class
      * allows this to be undefined, but the MCP SDK does not.
-     * @returns The result of the tool execution.
+     * @returns The result of the tool execution in the {@link McpToolResult}
+     * format
      */
     public async executeMcp(input: z.infer<TInSchema>, extra: ToolExecutionExtras): Promise<McpToolResult> {
         try {
