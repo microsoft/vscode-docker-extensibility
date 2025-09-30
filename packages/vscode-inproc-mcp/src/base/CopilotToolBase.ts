@@ -42,8 +42,13 @@ export class CopilotToolBase<TInSchema extends ToolIOSchema, TOutSchema extends 
 
         // Always enforce consent for non-read-only tools
         if (this.annotations?.consentGuidance === ConsentGuidance.NotRequired &&
-            this.annotations?.readOnlyHint !== true) {
+            !this.annotations?.readOnlyHint) {
             throw new Error('A tool with "NotRequired" consent guidance must have a read-only hint.');
+        }
+
+        // Do not allow readonly and destructive hints at the same time
+        if (!!this.annotations?.readOnlyHint && !!this.annotations?.destructiveHint) {
+            throw new Error('A tool cannot be both read-only and destructive.');
         }
     }
 
