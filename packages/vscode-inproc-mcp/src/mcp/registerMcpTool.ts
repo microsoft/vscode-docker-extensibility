@@ -12,13 +12,16 @@ import { McpTool } from './McpTool';
  * Registers a tool with the MCP server
  * @param server The MCP server to register the tool with
  * @param tool The tool to register
+ * @param mcpToolClass Advanced usage: the class to use for the MCP tool.
+ * Defaults to {@link McpTool}.
  * @returns The registered tool
  */
 export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSchema>(
     server: McpServer,
-    tool: CopilotTool<TInSchema, TOutSchema>
+    tool: CopilotTool<TInSchema, TOutSchema>,
+    mcpToolClass = McpTool
 ): RegisteredTool {
-    const mcpTool = new McpTool<TInSchema, TOutSchema>(
+    const mcpTool = new mcpToolClass(
         tool.name,
         tool.execute.bind(tool),
         {
