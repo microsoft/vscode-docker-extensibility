@@ -1,6 +1,6 @@
 lib/test/**
 .eslint*
-src/*
+src
 tsconfig.json
 *.tgz
 vscode.ts
