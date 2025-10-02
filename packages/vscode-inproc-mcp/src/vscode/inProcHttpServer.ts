@@ -4,11 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { DisposableLike } from '@microsoft/vscode-processutils';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import * as crypto from 'crypto';
-import * as express from 'express';
+import type * as express from 'express';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -23,14 +22,16 @@ const transports: Record<string, StreamableHTTPServerTransport> = {};
  * @returns An object containing the disposable to stop and clean up the server, the server URI, and headers
  * that should be attached to all requests
  */
-export function startInProcHttpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): { disposable: DisposableLike, serverUri: vscode.Uri, headers: Record<string, string> } {
+export async function startInProcHttpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): Promise<{ disposable: DisposableLike, serverUri: vscode.Uri, headers: Record<string, string> }> {
     let socketPath: string | undefined;
 
     try {
         const nonce = crypto.randomUUID();
         socketPath = getRandomSocketPath();
 
-        const app = express();
+        const express = await expressLazy.value;
+
+        const app = express.default();
 
         app.use(express.json());
         app.use((req, res, next) => authMiddleware(nonce, req, res, next));
@@ -86,6 +87,9 @@ function authMiddleware(nonce: string, req: express.Request, res: express.Respon
 
 async function handlePost(getNewMcpServer: () => McpServer | Promise<McpServer>, req: express.Request, res: express.Response): Promise<void> {
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
+
+    const isInitializeRequest = await isInitializeRequestLazy.value;
+    const { StreamableHTTPServerTransport } = await streamableHttpLazy.value;
 
     let transport: StreamableHTTPServerTransport;
     if (sessionId && transports[sessionId]) {
@@ -171,3 +175,27 @@ function tryCleanupSocket(socketPath: string | undefined): void {
         // Best effort
     }
 }
+
+class Lazy<T> {
+    #value: T | undefined;
+    #isValueCreated: boolean = false;
+
+    constructor(private readonly factory: () => T) { }
+
+    public get value(): T {
+        if (!this.#isValueCreated) {
+            this.#value = this.factory();
+            this.#isValueCreated = true;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return this.#value!;
+    }
+}
+
+// Lazily load some modules that are only needed when an MCP server is actually started
+const expressLazy = new Lazy(async () => await import('express'));
+const streamableHttpLazy = new Lazy(async () => await import('@modelcontextprotocol/sdk/server/streamableHttp.js'));
+const isInitializeRequestLazy = new Lazy(async () => {
+    const { isInitializeRequest } = await import('@modelcontextprotocol/sdk/types.js');
+    return isInitializeRequest;
+});

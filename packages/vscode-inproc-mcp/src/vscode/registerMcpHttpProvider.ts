@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import * as vscode from 'vscode';
 import { startInProcHttpServer } from './inProcHttpServer';
 
@@ -50,14 +50,14 @@ export function registerMcpHttpProvider(context: vscode.ExtensionContext, option
                 return [
                     new vscode.McpHttpServerDefinition(
                         options.serverLabel,
-                        vscode.Uri.from({ scheme: 'http', authority: '0.0.0.0' }), // Dummy URL; the MCP server will be in-proc and must be resolved first
+                        vscode.Uri.from({ scheme: 'http', authority: 'invalid.invalid' }), // Dummy URL; the MCP server will be in-proc and must be resolved first
                         undefined,
                         options.serverVersion
                     ),
                 ];
             },
-            resolveMcpServerDefinition(server: vscode.McpHttpServerDefinition, token: vscode.CancellationToken): vscode.ProviderResult<vscode.McpServerDefinition> {
-                const { disposable, serverUri, headers } = startInProcHttpServer(options.getNewMcpServer);
+            async resolveMcpServerDefinition(server: vscode.McpHttpServerDefinition, token: vscode.CancellationToken): Promise<vscode.McpServerDefinition> {
+                const { disposable, serverUri, headers } = await startInProcHttpServer(options.getNewMcpServer);
                 context.subscriptions.push(disposable);
                 server.uri = serverUri;
                 server.headers = headers;
