@@ -1,11 +1,11 @@
 {
     "compilerOptions": {
         "target": "es2018",
-        "module": "commonjs",
+        "module": "es2022",
         "lib": [
             "es2018"
         ],
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "sourceMap": true,
         "inlineSources": false,
         "declaration": true,

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { DisposableLike } from '@microsoft/vscode-processutils';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import * as crypto from 'crypto';

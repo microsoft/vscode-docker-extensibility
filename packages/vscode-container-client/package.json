@@ -1,7 +1,7 @@
 {
     "name": "@microsoft/vscode-container-client",
     "author": "Microsoft Corporation",
-    "version": "0.4.3",
+    "version": "0.5.0",
     "description": "Extensibility model for implementing container runtime providers (shared by VS and VS Code)",
     "license": "See LICENSE in the project root for license information.",
     "repository": {
@@ -12,7 +12,8 @@
         "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
     "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-container-client/README.md",
-    "main": "lib/index.js",
+    "module": "lib/index.js",
+    "types": "lib/index.d.ts",
     "scripts": {
         "build": "tsc",
         "clean": "tsc --build --clean",
@@ -23,10 +24,10 @@
         "testintegrationcov": "nyc --reporter=html mocha --grep \"(integration)\""
     },
     "engines": {
-        "vscode": "^1.104.0"
+        "vscode": "^1.105.0"
     },
     "dependencies": {
-        "@microsoft/vscode-processutils": "^0.1.1",
+        "@microsoft/vscode-processutils": "^0.2.0",
         "dayjs": "^1.11.2",
         "zod": "^3.25.56"
     },
