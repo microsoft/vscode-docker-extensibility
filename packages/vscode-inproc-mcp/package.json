@@ -56,9 +56,6 @@
         "spec": [
             "src/test/**/*.test.ts"
         ],
-        "grep": [
-            "(unit)"
-        ],
         "watch-files": [
             "src/**/*.ts"
         ]

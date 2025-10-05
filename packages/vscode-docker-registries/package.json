@@ -23,8 +23,8 @@
     "scripts": {
         "build": "tsc",
         "lint": "eslint --max-warnings 0 . --ext ts",
-        "test": "mocha --file lib/test/global.test.js --recursive lib/test",
-        "unittest": "npm test -- --grep /unit/i",
+        "test": "mocha",
+        "unittest": "mocha --grep /unit/i",
         "package": "npm pack"
     },
     "engines": {
@@ -42,9 +42,24 @@
         "chai-as-promised": "^7.1.1",
         "eslint": "^8.2.0",
         "mocha": "^10.0.0",
+        "tsx": "^4.20.6",
         "typescript": "^5.0.4"
     },
     "dependencies": {
         "dayjs": "^1.11.7"
+    },
+    "mocha": {
+        "extension": [
+            "ts"
+        ],
+        "node-option": [
+            "import=tsx"
+        ],
+        "spec": [
+            "src/test/**/*.test.ts"
+        ],
+        "watch-files": [
+            "src/**/*.ts"
+        ]
     }
 }
