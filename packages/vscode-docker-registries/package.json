@@ -17,6 +17,8 @@
         "docker"
     ],
     "module": "lib/index.js",
+    "main": "lib/index.js",
+    "type": "module",
     "types": "lib/index.d.ts",
     "scripts": {
         "build": "tsc",

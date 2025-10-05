@@ -8,12 +8,13 @@
     "include": [
         "src/**/*.ts"
     ],
-    "ts-node": {
+    "tsx": {
         "compilerOptions": {
             "baseUrl": "./",
-            "module": "commonjs",
             "paths": {
-                "vscode": ["./vscode"]
+                "vscode": [
+                    "./vscode"
+                ]
             }
         }
     }
