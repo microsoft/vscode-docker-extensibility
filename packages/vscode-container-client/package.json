@@ -33,22 +33,6 @@
         "dayjs": "^1.11.2",
         "zod": "^3.25.56"
     },
-    "devDependencies": {
-        "@types/chai": "^4.3.0",
-        "@types/mocha": "^9.1.0",
-        "@types/node": "22.x",
-        "@types/vscode": "1.104.0",
-        "@types/which": "^3.0.4",
-        "@typescript-eslint/eslint-plugin": "^5.10.2",
-        "@typescript-eslint/parser": "^5.10.2",
-        "chai": "^4.3.6",
-        "eslint": "^8.8.0",
-        "mocha": "^10.0.0",
-        "tsx": "^4.20.6",
-        "tsconfig-paths": "^4.0.0",
-        "typescript": "^5.8.3",
-        "vscode-jsonrpc": "^8.0.1"
-    },
     "mocha": {
         "extension": [
             "ts"
