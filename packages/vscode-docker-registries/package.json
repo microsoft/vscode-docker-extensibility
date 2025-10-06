@@ -25,7 +25,6 @@
         "build:cjs": "tsc --outDir dist/cjs --module nodenext --moduleResolution nodenext",
         "lint": "eslint --max-warnings 0 . --ext ts",
         "test": "mocha",
-        "unittest": "mocha --grep /unit/i",
         "package": "npm pack"
     },
     "engines": {
