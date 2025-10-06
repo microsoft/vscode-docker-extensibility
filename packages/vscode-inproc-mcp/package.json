@@ -30,18 +30,7 @@
         "vscode": "^1.105.0"
     },
     "devDependencies": {
-        "@types/chai": "^4.3.0",
-        "@types/express": "^5.0.3",
-        "@types/mocha": "^9.1.0",
-        "@types/node": "22.x",
-        "@types/vscode": "1.104.0",
-        "@typescript-eslint/eslint-plugin": "^5.10.2",
-        "@typescript-eslint/parser": "^5.10.2",
-        "chai": "^4.3.6",
-        "eslint": "^8.8.0",
-        "mocha": "^10.0.0",
-        "tsx": "^4.20.6",
-        "typescript": "^5.8.3"
+        "@types/express": "^5.0.3"
     },
     "mocha": {
         "extension": [
