@@ -12,12 +12,13 @@
         "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
     "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-processutils/README.md",
-    "module": "lib/index.js",
-    "main": "lib/index.js",
-    "type": "module",
-    "types": "lib/index.d.ts",
+    "module": "dist/esm/index.js",
+    "main": "dist/cjs/index.js",
+    "types": "dist/esm/index.d.ts",
     "scripts": {
-        "build": "tsc",
+        "build": "npm run build:esm && npm run build:cjs",
+        "build:esm": "tsc --outDir dist/esm",
+        "build:cjs": "tsc --outDir dist/cjs --module nodenext --moduleResolution nodenext",
         "clean": "tsc --build --clean",
         "lint": "eslint --max-warnings 0 . --ext ts",
         "package": "npm pack",
