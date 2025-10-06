@@ -12,13 +12,11 @@
         "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
     "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-inproc-mcp/README.md",
-    "module": "lib/index.js",
-    "main": "lib/index.js",
+    "module": "dist/esm/index.js",
     "type": "module",
-    "types": "lib/index.d.ts",
+    "types": "dist/esm/index.d.ts",
     "scripts": {
-        "build": "tsc",
-        "clean": "tsc --build --clean",
+        "build": "tsc --outDir dist/esm",
         "lint": "eslint --max-warnings 0 . --ext ts",
         "package": "npm pack",
         "test": "mocha"
