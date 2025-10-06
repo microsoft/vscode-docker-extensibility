@@ -29,5 +29,8 @@
         "tsconfig-paths": "^4.0.0",
         "tsx": "^4.20.6",
         "typescript": "^5.8.3"
+    },
+    "overrides": {
+        "raw-body": "3.0.0"
     }
 }
