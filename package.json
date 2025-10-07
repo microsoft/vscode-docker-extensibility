@@ -8,10 +8,10 @@
         "packages/vscode-docker-registries"
     ],
     "scripts": {
-        "lint": "npm run -ws lint",
-        "build": "npm run -ws build",
-        "package": "npm run -ws package",
-        "test": "npm run -ws test"
+        "lint": "npm run --workspaces lint",
+        "build": "npm run --workspaces build",
+        "package": "npm run --workspaces package",
+        "test": "npm run --workspaces test"
     },
     "devDependencies": {
         "@types/chai": "^5.2.2",
