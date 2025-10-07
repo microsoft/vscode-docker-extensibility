@@ -15,7 +15,7 @@
     "module": "dist/esm/index.js",
     "types": "dist/esm/index.d.ts",
     "scripts": {
-        "build": "tsc --outDir dist/esm",
+        "build": "tsc",
         "lint": "eslint --max-warnings 0 . --ext ts",
         "package": "npm pack",
         "test": "mocha"
