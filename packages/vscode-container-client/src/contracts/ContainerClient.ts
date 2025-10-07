@@ -12,11 +12,11 @@ import z from 'zod/v3';
 export { ContainerOS, EventAction, EventType } from './ZodEnums';
 
 export const ImageNameInfoSchema = z.object({
-    originalName: z.string().optional(),
-    image: z.string().optional(),
-    registry: z.string().optional(),
-    tag: z.string().optional(),
-    digest: z.string().optional(),
+    originalName: z.string().optional().describe('The original name as returned by the CLI'),
+    image: z.string().optional().describe('The name of the image. For example, in "docker.io/library/alpine:latest", this will be "library/alpine".'),
+    registry: z.string().optional().describe('The name of the registry. If absent from the original name, this will be undefined.'),
+    tag: z.string().optional().describe('The tag/anchor name. If absent, this will be undefined.'),
+    digest: z.string().optional().describe('The digest. If absent, this will be undefined.'),
 });
 
 export type ImageNameInfo = z.infer<typeof ImageNameInfoSchema>;
@@ -112,9 +112,9 @@ export type InfoCommandOptions = CommonCommandOptions & {
 };
 
 export const InfoItemSchema = z.object({
-    operatingSystem: z.string().optional(),
-    osType: z.string().optional(),
-    raw: z.string(),
+    operatingSystem: z.string().optional().describe('The operating system for the container runtime (e.g. Docker Desktop)'),
+    osType: z.string().optional().describe('The OS type for the container runtime'),
+    raw: z.string().describe('The raw JSON from the info record'),
 });
 
 export type InfoItem = z.infer<typeof InfoItemSchema>;
@@ -156,14 +156,14 @@ export type EventStreamCommandOptions = CommonCommandOptions & {
 };
 
 export const EventItemSchema = z.object({
-    type: EventTypeSchema,
-    action: EventActionSchema,
-    timestamp: z.date(),
+    type: EventTypeSchema.describe('The event type'),
+    action: EventActionSchema.describe('The event action'),
+    timestamp: z.date().describe('The timestamp of the event'),
     actor: z.object({
         id: z.string(),
         attributes: z.record(z.string(), z.unknown()),
-    }),
-    raw: z.string(),
+    }).describe('Details about the affected object'),
+    raw: z.string().describe('The RAW event output'),
 });
 
 export type EventItem = z.infer<typeof EventItemSchema>;
@@ -332,10 +332,10 @@ export type ListImagesCommandOptions = CommonCommandOptions & {
 };
 
 export const ListImagesItemSchema = z.object({
-    id: z.string(),
-    image: ImageNameInfoSchema,
-    createdAt: z.date(),
-    size: z.number().optional(),
+    id: z.string().describe('The ID of the image'),
+    image: ImageNameInfoSchema.describe('Image name information'),
+    createdAt: z.date().describe('The date the image was created'),
+    size: z.number().optional().describe('The size (in bytes) of the image'),
 });
 
 export type ListImagesItem = z.infer<typeof ListImagesItemSchema>;
@@ -386,8 +386,8 @@ export type PruneImagesCommandOptions = CommonCommandOptions & {
 };
 
 export const PruneImagesItemSchema = z.object({
-    imageRefsDeleted: z.array(z.string()).optional(),
-    spaceReclaimed: z.number().optional(),
+    imageRefsDeleted: z.array(z.string()).optional().describe('A list of the image names/IDs/etc. deleted'),
+    spaceReclaimed: z.number().optional().describe('The amount of space (in bytes) reclaimed'),
 });
 
 export type PruneImagesItem = z.infer<typeof PruneImagesItemSchema>;
@@ -476,31 +476,31 @@ export const PortProtocolSchema = z.enum(['udp', 'tcp']);
 export type PortProtocol = z.infer<typeof PortProtocolSchema>;
 
 export const PortBindingSchema = z.object({
-    containerPort: z.number(),
-    hostPort: z.number().optional(),
-    hostIp: z.string().optional(),
-    protocol: PortProtocolSchema.optional(),
+    containerPort: z.number().describe('The internal container port'),
+    hostPort: z.number().optional().describe('The optional host port to bind to the container port'),
+    hostIp: z.string().optional().describe('The optional host IP to bind the port on'),
+    protocol: PortProtocolSchema.optional().describe('The protocol the port uses'),
 });
 
 export type PortBinding = z.infer<typeof PortBindingSchema>;
 
 export const InspectImagesItemSchema = z.object({
-    id: z.string(),
-    image: ImageNameInfoSchema,
-    repoDigests: z.array(z.string()),
-    isLocalImage: z.boolean(),
-    environmentVariables: z.record(z.string(), z.string()),
-    ports: z.array(PortBindingSchema),
-    volumes: z.array(z.string()),
-    labels: z.record(z.string(), z.string()),
-    entrypoint: z.array(z.string()),
-    command: z.array(z.string()),
-    currentDirectory: z.string().optional(),
-    architecture: z.enum(['amd64', 'arm64']).optional(),
-    operatingSystem: ContainerOSSchema.optional(),
-    createdAt: z.date().optional(),
-    user: z.string().optional(),
-    raw: z.string(),
+    id: z.string().describe('The image ID'),
+    image: ImageNameInfoSchema.describe('Image name information'),
+    repoDigests: z.array(z.string()).describe('Repo digest values'),
+    isLocalImage: z.boolean().describe('Is the image local only?'),
+    environmentVariables: z.record(z.string(), z.string()).describe('Any environment variables associated with the image'),
+    ports: z.array(PortBindingSchema).describe('Any default ports exposed by the image'),
+    volumes: z.array(z.string()).describe('Any volumes defined by the image'),
+    labels: z.record(z.string(), z.string()).describe('Any labels assigned to the image'),
+    entrypoint: z.array(z.string()).describe('The entrypoint for running the image in a container'),
+    command: z.array(z.string()).describe('The command used to start the image in a container'),
+    currentDirectory: z.string().optional().describe('The default working directory in the image'),
+    architecture: z.enum(['amd64', 'arm64']).optional().describe('The image architecture'),
+    operatingSystem: ContainerOSSchema.optional().describe('The image operating system'),
+    createdAt: z.date().optional().describe('The date the image was created'),
+    user: z.string().optional().describe('The default user in the container'),
+    raw: z.string().describe('The RAW inspect output'),
 });
 
 export type InspectImagesItem = z.infer<typeof InspectImagesItemSchema>;
@@ -723,15 +723,15 @@ export type ListContainersCommandOptions = CommonCommandOptions & {
 };
 
 export const ListContainersItemSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    labels: z.record(z.string(), z.string()),
-    image: ImageNameInfoSchema,
-    ports: z.array(PortBindingSchema),
-    networks: z.array(z.string()),
-    createdAt: z.date(),
-    state: z.string(),
-    status: z.string().optional(),
+    id: z.string().describe('The ID of the container'),
+    name: z.string().describe('The name of the container'),
+    labels: z.record(z.string(), z.string()).describe('Labels on the container'),
+    image: ImageNameInfoSchema.describe('Image name information'),
+    ports: z.array(PortBindingSchema).describe('The exposed ports for the container'),
+    networks: z.array(z.string()).describe('The list of connected networks for the container'),
+    createdAt: z.date().describe('The date the container was created'),
+    state: z.string().describe('The container state (e.g. \'running\', \'stopped\', \'paused\', etc.)'),
+    status: z.string().optional().describe('The container status (e.g. \'Up 5 minutes\', \'Exited (0) 1 minute ago\', etc.)'),
 });
 
 export type ListContainersItem = z.infer<typeof ListContainersItemSchema>;
@@ -847,8 +847,8 @@ export type PruneContainersCommandOptions = CommonCommandOptions & {
 };
 
 export const PruneContainersItemSchema = z.object({
-    containersDeleted: z.array(z.string()).optional(),
-    spaceReclaimed: z.number().optional(),
+    containersDeleted: z.array(z.string()).optional().describe('A list of the containers deleted'),
+    spaceReclaimed: z.number().optional().describe('The amount of space (in bytes) reclaimed'),
 });
 
 export type PruneContainersItem = z.infer<typeof PruneContainersItemSchema>;
@@ -909,19 +909,19 @@ export type InspectContainersCommandOptions = CommonCommandOptions & {
 
 export const InspectContainersItemBindMountSchema = z.object({
     type: z.literal('bind'),
-    source: z.string(),
-    destination: z.string(),
-    readOnly: z.boolean(),
+    source: z.string().describe('The source of the bind mount (path on host)'),
+    destination: z.string().describe('The destination for the bind mount (path in container)'),
+    readOnly: z.boolean().describe('Is the mount read only?'),
 });
 
 export type InspectContainersItemBindMount = z.infer<typeof InspectContainersItemBindMountSchema>;
 
 export const InspectContainersItemVolumeMountSchema = z.object({
     type: z.literal('volume'),
-    source: z.string(),
-    destination: z.string(),
-    driver: z.string().optional(),
-    readOnly: z.boolean(),
+    source: z.string().describe('The source of the volume mount (volume name)'),
+    destination: z.string().describe('The destination for the volume mount (path in container)'),
+    driver: z.string().optional().describe('The volume driver used'),
+    readOnly: z.boolean().describe('Is the volume read only?'),
 });
 
 export type InspectContainersItemVolumeMount = z.infer<typeof InspectContainersItemVolumeMountSchema>;
@@ -934,35 +934,35 @@ export const InspectContainersItemMountSchema = z.union([
 export type InspectContainersItemMount = z.infer<typeof InspectContainersItemMountSchema>;
 
 export const InspectContainersItemNetworkSchema = z.object({
-    name: z.string(),
-    gateway: z.string().optional(),
-    ipAddress: z.string().optional(),
-    macAddress: z.string().optional(),
+    name: z.string().describe('The name of the network'),
+    gateway: z.string().optional().describe('The network gateway address'),
+    ipAddress: z.string().optional().describe('The root IP address of the network'),
+    macAddress: z.string().optional().describe('The MAC address associated with the network'),
 });
 
 export type InspectContainersItemNetwork = z.infer<typeof InspectContainersItemNetworkSchema>;
 
 export const InspectContainersItemSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    imageId: z.string(),
-    image: ImageNameInfoSchema,
-    isolation: z.string().optional(),
-    status: z.string().optional(),
-    environmentVariables: z.record(z.string(), z.string()),
-    networks: z.array(InspectContainersItemNetworkSchema),
-    ipAddress: z.string().optional(),
-    operatingSystem: ContainerOSSchema.optional(),
-    ports: z.array(PortBindingSchema),
-    mounts: z.array(InspectContainersItemMountSchema),
-    labels: z.record(z.string(), z.string()),
-    entrypoint: z.array(z.string()),
-    command: z.array(z.string()),
-    currentDirectory: z.string().optional(),
-    createdAt: z.date(),
-    startedAt: z.date().optional(),
-    finishedAt: z.date().optional(),
-    raw: z.string(),
+    id: z.string().describe('The ID of the container'),
+    name: z.string().describe('The name of the container'),
+    imageId: z.string().describe('The ID of the image used to run the container'),
+    image: ImageNameInfoSchema.describe('Image name information'),
+    isolation: z.string().optional().describe('Isolation Mode of the container'),
+    status: z.string().optional().describe('The status of the container'),
+    environmentVariables: z.record(z.string(), z.string()).describe('Environment variables set when running the container'),
+    networks: z.array(InspectContainersItemNetworkSchema).describe('Networks attached to the container'),
+    ipAddress: z.string().optional().describe('IP Address assigned to the container'),
+    operatingSystem: ContainerOSSchema.optional().describe('The container operating system'),
+    ports: z.array(PortBindingSchema).describe('Ports exposed for the container'),
+    mounts: z.array(InspectContainersItemMountSchema).describe('Mounts attached to the container'),
+    labels: z.record(z.string(), z.string()).describe('Labels assigned to the container'),
+    entrypoint: z.array(z.string()).describe('The entrypoint used to start the container'),
+    command: z.array(z.string()).describe('The command used to run the container'),
+    currentDirectory: z.string().optional().describe('The default working directory in the container'),
+    createdAt: z.date().describe('The date the container was created'),
+    startedAt: z.date().optional().describe('The date the container was started'),
+    finishedAt: z.date().optional().describe('The date the container stopped'),
+    raw: z.string().describe('The raw JSON from the inspect record'),
 });
 
 export type InspectContainersItem = z.infer<typeof InspectContainersItemSchema>;
@@ -1035,13 +1035,13 @@ export type ListVolumesCommandOptions = CommonCommandOptions & {
 };
 
 export const ListVolumeItemSchema = z.object({
-    name: z.string(),
-    driver: z.string(),
-    labels: z.record(z.string(), z.string()),
-    mountpoint: z.string(),
-    scope: z.string(),
-    createdAt: z.date().optional(),
-    size: z.number().optional(),
+    name: z.string().describe('The name of the volume'),
+    driver: z.string().describe('The volume driver'),
+    labels: z.record(z.string(), z.string()).describe('Labels assigned to the volume'),
+    mountpoint: z.string().describe('The mount point for the volume'),
+    scope: z.string().describe('The scope for the volume'),
+    createdAt: z.date().optional().describe('The date the volume was created at'),
+    size: z.number().optional().describe('The size (in bytes) of the volume'),
 });
 
 export type ListVolumeItem = z.infer<typeof ListVolumeItemSchema>;
@@ -1089,8 +1089,8 @@ export type PruneVolumesCommandOptions = CommonCommandOptions & {
 };
 
 export const PruneVolumesItemSchema = z.object({
-    volumesDeleted: z.array(z.string()).optional(),
-    spaceReclaimed: z.number().optional(),
+    volumesDeleted: z.array(z.string()).optional().describe('A list of the volumes deleted'),
+    spaceReclaimed: z.number().optional().describe('The amount of space (in bytes) reclaimed'),
 });
 
 export type PruneVolumesItem = z.infer<typeof PruneVolumesItemSchema>;
@@ -1116,14 +1116,14 @@ export type InspectVolumesCommandOptions = CommonCommandOptions & {
 };
 
 export const InspectVolumesItemSchema = z.object({
-    name: z.string(),
-    driver: z.string(),
-    mountpoint: z.string(),
-    scope: z.string(),
-    labels: z.record(z.string(), z.string()),
-    options: z.record(z.string(), z.unknown()),
-    createdAt: z.date(),
-    raw: z.string(),
+    name: z.string().describe('The name of the volume'),
+    driver: z.string().describe('The driver for the volume'),
+    mountpoint: z.string().describe('The mount point for the volume'),
+    scope: z.string().describe('The scope for the volume'),
+    labels: z.record(z.string(), z.string()).describe('Labels assigned to the volume'),
+    options: z.record(z.string(), z.unknown()).describe('Driver-specific options for the volume'),
+    createdAt: z.date().describe('The date the volume was created'),
+    raw: z.string().describe('The raw JSON from the inspect record'),
 });
 
 export type InspectVolumesItem = z.infer<typeof InspectVolumesItemSchema>;
@@ -1175,14 +1175,14 @@ export type ListNetworksCommandOptions = CommonCommandOptions & {
 };
 
 export const ListNetworkItemSchema = z.object({
-    name: z.string(),
-    id: z.string().optional(),
-    driver: z.string().optional(),
-    labels: z.record(z.string(), z.string()),
-    scope: z.string().optional(),
-    ipv6: z.boolean().optional(),
-    createdAt: z.date().optional(),
-    internal: z.boolean().optional(),
+    name: z.string().describe('The name of the network'),
+    id: z.string().optional().describe('The ID of the network'),
+    driver: z.string().optional().describe('The network driver'),
+    labels: z.record(z.string(), z.string()).describe('Labels assigned to the network'),
+    scope: z.string().optional().describe('The network scope'),
+    ipv6: z.boolean().optional().describe('True if IPv6 network'),
+    createdAt: z.date().optional().describe('The date the network was created'),
+    internal: z.boolean().optional().describe('True if internal network'),
 });
 
 export type ListNetworkItem = z.infer<typeof ListNetworkItemSchema>;
@@ -1230,7 +1230,7 @@ export type PruneNetworksCommandOptions = CommonCommandOptions & {
 };
 
 export const PruneNetworksItemSchema = z.object({
-    networksDeleted: z.array(z.string()).optional(),
+    networksDeleted: z.array(z.string()).optional().describe('A list of the networks deleted'),
 });
 
 export type PruneNetworksItem = z.infer<typeof PruneNetworksItemSchema>;
@@ -1266,18 +1266,18 @@ export const NetworkIpamConfigSchema = z.object({
 export type NetworkIpamConfig = z.infer<typeof NetworkIpamConfigSchema>;
 
 export const InspectNetworksItemSchema = z.object({
-    name: z.string(),
-    id: z.string().optional(),
-    driver: z.string().optional(),
-    labels: z.record(z.string(), z.string()),
-    scope: z.string().optional(),
-    ipam: NetworkIpamConfigSchema.optional(),
-    ipv6: z.boolean().optional(),
-    internal: z.boolean().optional(),
-    attachable: z.boolean().optional(),
-    ingress: z.boolean().optional(),
-    createdAt: z.date().optional(),
-    raw: z.string(),
+    name: z.string().describe('The name of the network'),
+    id: z.string().optional().describe('The ID of the network'),
+    driver: z.string().optional().describe('The network driver'),
+    labels: z.record(z.string(), z.string()).describe('Labels assigned to the network'),
+    scope: z.string().optional().describe('The network scope'),
+    ipam: NetworkIpamConfigSchema.optional().describe('The IPAM config'),
+    ipv6: z.boolean().optional().describe('True if IPv6 network'),
+    internal: z.boolean().optional().describe('True if internal network'),
+    attachable: z.boolean().optional().describe('True if attachable'),
+    ingress: z.boolean().optional().describe('True if ingress'),
+    createdAt: z.date().optional().describe('The date the network was created'),
+    raw: z.string().describe('The raw JSON from the inspect record'),
 });
 
 export type InspectNetworksItem = z.infer<typeof InspectNetworksItemSchema>;
@@ -1301,10 +1301,10 @@ export type ListContextsCommandOptions = CommonCommandOptions & {
 };
 
 export const ListContextItemSchema = z.object({
-    name: z.string(),
-    description: z.string().optional(),
-    current: z.boolean(),
-    containerEndpoint: z.string().optional(),
+    name: z.string().describe('The name of the context'),
+    description: z.string().optional().describe('The description of the context'),
+    current: z.boolean().describe('Whether or not the context is currently selected'),
+    containerEndpoint: z.string().optional().describe('The endpoint used for the container daemon'),
 });
 
 export type ListContextItem = z.infer<typeof ListContextItemSchema>;
@@ -1368,9 +1368,9 @@ export type InspectContextsCommandOptions = CommonCommandOptions & {
 };
 
 export const InspectContextsItemSchema = z.object({
-    name: z.string(),
-    description: z.string().optional(),
-    raw: z.string(),
+    name: z.string().describe('The name of the context'),
+    description: z.string().optional().describe('The description of the context'),
+    raw: z.string().describe('The raw JSON from the inspect record'),
 });
 
 export type InspectContextsItem = z.infer<typeof InspectContextsItemSchema>;
@@ -1405,16 +1405,16 @@ export type ListFilesCommandOptions = CommonCommandOptions & {
 };
 
 export const ListFilesItemSchema = z.object({
-    name: z.string(),
-    path: z.string(),
-    size: z.number(),
-    type: z.nativeEnum(FileType),
-    mode: z.number().optional(),
-    uid: z.number().optional(),
-    gid: z.number().optional(),
-    mtime: z.number().optional(),
-    ctime: z.number().optional(),
-    atime: z.number().optional(),
+    name: z.string().describe('The name of the file/directory'),
+    path: z.string().describe('The absolute path of the file/directory within the container'),
+    size: z.number().describe('The size of the file (0 if a directory), in bytes'),
+    type: z.nativeEnum(FileType).describe('The type of the file item (file/directory)'),
+    mode: z.number().optional().describe('The mode (permissions) of the file in base 10'),
+    uid: z.number().optional().describe('The (container) uid of the user the file belongs to'),
+    gid: z.number().optional().describe('The (container) gid of the user the file belongs to'),
+    mtime: z.number().optional().describe('The modification time of the file/directory, in milliseconds since Unix epoch'),
+    ctime: z.number().optional().describe('The creation time of the file/directory, in milliseconds since Unix epoch'),
+    atime: z.number().optional().describe('The access time of the file/directory, in milliseconds since Unix epoch'),
 });
 
 export type ListFilesItem = z.infer<typeof ListFilesItemSchema>;
