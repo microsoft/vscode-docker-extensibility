@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import { z } from 'zod/v3';
 
 export const DockerVersionRecordSchema = z.object({
     Client: z.object({
