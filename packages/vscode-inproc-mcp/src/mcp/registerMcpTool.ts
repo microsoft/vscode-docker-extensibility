@@ -33,14 +33,41 @@ export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema exten
         }
     );
 
+    let normalizedInputSchema: ToolIOSchema | undefined;
+    if (isVoidishSchema(mcpTool.inputSchema)) {
+        // Input can be void, but we'll treat that as having an undefined schema for the MCP SDK
+        normalizedInputSchema = undefined;
+    } else if (isEmptyObjectSchema(mcpTool.inputSchema)) {
+        // Input cannot be an empty object or the LLM will not know what to do with it, so error out if that was passed in
+        throw new Error('MCP tools cannot have an empty object input schema. Use ZodVoid for no input, or define a non-empty object schema.');
+    } else {
+        normalizedInputSchema = mcpTool.inputSchema;
+    }
+
+    let normalizedOutputSchema: ToolIOSchema | undefined;
+    if (isVoidishSchema(mcpTool.outputSchema) || isEmptyObjectSchema(mcpTool.outputSchema)) {
+        // Output can be void or an empty object, but we'll treat that as having an undefined schema for the MCP SDK
+        normalizedOutputSchema = undefined;
+    } else {
+        normalizedOutputSchema = mcpTool.outputSchema;
+    }
+
     return server.registerTool(
         mcpTool.name,
         {
             ...mcpTool,
             // Regrettably, the MCP SDK calls for the *shape* of the schema, not the schema itself
-            inputSchema: mcpTool.inputSchema instanceof z.ZodVoid ? undefined : mcpTool.inputSchema?.shape,
-            outputSchema: mcpTool.outputSchema instanceof z.ZodVoid ? undefined : mcpTool.outputSchema?.shape,
+            inputSchema: normalizedInputSchema?.shape,
+            outputSchema: normalizedOutputSchema?.shape,
         },
         mcpTool.executeMcp.bind(mcpTool)
     );
+}
+
+function isVoidishSchema(schema: ToolIOSchema | undefined): schema is undefined | z.ZodVoid {
+    return schema === undefined || schema instanceof z.ZodVoid;
+}
+
+function isEmptyObjectSchema(schema: ToolIOSchema): boolean {
+    return schema instanceof z.ZodObject && Object.keys(schema.shape).length === 0;
 }
