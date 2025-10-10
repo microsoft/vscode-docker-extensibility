@@ -15,7 +15,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "node"
+            "type": "node",
+            "preLaunchTask": "Build+Watch+CJS: vscode-processutils"
         },
         {
             "name": "Container client integration tests",
@@ -35,7 +36,8 @@
                 "DOCKER_HUB_USERNAME": "", // Replace, but never commit!
                 "DOCKER_HUB_PAT": "" // Replace, but never commit!
             },
-            "type": "node"
+            "type": "node",
+            "preLaunchTask": "Build+Watch+CJS: vscode-processutils"
         },
         {
             "name": "Process utils unit tests",
