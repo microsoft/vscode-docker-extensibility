@@ -2,53 +2,64 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "tsc-watch: vscode-container-client",
-            "type": "typescript",
-            "tsconfig": "packages/vscode-container-client/tsconfig.json",
-            "option": "watch",
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
+            "label": "Build+Watch: vscode-processutils",
+            "type": "npm",
+            "script": "build:esm -- --watch",
+            "path": "packages/vscode-processutils",
+            "group": {
+                "kind": "build"
+            },
+            "isBackground": true,
+            "presentation": {
+                "revealProblems": "onProblem"
+            },
+            "problemMatcher": "$tsc-watch",
+        },
+        {
+            "label": "Build+Watch+CJS: vscode-processutils",
+            "type": "npm",
+            "script": "build:cjs -- --watch",
+            "path": "packages/vscode-processutils",
+            "group": {
+                "kind": "build"
+            },
+            "isBackground": true,
+            "presentation": {
+                "revealProblems": "onProblem"
+            },
+            "problemMatcher": "$tsc-watch",
+        },
+        {
+            "label": "Build+Watch: vscode-container-client",
+            "type": "npm",
+            "script": "build:esm -- --watch",
+            "path": "packages/vscode-container-client",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
+            "isBackground": true,
             "presentation": {
-                "reveal": "never"
+                "revealProblems": "onProblem"
             },
-            "isBackground": true
+            "problemMatcher": "$tsc-watch",
+            "dependsOn": [
+                "Build+Watch: vscode-processutils",
+            ]
         },
         {
-            "label": "tsc-watch: vscode-processutils",
-            "type": "typescript",
-            "tsconfig": "packages/vscode-processutils/tsconfig.json",
-            "option": "watch",
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
+            "label": "Build+Watch: vscode-docker-registries",
+            "type": "npm",
+            "script": "build:esm -- --watch",
+            "path": "packages/vscode-docker-registries",
             "group": {
                 "kind": "build"
             },
+            "isBackground": true,
             "presentation": {
-                "reveal": "never"
+                "revealProblems": "onProblem"
             },
-            "isBackground": true
-        },
-        {
-            "label": "tsc-watch: vscode-docker-registries",
-            "type": "typescript",
-            "tsconfig": "packages/vscode-docker-registries/tsconfig.json",
-            "option": "watch",
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
-            "group": {
-                "kind": "build"
-            },
-            "presentation": {
-                "reveal": "never"
-            },
-            "isBackground": true
+            "problemMatcher": "$tsc-watch",
         },
     ]
 }

@@ -15,7 +15,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "node"
+            "type": "node",
+            "preLaunchTask": "Build+Watch+CJS: vscode-processutils"
         },
         {
             "name": "Container client integration tests",
@@ -30,12 +31,13 @@
                 "<node_internals>/**"
             ],
             "env": {
-                "CONTAINER_CLIENT_TYPE": "docker", // Set to 'docker' or 'podman'
+                "CONTAINER_CLIENT_TYPE": "${input:containerRuntime}", // Set to 'docker' or 'podman'
                 "RUN_IN_WSL": "0", // Set to 1 if running in WSL
-                "DOCKER_HUB_USERNAME": "", // Replace, but never commit!
-                "DOCKER_HUB_PAT": "" // Replace, but never commit!
+                "DOCKER_HUB_USERNAME": "${input:dockerHubUsername}",
+                "DOCKER_HUB_PAT": "${input:dockerHubPAT}"
             },
-            "type": "node"
+            "type": "node",
+            "preLaunchTask": "Build+Watch+CJS: vscode-processutils"
         },
         {
             "name": "Process utils unit tests",
@@ -76,6 +78,31 @@
                 "<node_internals>/**"
             ],
             "type": "node"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "containerRuntime",
+            "type": "pickString",
+            "description": "Select the container runtime to use for integration tests",
+            "options": [
+                "docker",
+                "podman"
+            ],
+            "default": "docker"
+        },
+        {
+            "id": "dockerHubUsername",
+            "type": "promptString",
+            "description": "Enter your Docker Hub username (or leave blank to skip the login test)",
+            "default": ""
+        },
+        {
+            "id": "dockerHubPAT",
+            "type": "promptString",
+            "description": "Enter your Docker Hub Personal Access Token (or leave blank to skip the login test)",
+            "default": "",
+            "password": true
         }
     ]
 }
