@@ -71,6 +71,7 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
                     ]
                 };
             } else if (Array.isArray(result)) {
+                // Technically this isn't legal right now, but let's handle it anyway in case we add it later
                 // If it's an array, return JSONified text of each item in the array
                 // But if it's empty, return a special message
                 if (result.length === 0) {
