@@ -16,10 +16,10 @@ import { Shell } from './Shell';
 
 /**
  * Options for spawning a process with pipe streaming capabilities.
- * This extends the standard {@link SpawnOptions} to include additional features
+ * This extends the standard {@link SpawnOptions} (sans `signal`) to include additional features
  * such as command logging, cancellation support, and shell customization.
  */
-export type StreamSpawnOptions = SpawnOptions & {
+export type StreamSpawnOptions = Omit<SpawnOptions, 'signal'> & {
     /**
      * A callback that is invoked with the full command line that is being executed.
      * This is useful for logging or debugging purposes.
