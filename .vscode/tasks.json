@@ -48,6 +48,24 @@
             ]
         },
         {
+            "label": "Build+Watch: vscode-inproc-mcp",
+            "type": "npm",
+            "script": "build:esm -- --watch",
+            "path": "packages/vscode-inproc-mcp",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "isBackground": true,
+            "presentation": {
+                "revealProblems": "onProblem"
+            },
+            "problemMatcher": "$tsc-watch",
+            "dependsOn": [
+                "Build+Watch: vscode-processutils",
+            ]
+        },
+        {
             "label": "Build+Watch: vscode-docker-registries",
             "type": "npm",
             "script": "build:esm -- --watch",
