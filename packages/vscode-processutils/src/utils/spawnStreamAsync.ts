@@ -79,6 +79,7 @@ export async function spawnStreamAsync(
     // If there is a shell provider, apply its quoting, otherwise just flatten arguments into strings
     const normalizedArgs: string[] = options.shellProvider?.quote(args) ?? args.map(arg => typeof arg === 'string' ? arg : arg.value);
 
+    // Cancellation check
     if (cancellationToken.isCancellationRequested) {
         throw new CancellationError('Command cancelled', cancellationToken);
     }
@@ -103,6 +104,11 @@ export async function spawnStreamAsync(
 
     if (options.onCommand) {
         options.onCommand([finalCommand, ...normalizedArgs].join(' '));
+    }
+
+    // One last cancellation check before we start the process
+    if (cancellationToken.isCancellationRequested) {
+        throw new CancellationError('Command cancelled', cancellationToken);
     }
 
     const childProcess = spawn(
@@ -149,18 +155,28 @@ export async function spawnStreamAsync(
         // Reject the promise on an error event
         childProcess.on('error', (err) => {
             disposable.dispose();
+
+            if (cancellationToken.isCancellationRequested) {
+                reject(new CancellationError('Command cancelled', cancellationToken));
+            }
+
             reject(err);
         });
 
         // Complete the promise when the process exits
         childProcess.on('exit', (code, signal) => {
             disposable.dispose();
+
+            if (cancellationToken.isCancellationRequested) {
+                reject(new CancellationError('Command cancelled', cancellationToken));
+            }
+
             if (code === 0) {
                 resolve();
             } else if (signal) {
                 reject(new ChildProcessError(`Process exited due to signal ${signal}`, code, signal));
             } else {
-                reject(new ChildProcessError(`Process exited with code ${code}`, code, signal));
+                reject(new ChildProcessError(`Process exited with code ${code ?? '<null>'}`, code, signal));
             }
         });
     });
