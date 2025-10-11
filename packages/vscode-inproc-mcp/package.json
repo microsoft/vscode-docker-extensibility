@@ -14,6 +14,7 @@
     "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-inproc-mcp/README.md",
     "module": "dist/esm/index.js",
     "types": "dist/esm/index.d.ts",
+    "type": "module",
     "scripts": {
         "build": "tsc",
         "build:esm": "tsc",
