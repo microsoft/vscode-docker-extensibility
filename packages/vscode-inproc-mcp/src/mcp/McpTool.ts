@@ -72,7 +72,7 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
                             type: 'text',
                             text: UnknownSuccessMessage,
                         },
-                    ]
+                    ],
                 };
             } else if (Array.isArray(result)) {
                 // Technically this isn't legal right now, but let's handle it anyway in case we add it later
@@ -103,7 +103,7 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
                             type: 'text',
                             text: JSON.stringify(result),
                         },
-                    ]
+                    ],
                 };
             }
         } catch (error) {
