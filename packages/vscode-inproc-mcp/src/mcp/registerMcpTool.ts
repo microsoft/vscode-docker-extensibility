@@ -5,7 +5,7 @@
 
 import type { McpServer, RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { CopilotTool, ToolIOSchema } from '../contracts/CopilotTool';
+import type { CopilotTool, ToolIOSchema } from '../contracts/CopilotTool';
 import { McpTool } from './McpTool';
 
 /**

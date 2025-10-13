@@ -7,8 +7,8 @@ import { CancellationTokenLike } from '@microsoft/vscode-processutils';
 import * as util from 'util';
 import { z } from 'zod';
 import { CopilotToolBase } from '../base/CopilotToolBase';
-import { ToolExecutionExtras, ToolIOSchema } from '../contracts/CopilotTool';
-import { McpToolResult } from './McpToolResult';
+import type { ToolExecutionExtras, ToolIOSchema } from '../contracts/CopilotTool';
+import type { McpToolResult } from './McpToolResult';
 
 /**
  * Message returned to the MCP client if a tool is successful but produces no output

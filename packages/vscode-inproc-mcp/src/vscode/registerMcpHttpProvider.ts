@@ -10,7 +10,7 @@ import { startInProcHttpServer } from './inProcHttpServer';
 /**
  * Options for registering an in-proc MCP HTTP provider
  */
-type McpProviderOptions = {
+export type McpProviderOptions = {
     /**
      * The ID for this MCP provider. Must match what is in package.json
      */
