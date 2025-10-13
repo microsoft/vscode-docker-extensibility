@@ -18,7 +18,7 @@
         "@types/chai-as-promised": "^8.0.2",
         "@types/mocha": "^10.0.10",
         "@types/node": "22.x",
-        "@types/vscode": "1.104.0",
+        "@types/vscode": "1.105.0",
         "@typescript-eslint/eslint-plugin": "^5.10.2",
         "@typescript-eslint/parser": "^5.10.2",
         "chai": "^6.2.0",
