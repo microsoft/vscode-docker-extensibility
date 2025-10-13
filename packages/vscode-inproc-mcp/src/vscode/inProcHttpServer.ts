@@ -98,6 +98,8 @@ async function handlePost(getNewMcpServer: () => McpServer | Promise<McpServer>,
         transport = transports[sessionId];
     } else if (!sessionId && isInitializeRequest(req.body)) {
         // New session initialization request
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore MCP SDK contains a bug where this type mismatches between CJS and ESM, we must ignore it. We also can't do @ts-expect-error because the error only happens when building CJS.
         transport = new StreamableHTTPServerTransport({
             sessionIdGenerator: () => crypto.randomUUID(),
             onsessioninitialized: (sessionId) => {
