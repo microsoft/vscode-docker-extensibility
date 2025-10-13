@@ -26,8 +26,6 @@
             "types": "./dist/esm/vscode/index.d.ts"
         }
     },
-    "module": "dist/esm/index.js",
-    "types": "dist/esm/index.d.ts",
     "scripts": {
         "build": "tsc",
         "build:esm": "tsc",
