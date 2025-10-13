@@ -34,7 +34,7 @@ export async function startInProcHttpServer(getNewMcpServer: () => McpServer | P
 
         const app = express.default();
 
-        app.use(express.json());
+        app.use(express.default.json());
         app.use((req, res, next) => authMiddleware(nonce, req, res, next));
 
         app.post('/mcp', (req, res) => handlePost(getNewMcpServer, req, res));
