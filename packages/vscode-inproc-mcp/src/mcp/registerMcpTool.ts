@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { McpServer, RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { z } from 'zod';
 import type { CopilotTool, ToolIOSchema } from '../contracts/CopilotTool';
 import { McpTool } from './McpTool';
@@ -60,7 +61,15 @@ export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema exten
             inputSchema: normalizedInputSchema?.shape,
             outputSchema: normalizedOutputSchema?.shape,
         },
-        mcpTool.executeMcp.bind(mcpTool)
+        async (input, extra) => {
+            // If the input is void, MCP SDK will call with (extra) instead of (undefined, extra)
+            // We won't want that, so detect that case and call appropriately
+            if (inputIsRequestHandlerExtra(input)) {
+                return mcpTool.executeMcp.bind(mcpTool)(undefined, input);
+            } else {
+                return mcpTool.executeMcp.bind(mcpTool)(input, extra);
+            }
+        }
     );
 }
 
@@ -70,4 +79,11 @@ function isVoidishSchema(schema: ToolIOSchema | undefined): schema is undefined 
 
 function isEmptyObjectSchema(schema: ToolIOSchema): boolean {
     return schema instanceof z.ZodObject && Object.keys(schema.shape).length === 0;
+}
+
+function inputIsRequestHandlerExtra(input: unknown): input is RequestHandlerExtra<never, never> {
+    return !!input &&
+        typeof input === 'object' &&
+        'signal' in input &&
+        input.signal instanceof AbortSignal;
 }
