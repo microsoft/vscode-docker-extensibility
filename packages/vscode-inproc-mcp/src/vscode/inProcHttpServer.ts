@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { Lazy } from '../utils/Lazy';
 
 const transports: Record<string, StreamableHTTPServerTransport> = {};
 
@@ -173,22 +174,6 @@ function tryCleanupSocket(socketPath: string | undefined): void {
         }
     } catch {
         // Best effort
-    }
-}
-
-class Lazy<T> {
-    #value: T | undefined;
-    #isValueCreated: boolean = false;
-
-    constructor(private readonly factory: () => T) { }
-
-    public get value(): T {
-        if (!this.#isValueCreated) {
-            this.#value = this.factory();
-            this.#isValueCreated = true;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.#value!;
     }
 }
 
