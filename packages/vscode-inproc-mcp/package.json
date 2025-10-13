@@ -37,6 +37,9 @@
         "package": "npm pack",
         "test": "mocha"
     },
+    "engines": {
+        "vscode": "^1.105.0"
+    },
     "dependencies": {
         "@microsoft/vscode-azext-utils": "^4.0.0",
         "@microsoft/vscode-processutils": "^0.2.1",
@@ -44,14 +47,8 @@
         "express": "~5",
         "zod": "~3"
     },
-    "engines": {
-        "vscode": "^1.105.0"
-    },
     "devDependencies": {
         "@types/express": "^5.0.3"
-    },
-    "overrides": {
-        "raw-body": "3.0.0"
     },
     "mocha": {
         "node-option": [
