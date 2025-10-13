@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { CancellationTokenLike } from '@microsoft/vscode-processutils';
 import type { z } from 'zod';
 
 /**
@@ -85,8 +86,8 @@ export interface ToolAnnotations extends Record<string, unknown> {
     readonly idempotentHint?: boolean;
 
     /**
-     * If true, the tool may access an "open world" of data, including but not limited to
-     * web requests. If false, the tool's access is restricted.
+     * If true, the tool may access an "open world" of data, including but not limited
+     * to web requests. If false, the tool's access is restricted.
      */
     readonly openWorldHint?: boolean;
 
@@ -125,7 +126,26 @@ export enum ConsentGuidance {
  */
 export type ToolExecutionExtras = {
     /**
-     * A signal to abort the execution
+     * A signal to abort the execution. This signal is intrinsically tied to the
+     * {@link CancellationTokenLike} below. If one is triggered, the other will
+     * be as well. Only one should be monitored.
      */
     signal: AbortSignal;
+
+    /**
+     * Optional cancellation token to cancel the execution. This token is
+     * intrinsically tied to the {@link AbortSignal} above. If one is triggered,
+     * the other will be as well. Only one should be monitored.
+     */
+    token?: CancellationTokenLike;
+
+    /**
+     * Optional session ID for the current Copilot session.
+     */
+    sessionId?: string;
+
+    /**
+     * Request ID for the current Copilot request.
+     */
+    requestId: string | number;
 };

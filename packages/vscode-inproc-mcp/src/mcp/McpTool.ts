@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { CancellationTokenLike } from '@microsoft/vscode-processutils';
 import * as util from 'util';
 import { z } from 'zod';
 import { CopilotToolBase } from '../base/CopilotToolBase';
@@ -45,6 +46,9 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
      */
     public async executeMcp(input: z.infer<TInSchema>, extra: ToolExecutionExtras): Promise<McpToolResult> {
         try {
+            // Ensure we have a signal and token to work with. In MCP the signal will always be defined.
+            extra.token ||= CancellationTokenLike.fromAbortSignal(extra.signal);
+
             const result = await this.execute(input, extra);
 
             if (!!this.outputSchema && !(this.outputSchema instanceof z.ZodVoid)) {
