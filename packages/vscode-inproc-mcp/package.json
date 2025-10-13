@@ -12,6 +12,20 @@
         "url": "https://github.com/microsoft/vscode-docker-extensibility/issues"
     },
     "homepage": "https://github.com/microsoft/vscode-docker-extensibility/blob/main/packages/vscode-inproc-mcp/README.md",
+    "exports": {
+        ".": {
+            "import": "./dist/esm/index.js",
+            "types": "./dist/esm/index.d.ts"
+        },
+        "./mcp": {
+            "import": "./dist/esm/mcp/index.js",
+            "types": "./dist/esm/mcp/index.d.ts"
+        },
+        "./vscode": {
+            "import": "./dist/esm/vscode/index.js",
+            "types": "./dist/esm/vscode/index.d.ts"
+        }
+    },
     "module": "dist/esm/index.js",
     "types": "dist/esm/index.d.ts",
     "scripts": {
