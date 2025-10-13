@@ -26,7 +26,7 @@ export class CopilotToolBase<TInSchema extends ToolIOSchema, TOutSchema extends 
     public constructor(
         public readonly name: string,
         protected readonly executeImpl: Executor<TInSchema, TOutSchema>,
-        protected readonly options?: {
+        options?: {
             title?: string,
             description?: string,
             inputSchema?: TInSchema,
