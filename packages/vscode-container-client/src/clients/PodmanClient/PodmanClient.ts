@@ -59,6 +59,11 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
     public static ClientId = 'com.microsoft.visualstudio.containers.podman';
 
     /**
+     * The default internal DNS name for the host on Podman is 'host.containers.internal'
+     */
+    public override readonly hostInternalDnsName: string = 'host.containers.internal';
+
+    /**
      * The default argument given to `--format`
      */
     protected readonly defaultFormatForJson: string = "json";

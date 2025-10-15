@@ -78,6 +78,15 @@ export type ImageNameDefaults = {
     readonly defaultTag: string;
 };
 
+export type NetworkingDefaults = {
+    /**
+     * The default DNS name for the host. For example, 'host.docker.internal'.
+     * Optional to avoid breaking legacy implementations, but all new implementations
+     * must provide a value.
+     */
+    readonly hostInternalDnsName: string | undefined;
+};
+
 export type CommonCommandOptions = Record<string, unknown>;
 
 // Version Command Types
@@ -1856,6 +1865,7 @@ type WriteFileCommand = {
 export interface IContainersClient extends
     ClientIdentity,
     ImageNameDefaults,
+    NetworkingDefaults,
     VersionCommand,
     CheckInstallCommand,
     InfoCommand,

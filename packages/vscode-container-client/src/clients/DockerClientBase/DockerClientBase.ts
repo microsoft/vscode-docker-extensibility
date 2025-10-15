@@ -134,6 +134,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     public readonly defaultTag: string = 'latest';
 
     /**
+     * The default internal DNS name for the host on Docker-like clients is 'host.docker.internal'
+     */
+    public readonly hostInternalDnsName: string = 'host.docker.internal';
+
+    /**
      * The default argument given to `--format`
      */
     protected readonly defaultFormatForJson: string = "{{json .}}";
