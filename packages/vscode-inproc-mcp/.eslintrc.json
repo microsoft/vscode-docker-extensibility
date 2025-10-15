@@ -55,7 +55,23 @@
         "eqeqeq": "warn", // Should use `===`, not `==`, nearly 100% of the time
         "no-extra-boolean-cast": "off", // We !!flatten a lot of things into booleans this way
         "no-throw-literal": "warn", // Elevate this from suggestion to warning
-        "semi": "off" // Covered by @typescript-eslint/semi
+        "semi": "off", // Covered by @typescript-eslint/semi
+        "@typescript-eslint/no-restricted-imports": [
+            "error",
+            {
+                "patterns": [
+                    {
+                        "group": [
+                            "express",
+                            "@modelcontextprotocol/*",
+                            "@microsoft/vscode-azext*"
+                        ],
+                        "message": "Please lazily import this package within the function that uses it to reduce extension activation time.",
+                        "allowTypeImports": true
+                    }
+                ]
+            }
+        ]
     },
     "extends": [
         "eslint:recommended",
