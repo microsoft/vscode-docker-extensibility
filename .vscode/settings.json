@@ -5,7 +5,8 @@
     "eslint.workingDirectories": [
         "./packages/vscode-processutils",
         "./packages/vscode-container-client",
-        "./packages/vscode-docker-registries"
+        "./packages/vscode-docker-registries",
+        "./packages/vscode-inproc-mcp",
     ],
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,

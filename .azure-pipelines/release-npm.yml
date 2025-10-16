@@ -10,6 +10,7 @@ parameters:
       - microsoft-vscode-processutils
       - microsoft-vscode-container-client
       - microsoft-vscode-docker-registries
+      - microsoft-vscode-inproc-mcp
   - name: publishVersion
     displayName: Publish Version
     type: string
