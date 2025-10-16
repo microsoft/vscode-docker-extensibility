@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from './inProcHttpServer';
+export * from './McpProviderOptions';
 export * from './McpToolWithTelemetry';
 export * from './registerMcpHttpProvider';
 export * from './registerMcpToolWithTelemetry';

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { DisposableLike } from '@microsoft/vscode-processutils';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import * as crypto from 'crypto';
 import type * as express from 'express';
@@ -13,17 +12,17 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Lazy } from '../utils/Lazy';
+import type { McpProviderOptions } from './McpProviderOptions';
 
 const transports: Record<string, StreamableHTTPServerTransport> = {};
 
 /**
  * Starts a new MCP HTTP server instance on a random named pipe (Windows) or Unix socket (Unix).
- * @param getNewMcpServer Function that returns a new MCP server instance. A new server must be created
- * for each MCP session, so this function should not return the same instance each time.
+ * @param mcpOptions Options for the MCP server
  * @returns An object containing the disposable to stop and clean up the server, the server URI, and headers
  * that should be attached to all requests
  */
-export async function startInProcHttpServer(getNewMcpServer: () => McpServer | Promise<McpServer>): Promise<{ disposable: DisposableLike, serverUri: vscode.Uri, headers: Record<string, string> }> {
+export async function startInProcHttpServer(mcpOptions: McpProviderOptions): Promise<{ disposable: DisposableLike, serverUri: vscode.Uri, headers: Record<string, string> }> {
     let socketPath: string | undefined;
 
     try {
@@ -37,7 +36,7 @@ export async function startInProcHttpServer(getNewMcpServer: () => McpServer | P
         app.use(express.default.json());
         app.use((req, res, next) => authMiddleware(nonce, req, res, next));
 
-        app.post('/mcp', (req, res) => handlePost(getNewMcpServer, req, res));
+        app.post('/mcp', (req, res) => handlePost(mcpOptions, req, res));
         app.get('/mcp', handleGetDelete);
         app.delete('/mcp', handleGetDelete);
 
@@ -86,7 +85,7 @@ function authMiddleware(nonce: string, req: express.Request, res: express.Respon
     next();
 }
 
-async function handlePost(getNewMcpServer: () => McpServer | Promise<McpServer>, req: express.Request, res: express.Response): Promise<void> {
+async function handlePost(mcpOptions: McpProviderOptions, req: express.Request, res: express.Response): Promise<void> {
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
     const isInitializeRequest = await isInitializeRequestLazy.value;
@@ -112,7 +111,17 @@ async function handlePost(getNewMcpServer: () => McpServer | Promise<McpServer>,
             allowedHosts: ['localhost'],
         });
 
-        const server = await Promise.resolve(getNewMcpServer());
+        const { McpServer } = await mcpServerLazy.value;
+        const server = new McpServer(
+            {
+                name: mcpOptions.id,
+                title: mcpOptions.serverLabel,
+                version: mcpOptions.serverVersion,
+            }
+        );
+
+        await Promise.resolve(mcpOptions.registerTools(server));
+
         await server.connect(transport);
     } else {
         // Invalid request
@@ -182,6 +191,7 @@ function tryCleanupSocket(socketPath: string | undefined): void {
 // Lazily load some modules that are only needed when an MCP server is actually started
 const expressLazy = new Lazy(async () => await import('express'));
 const streamableHttpLazy = new Lazy(async () => await import('@modelcontextprotocol/sdk/server/streamableHttp.js'));
+const mcpServerLazy = new Lazy(async () => await import('@modelcontextprotocol/sdk/server/mcp.js'));
 const isInitializeRequestLazy = new Lazy(async () => {
     const { isInitializeRequest } = await import('@modelcontextprotocol/sdk/types.js');
     return isInitializeRequest;
