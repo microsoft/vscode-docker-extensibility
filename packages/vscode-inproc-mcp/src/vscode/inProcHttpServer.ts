@@ -120,6 +120,8 @@ async function handlePost(mcpOptions: McpProviderOptions, req: express.Request, 
             }
         );
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore MCP SDK contains a bug where this type mismatches between CJS and ESM, we must ignore it. We also can't do @ts-expect-error because the error only happens when building CJS.
         await Promise.resolve(mcpOptions.registerTools(server));
 
         await server.connect(transport);
