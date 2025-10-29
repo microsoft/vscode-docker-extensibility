@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenLike } from '@microsoft/vscode-processutils';
-import * as util from 'util';
 import { z } from 'zod';
 import { CopilotToolBase } from '../base/CopilotToolBase';
 import type { ToolExecutionExtras, ToolIOSchema } from '../contracts/CopilotTool';
+import { getErrorMessage } from '../utils/getErrorMessage';
 import type { McpToolResult } from './McpToolResult';
 
 /**
@@ -120,21 +120,11 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
                 };
             }
 
-            // Otherwise, do our best to extract a meaningful error message
-            let message: string;
-            if (error instanceof Error) {
-                message = error.message;
-            } else if (typeof error === 'string') {
-                message = error;
-            } else {
-                message = util.inspect(error);
-            }
-
             return {
                 content: [
                     {
                         type: 'text',
-                        text: message || UnknownErrorMessage,
+                        text: getErrorMessage(error) || UnknownErrorMessage,
                     },
                 ],
                 isError: true,
