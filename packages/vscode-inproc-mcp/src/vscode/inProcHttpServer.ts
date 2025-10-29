@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { getErrorMessage } from '../utils/getErrorMessage';
 import { Lazy } from '../utils/Lazy';
 import type { McpProviderOptions } from './McpProviderOptions';
 
@@ -120,9 +121,22 @@ async function handlePost(mcpOptions: McpProviderOptions, req: express.Request, 
             }
         );
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore MCP SDK contains a bug where this type mismatches between CJS and ESM, we must ignore it. We also can't do @ts-expect-error because the error only happens when building CJS.
-        await Promise.resolve(mcpOptions.registerTools(server));
+        try {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore MCP SDK contains a bug where this type mismatches between CJS and ESM, we must ignore it. We also can't do @ts-expect-error because the error only happens when building CJS.
+            await Promise.resolve(mcpOptions.registerTools(server));
+        } catch (err) {
+            // Failed to register tools, return error
+            res.status(500).json({
+                jsonrpc: '2.0',
+                error: {
+                    code: -32000,
+                    message: `Failed to register MCP tools: ${getErrorMessage(err)}`,
+                },
+                id: null,
+            });
+            return;
+        }
 
         await server.connect(transport);
     } else {
