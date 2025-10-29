@@ -5,7 +5,8 @@
     "workspaces": [
         "packages/vscode-processutils",
         "packages/vscode-container-client",
-        "packages/vscode-docker-registries"
+        "packages/vscode-docker-registries",
+        "packages/vscode-inproc-mcp"
     ],
     "scripts": {
         "lint": "npm run --workspaces lint",
