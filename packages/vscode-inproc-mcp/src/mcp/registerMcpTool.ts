@@ -65,9 +65,9 @@ export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema exten
             // If the input is void, MCP SDK will call with (extra) instead of (undefined, extra)
             // We won't want that, so detect that case and call appropriately
             if (inputIsRequestHandlerExtra(input)) {
-                return mcpTool.executeMcp.bind(mcpTool)(undefined, input);
+                return mcpTool.executeMcp.call(mcpTool, undefined, input);
             } else {
-                return mcpTool.executeMcp.bind(mcpTool)(input, extra);
+                return mcpTool.executeMcp.call(mcpTool, input, extra);
             }
         }
     );
