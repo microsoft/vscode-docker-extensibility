@@ -23,6 +23,7 @@ import { GeneratorCommandResponse, PromiseCommandResponse, VoidCommandResponse }
 import {
     BuildImageCommandOptions,
     CheckInstallCommandOptions,
+    CheckInstallResult,
     ContainersStatsCommandOptions,
     CreateNetworkCommandOptions,
     CreateVolumeCommandOptions,
@@ -69,16 +70,25 @@ import {
     PushImageCommandOptions,
     ReadFileCommandOptions,
     RemoveContainersCommandOptions,
+    RemovedContainersIds,
     RemoveContextsCommandOptions,
+    RemovedContexts,
     RemoveImagesCommandOptions,
+    RemovedImagesIds,
     RemoveNetworksCommandOptions,
+    RemovedNetworksIds,
     RemoveVolumesCommandOptions,
+    RemovedVolumesIds,
     RestartContainersCommandOptions,
+    RestartContainersIds,
     RunContainerCommandOptions,
+    RunContainerId,
     StartContainersCommandOptions,
+    StartContainersResult,
     StatPathCommandOptions,
     StatPathItem,
     StopContainersCommandOptions,
+    StopContainersIds,
     TagImageCommandOptions,
     UseContextCommandOptions,
     VersionCommandOptions,
@@ -224,7 +234,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @returns A CommandResponse object indicating how to run and parse an install check
      * command for this runtime
      */
-    async checkInstall(options: CheckInstallCommandOptions): Promise<PromiseCommandResponse<string>> {
+    async checkInstall(options: CheckInstallCommandOptions): Promise<PromiseCommandResponse<CheckInstallResult>> {
         return {
             command: this.commandName,
             args: this.getCheckInstallCommandArgs(options),
@@ -461,11 +471,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: RemoveImagesCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<Array<string>> {
+    ): Promise<RemovedImagesIds> {
         return asIds(output);
     }
 
-    async removeImages(options: RemoveImagesCommandOptions): Promise<PromiseCommandResponse<string[]>> {
+    async removeImages(options: RemoveImagesCommandOptions): Promise<PromiseCommandResponse<RemovedImagesIds>> {
         return {
             command: this.commandName,
             args: this.getRemoveImagesCommandArgs(options),
@@ -696,7 +706,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: RunContainerCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<string | undefined> {
+    ): Promise<RunContainerId> {
         return options.detached ? output.split('\n', 1)[0] : output;
     }
 
@@ -705,7 +715,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param options Standard run container command options
      * @returns A CommandResponse object for a Docker-like run container command
      */
-    async runContainer(options: RunContainerCommandOptions): Promise<PromiseCommandResponse<string | undefined>> {
+    async runContainer(options: RunContainerCommandOptions): Promise<PromiseCommandResponse<RunContainerId>> {
         return {
             command: this.commandName,
             args: this.getRunContainerCommandArgs(options),
@@ -813,11 +823,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: StartContainersCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<Array<string>> {
+    ): Promise<StartContainersResult> {
         return asIds(output);
     }
 
-    async startContainers(options: StartContainersCommandOptions): Promise<PromiseCommandResponse<Array<string>>> {
+    async startContainers(options: StartContainersCommandOptions): Promise<PromiseCommandResponse<StartContainersResult>> {
         return {
             command: this.commandName,
             args: this.getStartContainersCommandArgs(options),
@@ -841,11 +851,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: RestartContainersCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<Array<string>> {
+    ): Promise<RestartContainersIds> {
         return asIds(output);
     }
 
-    async restartContainers(options: RestartContainersCommandOptions): Promise<PromiseCommandResponse<Array<string>>> {
+    async restartContainers(options: RestartContainersCommandOptions): Promise<PromiseCommandResponse<RestartContainersIds>> {
         return {
             command: this.commandName,
             args: this.getRestartContainersCommandArgs(options),
@@ -881,11 +891,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: StopContainersCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<Array<string>> {
+    ): Promise<StopContainersIds> {
         return asIds(output);
     }
 
-    async stopContainers(options: StopContainersCommandOptions): Promise<PromiseCommandResponse<Array<string>>> {
+    async stopContainers(options: StopContainersCommandOptions): Promise<PromiseCommandResponse<StopContainersIds>> {
         return {
             command: this.commandName,
             args: this.getStopContainersCommandArgs(options),
@@ -909,11 +919,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: RemoveContainersCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<Array<string>> {
+    ): Promise<RemovedContainersIds> {
         return asIds(output);
     }
 
-    async removeContainers(options: RemoveContainersCommandOptions): Promise<PromiseCommandResponse<Array<string>>> {
+    async removeContainers(options: RemoveContainersCommandOptions): Promise<PromiseCommandResponse<RemovedContainersIds>> {
         return {
             command: this.commandName,
             args: this.getRemoveContainersCommandArgs(options),
@@ -1197,7 +1207,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: RemoveVolumesCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<string[]> {
+    ): Promise<RemovedVolumesIds> {
         return asIds(output);
     }
 
@@ -1207,7 +1217,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param options Options for remove volumes command
      * @returns CommandResponse for the remove volumes command
      */
-    async removeVolumes(options: RemoveVolumesCommandOptions): Promise<PromiseCommandResponse<string[]>> {
+    async removeVolumes(options: RemoveVolumesCommandOptions): Promise<PromiseCommandResponse<RemovedVolumesIds>> {
         return {
             command: this.commandName,
             args: this.getRemoveVolumesCommandArgs(options),
@@ -1394,11 +1404,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         options: RemoveNetworksCommandOptions,
         output: string,
         strict: boolean,
-    ): Promise<Array<string>> {
+    ): Promise<RemovedNetworksIds> {
         return output.split('\n').map((id) => id);
     }
 
-    async removeNetworks(options: RemoveNetworksCommandOptions): Promise<PromiseCommandResponse<Array<string>>> {
+    async removeNetworks(options: RemoveNetworksCommandOptions): Promise<PromiseCommandResponse<RemovedNetworksIds>> {
         return {
             command: this.commandName,
             args: this.getRemoveNetworksCommandArgs(options),
@@ -1511,7 +1521,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
 
     //#region RemoveContexts Command
 
-    async removeContexts(options: RemoveContextsCommandOptions): Promise<PromiseCommandResponse<string[]>> {
+    async removeContexts(options: RemoveContextsCommandOptions): Promise<PromiseCommandResponse<RemovedContexts>> {
         throw new CommandNotSupportedError('removeContexts is not supported for this runtime');
     }
 
