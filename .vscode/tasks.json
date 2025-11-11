@@ -3,9 +3,17 @@
     "tasks": [
         {
             "label": "Build+Watch: vscode-processutils",
-            "type": "npm",
-            "script": "build:esm -- --watch",
-            "path": "packages/vscode-processutils",
+            "type": "shell",
+            "command": "npm",
+            "args": [
+                "run",
+                "build:esm",
+                "--",
+                "--watch",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/vscode-processutils",
+            },
             "group": {
                 "kind": "build"
             },
@@ -17,9 +25,17 @@
         },
         {
             "label": "Build+Watch+CJS: vscode-processutils",
-            "type": "npm",
-            "script": "build:cjs -- --watch",
-            "path": "packages/vscode-processutils",
+            "type": "shell",
+            "command": "npm",
+            "args": [
+                "run",
+                "build:cjs",
+                "--",
+                "--watch",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/vscode-processutils",
+            },
             "group": {
                 "kind": "build"
             },
@@ -31,9 +47,17 @@
         },
         {
             "label": "Build+Watch: vscode-container-client",
-            "type": "npm",
-            "script": "build:esm -- --watch",
-            "path": "packages/vscode-container-client",
+            "type": "shell",
+            "command": "npm",
+            "args": [
+                "run",
+                "build:esm",
+                "--",
+                "--watch",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/vscode-container-client",
+            },
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -49,9 +73,17 @@
         },
         {
             "label": "Build+Watch: vscode-inproc-mcp",
-            "type": "npm",
-            "script": "build:esm -- --watch",
-            "path": "packages/vscode-inproc-mcp",
+            "type": "shell",
+            "command": "npm",
+            "args": [
+                "run",
+                "build:esm",
+                "--",
+                "--watch",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/vscode-inproc-mcp",
+            },
             "group": {
                 "kind": "build"
             },
@@ -66,9 +98,17 @@
         },
         {
             "label": "Build+Watch: vscode-docker-registries",
-            "type": "npm",
-            "script": "build:esm -- --watch",
-            "path": "packages/vscode-docker-registries",
+            "type": "shell",
+            "command": "npm",
+            "args": [
+                "run",
+                "build:esm",
+                "--",
+                "--watch",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/packages/vscode-docker-registries",
+            },
             "group": {
                 "kind": "build"
             },
