@@ -5,9 +5,10 @@
 
 import type { McpServer, RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import { z } from 'zod/v4';
+import type { z } from 'zod/v4';
 import type { CopilotTool, ToolIOSchema } from '../contracts/CopilotTool';
 import { McpTool } from './McpTool';
+import { isEmptyObjectSchema, isVoidishSchema } from './schema/schemaTypeChecks';
 
 /**
  * Registers a tool with the MCP server
@@ -71,14 +72,6 @@ export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema exten
             }
         }
     );
-}
-
-function isVoidishSchema(schema: ToolIOSchema | undefined): schema is undefined | z.ZodVoid {
-    return schema === undefined || schema instanceof z.ZodVoid;
-}
-
-function isEmptyObjectSchema(schema: ToolIOSchema): boolean {
-    return schema instanceof z.ZodObject && Object.keys(schema.shape).length === 0;
 }
 
 function inputIsRequestHandlerExtra(input: unknown): input is RequestHandlerExtra<never, never> {
