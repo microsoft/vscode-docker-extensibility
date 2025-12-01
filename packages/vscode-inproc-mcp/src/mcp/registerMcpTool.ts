@@ -58,9 +58,8 @@ export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema exten
         mcpTool.name,
         {
             ...mcpTool,
-            // Regrettably, the MCP SDK calls for the *shape* of the schema, not the schema itself
-            inputSchema: normalizedInputSchema?.shape,
-            outputSchema: normalizedOutputSchema?.shape,
+            inputSchema: normalizedInputSchema,
+            outputSchema: normalizedOutputSchema,
         },
         async (input, extra) => {
             // If the input is void, MCP SDK will call with (extra) instead of (undefined, extra)
