@@ -48,6 +48,7 @@
         "zod": "~4"
     },
     "devDependencies": {
+        "@cfworker/json-schema": "~4",
         "@types/express": "^5.0.3"
     },
     "mocha": {
