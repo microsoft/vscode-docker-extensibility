@@ -56,7 +56,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 scopes: ['registry:catalog:*'],
             });
 
-            for (const repository of catalogResponse.body?.repositories || []) {
+            for (const repository of catalogResponse.body?.repositories ?? []) {
                 results.push({
                     parent: registry,
                     baseUrl: registry.baseUrl,
@@ -84,7 +84,7 @@ export abstract class RegistryV2DataProvider extends CommonRegistryDataProvider 
                 throwOnFailure: true,
             });
 
-            for (const tag of tagsResponse.body?.tags || []) {
+            for (const tag of tagsResponse.body?.tags ?? []) {
                 results.push({
                     parent: repository,
                     baseUrl: repository.baseUrl,
