@@ -6,3 +6,4 @@ src
 tsconfig.json
 *.tgz
 vscode.ts
+eslint.config.mjs
