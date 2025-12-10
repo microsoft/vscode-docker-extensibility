@@ -9,6 +9,7 @@
         "packages/vscode-inproc-mcp"
     ],
     "scripts": {
+        "prelint": "npm run --workspace=@microsoft/vscode-processutils build:esm",
         "lint": "npm run --workspaces lint",
         "build": "npm run --workspaces build",
         "package": "npm run --workspaces package",
