@@ -88,25 +88,25 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     //#region Version Command
 
-    protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
+    protected parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
         const version = PodmanVersionRecordSchema.parse(JSON.parse(output));
 
-        return {
+        return Promise.resolve({
             client: version.Client.APIVersion,
             server: version.Server?.APIVersion,
-        };
+        });
     }
 
     //#endregion
 
     //#region Info Command
 
-    protected async parseInfoCommandOutput(output: string, strict: boolean): Promise<InfoItem> {
-        return {
+    protected parseInfoCommandOutput(output: string, strict: boolean): Promise<InfoItem> {
+        return Promise.resolve({
             operatingSystem: undefined, // Podman doesn't list an OS in its `info` command
             osType: 'linux',
             raw: output,
-        };
+        });
     }
 
     //#endregion
@@ -155,7 +155,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     //#region ListImages Command
 
-    protected override async parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
+    protected override parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
         const images = new Array<ListImagesItem>();
 
         try {
@@ -187,7 +187,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             }
         }
 
-        return images;
+        return Promise.resolve(images);
     }
 
     //#endregion
@@ -216,7 +216,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
      * @param strict Should strict parsing be enforced?
      * @returns Normalized array of InspectImagesItem records
      */
-    protected async parseInspectImagesCommandOutput(
+    protected parseInspectImagesCommandOutput(
         options: InspectImagesCommandOptions,
         output: string,
         strict: boolean,
@@ -235,14 +235,14 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             }
         }
 
-        return results;
+        return Promise.resolve(results);
     }
 
     //#endregion
 
     //#region ListContainers Command
 
-    protected override async parseListContainersCommandOutput(options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
+    protected override parseListContainersCommandOutput(options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
         const containers = new Array<ListContainersItem>();
 
         try {
@@ -283,7 +283,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             }
         }
 
-        return containers;
+        return Promise.resolve(containers);
     }
 
     //#endregion
@@ -304,7 +304,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     //#region InspectContainers Command
 
-    protected override async parseInspectContainersCommandOutput(options: InspectContainersCommandOptions, output: string, strict: boolean): Promise<InspectContainersItem[]> {
+    protected override parseInspectContainersCommandOutput(options: InspectContainersCommandOptions, output: string, strict: boolean): Promise<InspectContainersItem[]> {
         const results = new Array<InspectContainersItem>();
 
         try {
@@ -319,14 +319,14 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             }
         }
 
-        return results;
+        return Promise.resolve(results);
     }
 
     //#endregion
 
     //#region ListNetworks Command
 
-    protected override async parseListNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<ListNetworkItem[]> {
+    protected override parseListNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<ListNetworkItem[]> {
         // Podman networks are drastically different from Docker networks in terms of what details are available, especially Podman v3
         const results = new Array<ListNetworkItem>();
 
@@ -351,7 +351,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             }
         }
 
-        return results;
+        return Promise.resolve(results);
     }
 
     //#endregion
@@ -372,7 +372,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     //#region InspectNetworks Command
 
-    protected override async parseInspectNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<InspectNetworksItem[]> {
+    protected override parseInspectNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<InspectNetworksItem[]> {
         // Podman networks are drastically different from Docker networks in terms of what details are available, especially Podman v3
         const results = new Array<InspectNetworksItem>();
 
@@ -388,14 +388,14 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             }
         }
 
-        return results;
+        return Promise.resolve(results);
     }
 
     //#endregion
 
     //#region ListVolumes Command
 
-    protected override async parseListVolumesCommandOutput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
+    protected override parseListVolumesCommandOutput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
         // Podman volume inspect is identical to volume list
         return this.parseInspectVolumesCommandOutput(options, output, strict);
     }
@@ -418,7 +418,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
 
     //#region InspectVolumes Command
 
-    protected override async parseInspectVolumesCommandOutput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<InspectVolumesItem[]> {
+    protected override parseInspectVolumesCommandOutput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<InspectVolumesItem[]> {
         const results = new Array<InspectVolumesItem>();
 
         try {
@@ -433,6 +433,6 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             }
         }
 
-        return results;
+        return Promise.resolve(results);
     }
 }

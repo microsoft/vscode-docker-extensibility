@@ -149,22 +149,22 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         )();
     }
 
-    protected async parseInfoCommandOutput(output: string, strict: boolean): Promise<InfoItem> {
+    protected parseInfoCommandOutput(output: string, strict: boolean): Promise<InfoItem> {
         const info = DockerInfoRecordSchema.parse(JSON.parse(output));
 
-        return {
+        return Promise.resolve({
             operatingSystem: info.OperatingSystem,
             osType: info.OSType,
             raw: output,
-        };
+        });
     }
 
-    async info(options: InfoCommandOptions): Promise<PromiseCommandResponse<InfoItem>> {
-        return {
+    info(options: InfoCommandOptions): Promise<PromiseCommandResponse<InfoItem>> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getInfoCommandArgs(options),
             parse: (output, strict) => this.parseInfoCommandOutput(output, strict),
-        };
+        });
     }
 
     /**
@@ -185,13 +185,13 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param strict Use strict parsing to validate the command?
      * @returns
      */
-    protected async parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
+    protected parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
         const version = DockerVersionRecordSchema.parse(JSON.parse(output));
 
-        return {
+        return Promise.resolve({
             client: version.Client.ApiVersion,
             server: version.Server.ApiVersion,
-        };
+        });
     }
 
     /**
@@ -199,12 +199,12 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param options Standard version command options
      * @returns A CommandResponse object indicating how to run and parse a version command for this runtime
      */
-    async version(options: VersionCommandOptions): Promise<PromiseCommandResponse<VersionItem>> {
-        return {
+    version(options: VersionCommandOptions): Promise<PromiseCommandResponse<VersionItem>> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getVersionCommandArgs(options),
             parse: (output, strict) => this.parseVersionCommandOutput(output, strict),
-        };
+        });
     }
 
     /**
@@ -224,12 +224,12 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @returns A CommandResponse object indicating how to run and parse an install check
      * command for this runtime
      */
-    async checkInstall(options: CheckInstallCommandOptions): Promise<PromiseCommandResponse<string>> {
-        return {
+    checkInstall(options: CheckInstallCommandOptions): Promise<PromiseCommandResponse<string>> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getCheckInstallCommandArgs(options),
             parse: (output) => Promise.resolve(output),
-        };
+        });
     }
 
     protected getEventStreamCommandArgs(
@@ -284,12 +284,12 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         }
     }
 
-    async getEventStream(options: EventStreamCommandOptions): Promise<GeneratorCommandResponse<EventItem>> {
-        return {
+    getEventStream(options: EventStreamCommandOptions): Promise<GeneratorCommandResponse<EventItem>> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getEventStreamCommandArgs(options),
             parseStream: (output, strict) => this.parseEventStreamCommandOutput(options, output, strict),
-        };
+        });
     }
 
     //#endregion
@@ -305,11 +305,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         )();
     }
 
-    async login(options: LoginCommandOptions): Promise<VoidCommandResponse> {
-        return {
+    login(options: LoginCommandOptions): Promise<VoidCommandResponse> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getLoginCommandArgs(options),
-        };
+        });
     }
 
     protected getLogoutCommandArgs(options: LogoutCommandOptions): CommandLineArgs {
@@ -319,11 +319,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         )();
     }
 
-    async logout(options: LogoutCommandOptions): Promise<VoidCommandResponse> {
-        return {
+    logout(options: LogoutCommandOptions): Promise<VoidCommandResponse> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getLogoutCommandArgs(options),
-        };
+        });
     }
 
     //#endregion
@@ -363,11 +363,11 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param options Standard build image command options
      * @returns A CommandResponse object that can be used to invoke and parse the build image command for the current runtime
      */
-    async buildImage(options: BuildImageCommandOptions): Promise<VoidCommandResponse> {
-        return {
+    buildImage(options: BuildImageCommandOptions): Promise<VoidCommandResponse> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getBuildImageCommandArgs(options),
-        };
+        });
     }
 
     //#endregion
@@ -398,7 +398,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param strict Should the output be strictly parsed?
      * @returns A normalized array of ListImagesItem records
      */
-    protected async parseListImagesCommandOutput(
+    protected parseListImagesCommandOutput(
         options: ListImagesCommandOptions,
         output: string,
         strict: boolean,
@@ -428,7 +428,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             }
         }
 
-        return images;
+        return Promise.resolve(images);
     }
 
     /**
@@ -437,12 +437,12 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * @param options Standard list images command options
      * @returns A CommandResponse indicating how to run and parse/normalize a list image command for a Docker-like client
      */
-    async listImages(options: ListImagesCommandOptions): Promise<PromiseCommandResponse<Array<ListImagesItem>>> {
-        return {
+    listImages(options: ListImagesCommandOptions): Promise<PromiseCommandResponse<Array<ListImagesItem>>> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getListImagesCommandArgs(options),
             parse: (output, strict) => this.parseListImagesCommandOutput(options, output, strict),
-        };
+        });
     }
 
     //#endregion
@@ -457,20 +457,20 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         )();
     }
 
-    protected async parseRemoveImagesCommandOutput(
+    protected parseRemoveImagesCommandOutput(
         options: RemoveImagesCommandOptions,
         output: string,
         strict: boolean,
     ): Promise<Array<string>> {
-        return asIds(output);
+        return Promise.resolve(asIds(output));
     }
 
-    async removeImages(options: RemoveImagesCommandOptions): Promise<PromiseCommandResponse<string[]>> {
-        return {
+    removeImages(options: RemoveImagesCommandOptions): Promise<PromiseCommandResponse<string[]>> {
+        return Promise.resolve({
             command: this.commandName,
             args: this.getRemoveImagesCommandArgs(options),
             parse: (output, strict) => this.parseRemoveImagesCommandOutput(options, output, strict),
-        };
+        });
     }
 
     //#endregion
