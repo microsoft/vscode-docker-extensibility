@@ -119,7 +119,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
         strict: boolean,
         cancellationToken?: CancellationTokenLike
     ): AsyncGenerator<EventItem> {
-        cancellationToken ||= CancellationTokenLike.None;
+        cancellationToken ??= CancellationTokenLike.None;
 
         const lineReader = readline.createInterface({
             input: output,
@@ -139,7 +139,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                 yield {
                     type: item.Type,
                     action: item.Status,
-                    actor: { id: item.Name, attributes: item.Attributes || {} },
+                    actor: { id: item.Name, attributes: item.Attributes ?? {} },
                     timestamp: new Date(item.time || item.Time || ''),
                     raw: line,
                 };
@@ -251,7 +251,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                 try {
                     const name = rawContainer.Names?.[0].trim();
                     const createdAt = dayjs.unix(rawContainer.Created).toDate();
-                    const ports: PortBinding[] = (rawContainer.Ports || []).map(p => {
+                    const ports: PortBinding[] = (rawContainer.Ports ?? []).map(p => {
                         return {
                             containerPort: p.container_port,
                             hostIp: p.host_ip || "127.0.0.1",
@@ -264,10 +264,10 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
                         id: rawContainer.Id,
                         image: parseDockerLikeImageName(rawContainer.Image),
                         name,
-                        labels: rawContainer.Labels || {},
+                        labels: rawContainer.Labels ?? {},
                         createdAt,
                         ports,
-                        networks: rawContainer.Networks || [],
+                        networks: rawContainer.Networks ?? [],
                         state: rawContainer.State,
                         status: rawContainer.Status,
                     });
@@ -336,7 +336,7 @@ export class PodmanClient extends DockerClientBase implements IContainersClient 
             for (const network of resultRaw) {
                 results.push({
                     name: network.name || network.Name || '',
-                    labels: network.Labels || {},
+                    labels: network.Labels ?? {},
                     createdAt: network.created ? new Date(network.created) : undefined,
                     internal: network.internal,
                     ipv6: network.ipv6_enabled,

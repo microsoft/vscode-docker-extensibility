@@ -98,7 +98,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
             withArg('up'),
             withFlagArg('--detach', options.detached),
             withFlagArg('--build', options.build),
-            withNamedArg('--scale', Object.entries(options.scale || {}).map(([service, scale]) => `${service}=${scale}`)),
+            withNamedArg('--scale', Object.entries(options.scale ?? {}).map(([service, scale]) => `${service}=${scale}`)),
             withNamedArg('--timeout', options.timeoutSeconds?.toString(10)),
             withFlagArg('--force-recreate', options.recreate === 'force'),
             withFlagArg('--no-recreate', options.recreate === 'no'),
@@ -106,7 +106,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
             withFlagArg('--wait', options.wait),
             withFlagArg('--watch', options.watch),
             withVerbatimArg(options.customOptions),
-            withArg(...(options.services || [])),
+            withArg(...(options.services ?? [])),
         )();
     }
 
@@ -135,7 +135,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
             withFlagArg('--volumes', options.removeVolumes),
             withNamedArg('--timeout', options.timeoutSeconds?.toString(10)),
             withVerbatimArg(options.customOptions),
-            withArg(...(options.services || [])),
+            withArg(...(options.services ?? [])),
         )();
     }
 
@@ -160,7 +160,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
             withComposeArg(this.composeV2),
             withCommonOrchestratorArgs(options),
             withArg('start'),
-            withArg(...(options.services || [])),
+            withArg(...(options.services ?? [])),
         )();
     }
 
@@ -186,7 +186,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
             withCommonOrchestratorArgs(options),
             withArg('stop'),
             withNamedArg('--timeout', options.timeoutSeconds?.toString(10)),
-            withArg(...(options.services || [])),
+            withArg(...(options.services ?? [])),
         )();
     }
 
@@ -212,7 +212,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
             withCommonOrchestratorArgs(options),
             withArg('restart'),
             withNamedArg('--timeout', options.timeoutSeconds?.toString(10)),
-            withArg(...(options.services || [])),
+            withArg(...(options.services ?? [])),
         )();
     }
 
@@ -239,7 +239,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
             withArg('logs'),
             withFlagArg('--follow', options.follow),
             withNamedArg('--tail', options.tail?.toString(10)),
-            withArg(...(options.services || [])),
+            withArg(...(options.services ?? [])),
         )();
     }
 
@@ -285,7 +285,7 @@ export abstract class DockerComposeClientBase extends ConfigurableClient impleme
         return {
             command: this.commandName,
             args: this.getConfigCommandArgs(options),
-            parse: this.parseConfigCommandOutput,
+            parse: (output, strict) => this.parseConfigCommandOutput(output, strict),
         };
     }
 

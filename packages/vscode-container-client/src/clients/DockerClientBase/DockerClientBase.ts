@@ -163,7 +163,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         return {
             command: this.commandName,
             args: this.getInfoCommandArgs(options),
-            parse: this.parseInfoCommandOutput,
+            parse: (output, strict) => this.parseInfoCommandOutput(output, strict),
         };
     }
 
@@ -203,7 +203,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         return {
             command: this.commandName,
             args: this.getVersionCommandArgs(options),
-            parse: this.parseVersionCommandOutput,
+            parse: (output, strict) => this.parseVersionCommandOutput(output, strict),
         };
     }
 
@@ -252,7 +252,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
         strict: boolean,
         cancellationToken?: CancellationTokenLike
     ): AsyncGenerator<EventItem> {
-        cancellationToken ||= CancellationTokenLike.None;
+        cancellationToken ??= CancellationTokenLike.None;
 
         const lineReader = readline.createInterface({
             input: output,
@@ -681,7 +681,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             withDockerPlatformArg(options.platform),
             withVerbatimArg(options.customOptions),
             withArg(options.imageRef),
-            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...(toArray(options.command || []))),
+            typeof options.command === 'string' ? withVerbatimArg(options.command) : withArg(...(toArray(options.command ?? []))),
         )();
     }
 

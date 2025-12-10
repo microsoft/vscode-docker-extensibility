@@ -9,6 +9,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 export default defineConfig(
     globalIgnores([
         'vscode.ts',
+        'src/test/tsconfig-paths-bootstrap.mjs',
     ]),
     azExtEslintRecommendedTypeChecked,
 );

@@ -94,7 +94,7 @@ export class DockerClient extends DockerClientBase implements IContainersClient 
         return {
             command: this.commandName,
             args: this.getListContextsCommandArgs(options),
-            parse: this.parseListContextsCommandOutput,
+            parse: (output, strict) => this.parseListContextsCommandOutput(output, strict),
         };
     }
 
@@ -121,7 +121,7 @@ export class DockerClient extends DockerClientBase implements IContainersClient 
         return {
             command: this.commandName,
             args: this.getRemoveContextsCommandArgs(options),
-            parse: this.parseRemoveContextsCommandOutput,
+            parse: (output, strict) => this.parseRemoveContextsCommandOutput(output, strict),
         };
     }
 
@@ -197,7 +197,7 @@ export class DockerClient extends DockerClientBase implements IContainersClient 
         return {
             command: this.commandName,
             args: this.getInspectContextsCommandArgs(options),
-            parse: this.parseInspectContextsCommandOutput,
+            parse: (output, strict) => this.parseInspectContextsCommandOutput(output, strict),
         };
     }
 

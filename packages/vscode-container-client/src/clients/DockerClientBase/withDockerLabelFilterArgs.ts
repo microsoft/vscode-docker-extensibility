@@ -19,6 +19,6 @@ export function formatDockerLabelFilter(name: string, value: boolean | string): 
 
 export function withDockerLabelFilterArgs(labels?: LabelFilters) {
     return withDockerFilterArg(
-        Object.entries(labels || {}).map(([label, value]) => formatDockerLabelFilter(label, value)),
+        Object.entries(labels ?? {}).map(([label, value]) => formatDockerLabelFilter(label, value)),
     );
 }
