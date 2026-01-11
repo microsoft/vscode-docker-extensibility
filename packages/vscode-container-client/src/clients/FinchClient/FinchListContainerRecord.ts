@@ -96,9 +96,17 @@ export function normalizeFinchListContainerRecord(container: FinchListContainerR
     let createdAt: Date;
     if (container.CreatedAt) {
         const parsedDate = dayjs.utc(container.CreatedAt);
-        createdAt = parsedDate.isValid() ? parsedDate.toDate() : new Date(0);
+        if (parsedDate.isValid()) {
+            createdAt = parsedDate.toDate();
+        } else if (strict) {
+            throw new Error(`Invalid container creation date: ${container.CreatedAt}`);
+        } else {
+            createdAt = new Date(); // Use current time as fallback (less misleading than epoch)
+        }
+    } else if (strict) {
+        throw new Error('Container creation date is missing');
     } else {
-        createdAt = new Date(0); // Epoch as fallback
+        createdAt = new Date(); // Use current time as fallback
     }
 
     // Parse port bindings from string format like "0.0.0.0:8080->80/tcp"

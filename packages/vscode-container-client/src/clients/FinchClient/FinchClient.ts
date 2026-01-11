@@ -25,7 +25,9 @@ import {
     InspectContainersItem,
     InspectImagesCommandOptions,
     InspectImagesItem,
+    InspectNetworksCommandOptions,
     InspectNetworksItem,
+    InspectVolumesCommandOptions,
     InspectVolumesItem,
     ListContainersCommandOptions,
     ListContainersItem,
@@ -40,6 +42,7 @@ import {
     VersionItem,
     WriteFileCommandOptions
 } from '../../contracts/ContainerClient';
+import { CommandNotSupportedError } from '../../utils/CommandNotSupportedError';
 import { GeneratorCommandResponse, VoidCommandResponse } from '../../contracts/CommandRunner';
 import { dayjs } from '../../utils/dayjs';
 import { DockerClientBase } from '../DockerClientBase/DockerClientBase';
@@ -51,6 +54,7 @@ import { withDockerLabelsArg } from '../DockerClientBase/withDockerLabelsArg';
 import { withDockerMountsArg } from '../DockerClientBase/withDockerMountsArg';
 import { withDockerPlatformArg } from '../DockerClientBase/withDockerPlatformArg';
 import { withDockerPortsArg } from '../DockerClientBase/withDockerPortsArg';
+import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
 import { FinchEventRecordSchema, parseContainerdEventPayload, parseContainerdTopic } from './FinchEventRecord';
 import { withFinchExposedPortsArg } from './withFinchExposedPortsArg';
 import { FinchInspectContainerRecordSchema, normalizeFinchInspectContainerRecord } from './FinchInspectContainerRecord';
@@ -207,14 +211,23 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
      * Finch/nerdctl event stream limitations:
      * - Does NOT support --since and --until flags (no historical replay)
      * - Does NOT support Docker-style filters (type=, event=)
+     * - Does NOT support label filtering (containerd events don't include label data)
      * - Outputs containerd native events, NOT Docker-compatible format
      *
      * Client-side filtering is implemented in parseEventStreamCommandOutput to:
      * - Filter by event types (container, image, etc.)
      * - Filter by event actions (create, delete, start, stop, etc.)
      * - Filter by since/until timestamps (when provided)
+     *
+     * @throws {CommandNotSupportedError} if labels filter is provided (not supported by Finch)
      */
-    protected override getEventStreamCommandArgs(_options: EventStreamCommandOptions): CommandLineArgs {
+    protected override getEventStreamCommandArgs(options: EventStreamCommandOptions): CommandLineArgs {
+        // Label filtering is not supported by Finch - containerd events don't include label data
+        // Throw a clear error rather than silently ignoring the filter
+        if (options.labels && Object.keys(options.labels).length > 0) {
+            throw new CommandNotSupportedError('Label filtering for events is not supported by Finch');
+        }
+
         // Finch/nerdctl events command doesn't support Docker-style filters
         // All filtering is done client-side in parseEventStreamCommandOutput
         return composeArgs(
@@ -311,7 +324,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     /**
      * Parse event timestamp from various formats:
      * - Unix timestamp (number or string number)
-     * - Relative time like "1m", "5s", "-1s" (negative means in the future)
+     * - Relative time like "1m", "5s" (positive means in the past, e.g., "1m" = 1 minute ago)
+     * - Negative relative time like "-1s" (means in the future, e.g., "-1s" = 1 second from now)
      * - ISO date string
      */
     private parseEventTimestamp(value: string | number): Date {
@@ -326,6 +340,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
         }
 
         // Try as relative time (e.g., "1m", "5s", "-30s")
+        // Positive values mean "ago" (in the past), negative values mean "from now" (in the future)
         const relativeMatch = /^(-?\d+)(s|m|h|d)$/.exec(value);
         if (relativeMatch) {
             const amount = parseInt(relativeMatch[1], 10);
@@ -337,18 +352,60 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                 'h': 60 * 60 * 1000,
                 'd': 24 * 60 * 60 * 1000,
             };
-            return new Date(now + amount * (multipliers[unit] ?? 1000));
+            // Subtract: "1m" -> 1 minute ago, "-1s" -> 1 second from now
+            return new Date(now - amount * (multipliers[unit] ?? 1000));
         }
 
         // Try as ISO date string
         return new Date(value);
     }
 
+    /**
+     * Parse JSON output that could be either:
+     * - A JSON array (nerdctl default behavior)
+     * - Newline-separated JSON objects (when --format "{{json .}}" is used)
+     * - A single JSON object
+     *
+     * This handles the case where inspect commands with multiple targets may output
+     * one JSON object per line instead of an array.
+     */
+    private parseJsonArrayOrLines(output: string): unknown[] {
+        const trimmed = output.trim();
+        if (!trimmed) {
+            return [];
+        }
+
+        // First, try to parse as a single JSON value (array or object)
+        try {
+            const parsed: unknown = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+                return parsed as unknown[];
+            }
+            // Single object
+            return [parsed];
+        } catch {
+            // If that fails, try parsing as newline-separated JSON objects
+            const results: unknown[] = [];
+            for (const line of trimmed.split('\n')) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) {
+                    continue;
+                }
+                try {
+                    results.push(JSON.parse(trimmedLine));
+                } catch {
+                    // Skip unparseable lines in non-strict mode
+                }
+            }
+            return results;
+        }
+    }
+
     //#endregion
 
     //#region ListImages Command
 
-    protected override parseListImagesCommandOutput(options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
+    protected override parseListImagesCommandOutput(_options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
         const images = new Array<ListImagesItem>();
 
         try {
@@ -380,35 +437,23 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     //#region InspectImages Command
 
     protected override parseInspectImagesCommandOutput(
-        options: InspectImagesCommandOptions,
+        _options: InspectImagesCommandOptions,
         output: string,
         strict: boolean,
     ): Promise<Array<InspectImagesItem>> {
         const results = new Array<InspectImagesItem>();
 
-        try {
-            // nerdctl inspect returns a JSON array, not newline-separated JSON
-            const parsed: unknown = JSON.parse(output);
+        // Handle both JSON array and newline-separated JSON objects
+        const items = this.parseJsonArrayOrLines(output);
 
-            if (Array.isArray(parsed)) {
-                for (const item of parsed) {
-                    try {
-                        const inspect = FinchInspectImageRecordSchema.parse(item);
-                        results.push(normalizeFinchInspectImageRecord(inspect, JSON.stringify(item)));
-                    } catch (err) {
-                        if (strict) {
-                            throw err;
-                        }
-                    }
+        for (const item of items) {
+            try {
+                const inspect = FinchInspectImageRecordSchema.parse(item);
+                results.push(normalizeFinchInspectImageRecord(inspect, JSON.stringify(item)));
+            } catch (err) {
+                if (strict) {
+                    throw err;
                 }
-            } else {
-                // Single object case
-                const inspect = FinchInspectImageRecordSchema.parse(parsed);
-                results.push(normalizeFinchInspectImageRecord(inspect, output));
-            }
-        } catch (err) {
-            if (strict) {
-                throw err;
             }
         }
 
@@ -419,7 +464,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
     //#region ListContainers Command
 
-    protected override parseListContainersCommandOutput(options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
+    protected override parseListContainersCommandOutput(_options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
         const containers = new Array<ListContainersItem>();
 
         try {
@@ -450,32 +495,20 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
     //#region InspectContainers Command
 
-    protected override parseInspectContainersCommandOutput(options: InspectContainersCommandOptions, output: string, strict: boolean): Promise<InspectContainersItem[]> {
+    protected override parseInspectContainersCommandOutput(_options: InspectContainersCommandOptions, output: string, strict: boolean): Promise<InspectContainersItem[]> {
         const results = new Array<InspectContainersItem>();
 
-        try {
-            // nerdctl inspect returns a JSON array, not newline-separated JSON
-            const parsed: unknown = JSON.parse(output);
+        // Handle both JSON array and newline-separated JSON objects
+        const items = this.parseJsonArrayOrLines(output);
 
-            if (Array.isArray(parsed)) {
-                for (const item of parsed) {
-                    try {
-                        const inspect = FinchInspectContainerRecordSchema.parse(item);
-                        results.push(normalizeFinchInspectContainerRecord(inspect, JSON.stringify(item)));
-                    } catch (err) {
-                        if (strict) {
-                            throw err;
-                        }
-                    }
+        for (const item of items) {
+            try {
+                const inspect = FinchInspectContainerRecordSchema.parse(item);
+                results.push(normalizeFinchInspectContainerRecord(inspect, JSON.stringify(item)));
+            } catch (err) {
+                if (strict) {
+                    throw err;
                 }
-            } else {
-                // Single object case
-                const inspect = FinchInspectContainerRecordSchema.parse(parsed);
-                results.push(normalizeFinchInspectContainerRecord(inspect, output));
-            }
-        } catch (err) {
-            if (strict) {
-                throw err;
             }
         }
 
@@ -496,7 +529,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
         )();
     }
 
-    protected override parseListNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<ListNetworkItem[]> {
+    protected override parseListNetworksCommandOutput(_options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<ListNetworkItem[]> {
         const results = new Array<ListNetworkItem>();
 
         try {
@@ -527,32 +560,20 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
     //#region InspectNetworks Command
 
-    protected override parseInspectNetworksCommandOutput(options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<InspectNetworksItem[]> {
+    protected override parseInspectNetworksCommandOutput(_options: InspectNetworksCommandOptions, output: string, strict: boolean): Promise<InspectNetworksItem[]> {
         const results = new Array<InspectNetworksItem>();
 
-        try {
-            // nerdctl network inspect returns a JSON array
-            const parsed: unknown = JSON.parse(output);
+        // Handle both JSON array and newline-separated JSON objects
+        const items = this.parseJsonArrayOrLines(output);
 
-            if (Array.isArray(parsed)) {
-                for (const item of parsed) {
-                    try {
-                        const inspect = FinchInspectNetworkRecordSchema.parse(item);
-                        results.push(normalizeFinchInspectNetworkRecord(inspect, JSON.stringify(item)));
-                    } catch (err) {
-                        if (strict) {
-                            throw err;
-                        }
-                    }
+        for (const item of items) {
+            try {
+                const inspect = FinchInspectNetworkRecordSchema.parse(item);
+                results.push(normalizeFinchInspectNetworkRecord(inspect, JSON.stringify(item)));
+            } catch (err) {
+                if (strict) {
+                    throw err;
                 }
-            } else {
-                // Single object case
-                const inspect = FinchInspectNetworkRecordSchema.parse(parsed);
-                results.push(normalizeFinchInspectNetworkRecord(inspect, output));
-            }
-        } catch (err) {
-            if (strict) {
-                throw err;
             }
         }
 
@@ -563,7 +584,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
     //#region ListVolumes Command
 
-    protected override parseListVolumesCommandOutput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
+    protected override parseListVolumesCommandOutput(_options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
         const volumes = new Array<ListVolumeItem>();
 
         try {
@@ -574,11 +595,24 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                     }
 
                     const rawVolume = FinchInspectVolumeRecordSchema.parse(JSON.parse(volumeJson));
-                    // Labels can be an empty string "" in Finch when no labels are set
-                    const labels = typeof rawVolume.Labels === 'string' ? {} : (rawVolume.Labels ?? {});
-                    const createdAt = rawVolume.CreatedAt
-                        ? dayjs.utc(rawVolume.CreatedAt)
-                        : undefined;
+
+                    // Labels can be:
+                    // - A record/object (normal case)
+                    // - An empty string "" when no labels are set
+                    // - A string like "key=value,key2=value2" (parse with parseDockerLikeLabels)
+                    let labels: Record<string, string>;
+                    if (typeof rawVolume.Labels === 'string') {
+                        labels = parseDockerLikeLabels(rawVolume.Labels);
+                    } else {
+                        labels = rawVolume.Labels ?? {};
+                    }
+
+                    // Parse and validate CreatedAt
+                    let createdAt: Date | undefined;
+                    if (rawVolume.CreatedAt) {
+                        const parsed = dayjs.utc(rawVolume.CreatedAt);
+                        createdAt = parsed.isValid() ? parsed.toDate() : undefined;
+                    }
 
                     volumes.push({
                         name: rawVolume.Name,
@@ -586,7 +620,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                         labels,
                         mountpoint: rawVolume.Mountpoint || '',
                         scope: rawVolume.Scope || 'local',
-                        createdAt: createdAt?.toDate(),
+                        createdAt,
                         size: undefined, // nerdctl doesn't always provide size in list
                     });
                 } catch (err) {
@@ -608,32 +642,20 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
     //#region InspectVolumes Command
 
-    protected override parseInspectVolumesCommandOutput(options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<InspectVolumesItem[]> {
+    protected override parseInspectVolumesCommandOutput(_options: InspectVolumesCommandOptions, output: string, strict: boolean): Promise<InspectVolumesItem[]> {
         const results = new Array<InspectVolumesItem>();
 
-        try {
-            // nerdctl volume inspect returns a JSON array
-            const parsed: unknown = JSON.parse(output);
+        // Handle both JSON array and newline-separated JSON objects
+        const items = this.parseJsonArrayOrLines(output);
 
-            if (Array.isArray(parsed)) {
-                for (const item of parsed) {
-                    try {
-                        const inspect = FinchInspectVolumeRecordSchema.parse(item);
-                        results.push(normalizeFinchInspectVolumeRecord(inspect, JSON.stringify(item)));
-                    } catch (err) {
-                        if (strict) {
-                            throw err;
-                        }
-                    }
+        for (const item of items) {
+            try {
+                const inspect = FinchInspectVolumeRecordSchema.parse(item);
+                results.push(normalizeFinchInspectVolumeRecord(inspect, JSON.stringify(item)));
+            } catch (err) {
+                if (strict) {
+                    throw err;
                 }
-            } else {
-                // Single object case
-                const inspect = FinchInspectVolumeRecordSchema.parse(parsed);
-                results.push(normalizeFinchInspectVolumeRecord(inspect, output));
-            }
-        } catch (err) {
-            if (strict) {
-                throw err;
             }
         }
 
@@ -645,12 +667,25 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     //#region ReadFile Command
 
     /**
+     * Escape a string for safe use in shell single quotes.
+     * Single quotes prevent all shell expansion, but single quotes themselves
+     * need special handling: close quote, add escaped quote, reopen quote.
+     * Example: O'Brien -> 'O'\''Brien'
+     */
+    private shellEscapeSingleQuote(value: string): string {
+        return "'" + value.replace(/'/g, "'\\''") + "'";
+    }
+
+    /**
      * Finch/nerdctl doesn't support streaming tar archives to stdout via `cp container:/path -`.
      * Instead, we use a shell command that:
      * 1. Creates a temp file
      * 2. Copies from container to temp file
      * 3. Outputs temp file to stdout (as tar archive)
      * 4. Cleans up temp file
+     *
+     * Note: This implementation uses /bin/sh (not bash) for portability and
+     * properly escapes paths to prevent shell injection.
      */
     override readFile(options: ReadFileCommandOptions): Promise<GeneratorCommandResponse<Buffer>> {
         if (options.operatingSystem === 'windows') {
@@ -658,15 +693,17 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
             return super.readFile(options);
         }
 
+        // Properly escape the container path for shell safety
         const containerPath = `${options.container}:${options.path}`;
+        const escapedContainerPath = this.shellEscapeSingleQuote(containerPath);
+        const escapedCommand = this.shellEscapeSingleQuote(this.commandName);
 
-        // Use bash to chain operations: mktemp -> finch cp -> tar -> cleanup
-        // We use tar to create a proper tar archive from the copied file/directory
+        // Use /bin/sh for portability; properly escape all interpolated values
         return Promise.resolve({
-            command: 'bash',
+            command: '/bin/sh',
             args: [
                 '-c',
-                `TMPDIR=$(mktemp -d) && ${this.commandName} cp "${containerPath}" "$TMPDIR/content" && tar -C "$TMPDIR" -cf - content && rm -rf "$TMPDIR"`,
+                `TMPDIR=$(mktemp -d) && ${escapedCommand} cp ${escapedContainerPath} "$TMPDIR/content" && tar -C "$TMPDIR" -cf - content && rm -rf "$TMPDIR"`,
             ],
             parseStream: (output) => byteStreamToGenerator(output),
         });
@@ -685,6 +722,9 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
      * 4. Cleans up temp file
      *
      * Alternatively, if inputFile is provided, we use that directly.
+     *
+     * Note: This implementation uses /bin/sh (not bash) for portability and
+     * properly escapes paths to prevent shell injection.
      */
     override writeFile(options: WriteFileCommandOptions): Promise<VoidCommandResponse> {
         // If inputFile is specified, we can use finch cp directly (no stdin needed)
@@ -692,14 +732,17 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
             return super.writeFile(options);
         }
 
+        // Properly escape the container path for shell safety
         const containerPath = `${options.container}:${options.path}`;
+        const escapedContainerPath = this.shellEscapeSingleQuote(containerPath);
+        const escapedCommand = this.shellEscapeSingleQuote(this.commandName);
 
-        // Use bash to chain operations: mktemp -> extract tar from stdin -> finch cp -> cleanup
+        // Use /bin/sh for portability; properly escape all interpolated values
         return Promise.resolve({
-            command: 'bash',
+            command: '/bin/sh',
             args: [
                 '-c',
-                `TMPDIR=$(mktemp -d) && tar -C "$TMPDIR" -xf - && ${this.commandName} cp "$TMPDIR/." "${containerPath}" && rm -rf "$TMPDIR"`,
+                `TMPDIR=$(mktemp -d) && tar -C "$TMPDIR" -xf - && ${escapedCommand} cp "$TMPDIR/." ${escapedContainerPath} && rm -rf "$TMPDIR"`,
             ],
         });
     }

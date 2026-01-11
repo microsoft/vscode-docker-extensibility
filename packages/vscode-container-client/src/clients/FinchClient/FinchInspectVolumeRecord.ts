@@ -5,6 +5,7 @@
 
 import { z } from 'zod/v4';
 import { InspectVolumesItem } from '../../contracts/ContainerClient';
+import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
 
 // Finch (nerdctl) volume inspect output - Docker-compatible format
 // Note: Labels can be an empty string "" when no labels are set (in volume ls), or a record
@@ -22,14 +23,32 @@ export const FinchInspectVolumeRecordSchema = z.object({
 type FinchInspectVolumeRecord = z.infer<typeof FinchInspectVolumeRecordSchema>;
 
 export function normalizeFinchInspectVolumeRecord(volume: FinchInspectVolumeRecord, raw: string): InspectVolumesItem {
-    // Labels can be an empty string "" in Finch when no labels are set
-    const labels = typeof volume.Labels === 'string' ? {} : (volume.Labels ?? {});
+    // Labels can be:
+    // - A record/object (normal case)
+    // - An empty string "" when no labels are set
+    // - A string like "key=value,key2=value2" (parse with parseDockerLikeLabels)
+    let labels: Record<string, string>;
+    if (typeof volume.Labels === 'string') {
+        // Parse string labels - handles both empty strings and "key=value" format
+        labels = parseDockerLikeLabels(volume.Labels);
+    } else {
+        labels = volume.Labels ?? {};
+    }
+
+    // Parse and validate CreatedAt - use current time as fallback (less misleading than epoch)
+    let createdAt: Date;
+    if (volume.CreatedAt) {
+        const parsed = new Date(volume.CreatedAt);
+        createdAt = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+    } else {
+        createdAt = new Date();
+    }
 
     return {
         name: volume.Name,
         driver: volume.Driver || 'local',
         mountpoint: volume.Mountpoint || '',
-        createdAt: volume.CreatedAt ? new Date(volume.CreatedAt) : new Date(0), // Epoch as fallback
+        createdAt,
         labels,
         scope: volume.Scope || 'local',
         options: volume.Options ?? {},

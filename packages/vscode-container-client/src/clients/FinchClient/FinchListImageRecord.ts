@@ -7,6 +7,7 @@ import { z } from 'zod/v4';
 import { ListImagesItem } from '../../contracts/ContainerClient';
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
+import { tryParseSize } from '../DockerClientBase/tryParseSize';
 
 // Finch (nerdctl) uses a format similar to Docker but with some differences
 // nerdctl image ls --format '{{json .}}' outputs per-line JSON
@@ -24,39 +25,17 @@ export const FinchListImageRecordSchema = z.object({
 export type FinchListImageRecord = z.infer<typeof FinchListImageRecordSchema>;
 
 export function normalizeFinchListImageRecord(image: FinchListImageRecord): ListImagesItem {
-    // Parse creation date with validation - provide fallback for when it's not available or invalid
+    // Parse creation date with validation - use current time as fallback (less misleading than epoch)
     let createdAt: Date;
     if (image.CreatedAt) {
         const parsedDate = dayjs.utc(image.CreatedAt);
-        createdAt = parsedDate.isValid() ? parsedDate.toDate() : new Date(0);
+        createdAt = parsedDate.isValid() ? parsedDate.toDate() : new Date();
     } else {
-        createdAt = new Date(0); // Epoch as fallback
+        createdAt = new Date(); // Use current time as fallback
     }
 
-    // Parse size - nerdctl may return it as string like "1.2GB" or as number
-    let size: number | undefined;
-    if (typeof image.Size === 'number' && Number.isFinite(image.Size)) {
-        size = image.Size;
-    } else if (typeof image.Size === 'string') {
-        // Try to parse human-readable size strings
-        const sizeRegex = /^([\d.]+)\s*(B|KB|MB|GB|TB)?$/i;
-        const sizeMatch = sizeRegex.exec(image.Size);
-        if (sizeMatch) {
-            const num = parseFloat(sizeMatch[1]);
-            // Validate parsed number before computing size
-            if (Number.isFinite(num)) {
-                const unit = (sizeMatch[2] ?? 'B').toUpperCase();
-                const multipliers: Record<string, number> = {
-                    'B': 1,
-                    'KB': 1024,
-                    'MB': 1024 * 1024,
-                    'GB': 1024 * 1024 * 1024,
-                    'TB': 1024 * 1024 * 1024 * 1024,
-                };
-                size = num * (multipliers[unit] ?? 1);
-            }
-        }
-    }
+    // Use the shared tryParseSize utility for consistent size parsing
+    const size = tryParseSize(image.Size);
 
     // Handle optional/empty Tag - only append if it's a non-empty string
     const tag = image.Tag?.trim();
