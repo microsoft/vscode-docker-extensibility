@@ -9,6 +9,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DockerClient } from '../clients/DockerClient/DockerClient';
 import { DockerComposeClient } from '../clients/DockerComposeClient/DockerComposeClient';
+import { FinchClient } from '../clients/FinchClient/FinchClient';
+import { FinchComposeClient } from '../clients/FinchComposeClient/FinchComposeClient';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { PodmanComposeClient } from '../clients/PodmanComposeClient/PodmanComposeClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
@@ -47,6 +49,9 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         } else if (clientTypeToTest === 'podman') {
             containerClient = new PodmanClient(); // Used for validating that the containers are created and removed correctly
             client = new PodmanComposeClient();
+        } else if (clientTypeToTest === 'finch') {
+            containerClient = new FinchClient(); // Used for validating that the containers are created and removed correctly
+            client = new FinchComposeClient();
         } else {
             throw new Error('Invalid clientTypeToTest');
         }
