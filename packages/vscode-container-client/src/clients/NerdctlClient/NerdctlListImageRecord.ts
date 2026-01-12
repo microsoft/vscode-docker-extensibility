@@ -9,9 +9,9 @@ import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { tryParseSize } from '../DockerClientBase/tryParseSize';
 
-// Finch (nerdctl) uses a format similar to Docker but with some differences
+// Nerdctl (nerdctl) uses a format similar to Docker but with some differences
 // nerdctl image ls --format '{{json .}}' outputs per-line JSON
-export const FinchListImageRecordSchema = z.object({
+export const NerdctlListImageRecordSchema = z.object({
     ID: z.string().optional(),
     Repository: z.string(),
     Tag: z.string().optional(),
@@ -22,9 +22,9 @@ export const FinchListImageRecordSchema = z.object({
     Platform: z.string().optional(),
 });
 
-export type FinchListImageRecord = z.infer<typeof FinchListImageRecordSchema>;
+export type NerdctlListImageRecord = z.infer<typeof NerdctlListImageRecordSchema>;
 
-export function normalizeFinchListImageRecord(image: FinchListImageRecord): ListImagesItem {
+export function normalizeNerdctlListImageRecord(image: NerdctlListImageRecord): ListImagesItem {
     // Parse creation date with validation - use current time as fallback (less misleading than epoch)
     let createdAt: Date;
     if (image.CreatedAt) {

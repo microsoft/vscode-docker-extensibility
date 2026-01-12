@@ -7,7 +7,7 @@ import { z } from 'zod/v4';
 import { EventAction, EventType } from '../../contracts/ZodEnums';
 
 /**
- * Finch/nerdctl outputs containerd native events, NOT Docker-compatible events.
+ * Nerdctl/nerdctl outputs containerd native events, NOT Docker-compatible events.
  * The format is significantly different from Docker's event format.
  *
  * Example output:
@@ -20,7 +20,7 @@ import { EventAction, EventType } from '../../contracts/ZodEnums';
  *   "Event": "{\"id\":\"...\",\"image\":\"...\",\"runtime\":{...}}"
  * }
  */
-export const FinchEventRecordSchema = z.object({
+export const NerdctlEventRecordSchema = z.object({
     Timestamp: z.string(),
     ID: z.string().optional(),
     Namespace: z.string().optional(),
@@ -30,7 +30,7 @@ export const FinchEventRecordSchema = z.object({
     Event: z.string().optional(),
 });
 
-export type FinchEventRecord = z.infer<typeof FinchEventRecordSchema>;
+export type NerdctlEventRecord = z.infer<typeof NerdctlEventRecordSchema>;
 
 /**
  * Mapping from containerd topics to Docker-like event types and actions.

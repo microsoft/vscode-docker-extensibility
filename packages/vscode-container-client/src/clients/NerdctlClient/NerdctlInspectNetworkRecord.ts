@@ -6,18 +6,18 @@
 import { z } from 'zod/v4';
 import { InspectNetworksItem } from '../../contracts/ContainerClient';
 
-// Finch (nerdctl) network inspect output - Docker-compatible format
-const FinchNetworkIpamConfigSchema = z.object({
+// Nerdctl (nerdctl) network inspect output - Docker-compatible format
+const NerdctlNetworkIpamConfigSchema = z.object({
     Subnet: z.string().optional(),
     Gateway: z.string().optional(),
 });
 
-const FinchNetworkIpamSchema = z.object({
+const NerdctlNetworkIpamSchema = z.object({
     Driver: z.string().optional(),
-    Config: z.array(FinchNetworkIpamConfigSchema).optional(),
+    Config: z.array(NerdctlNetworkIpamConfigSchema).optional(),
 });
 
-export const FinchInspectNetworkRecordSchema = z.object({
+export const NerdctlInspectNetworkRecordSchema = z.object({
     Name: z.string(),
     Id: z.string().optional(),
     Driver: z.string().optional(),
@@ -28,12 +28,12 @@ export const FinchInspectNetworkRecordSchema = z.object({
     Attachable: z.boolean().optional(),
     Ingress: z.boolean().optional(),
     Labels: z.record(z.string(), z.string()).nullable().optional(),
-    IPAM: FinchNetworkIpamSchema.optional(),
+    IPAM: NerdctlNetworkIpamSchema.optional(),
 });
 
-type FinchInspectNetworkRecord = z.infer<typeof FinchInspectNetworkRecordSchema>;
+type NerdctlInspectNetworkRecord = z.infer<typeof NerdctlInspectNetworkRecordSchema>;
 
-export function normalizeFinchInspectNetworkRecord(network: FinchInspectNetworkRecord, raw: string): InspectNetworksItem {
+export function normalizeNerdctlInspectNetworkRecord(network: NerdctlInspectNetworkRecord, raw: string): InspectNetworksItem {
     // Build ipam config array, keeping entries where at least one of Subnet or Gateway is defined
     const ipamConfig = (network.IPAM?.Config ?? [])
         .filter((config) => config.Subnet !== undefined || config.Gateway !== undefined)

@@ -11,20 +11,20 @@ import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { normalizeIpAddress } from '../DockerClientBase/normalizeIpAddress';
 import { parseDockerLikeEnvironmentVariables } from '../DockerClientBase/parseDockerLikeEnvironmentVariables';
 
-// Finch (nerdctl) inspect container output - Docker-compatible format
-const FinchInspectContainerPortHostSchema = z.object({
+// Nerdctl (nerdctl) inspect container output - Docker-compatible format
+const NerdctlInspectContainerPortHostSchema = z.object({
     HostIp: z.string().optional(),
     HostPort: z.string().optional(),
 });
 
-const FinchInspectContainerBindMountSchema = z.object({
+const NerdctlInspectContainerBindMountSchema = z.object({
     Type: z.literal('bind'),
     Source: z.string(),
     Destination: z.string(),
     RW: z.boolean().optional(),
 });
 
-const FinchInspectContainerVolumeMountSchema = z.object({
+const NerdctlInspectContainerVolumeMountSchema = z.object({
     Type: z.literal('volume'),
     Name: z.string(),
     Source: z.string(),
@@ -33,18 +33,18 @@ const FinchInspectContainerVolumeMountSchema = z.object({
     RW: z.boolean().optional(),
 });
 
-const FinchInspectContainerMountSchema = z.union([
-    FinchInspectContainerBindMountSchema,
-    FinchInspectContainerVolumeMountSchema,
+const NerdctlInspectContainerMountSchema = z.union([
+    NerdctlInspectContainerBindMountSchema,
+    NerdctlInspectContainerVolumeMountSchema,
 ]);
 
-const FinchInspectNetworkSchema = z.object({
+const NerdctlInspectNetworkSchema = z.object({
     Gateway: z.string().optional(),
     IPAddress: z.string().optional(),
     MacAddress: z.string().optional(),
 });
 
-const FinchInspectContainerConfigSchema = z.object({
+const NerdctlInspectContainerConfigSchema = z.object({
     Image: z.string().optional(), // May not be present in all nerdctl versions
     Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
     Cmd: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
@@ -53,38 +53,38 @@ const FinchInspectContainerConfigSchema = z.object({
     WorkingDir: z.string().nullable().optional(),
 });
 
-const FinchInspectContainerHostConfigSchema = z.object({
+const NerdctlInspectContainerHostConfigSchema = z.object({
     PublishAllPorts: z.boolean().nullable().optional(),
     Isolation: z.string().optional(),
 });
 
-const FinchInspectContainerNetworkSettingsSchema = z.object({
-    Networks: z.record(z.string(), FinchInspectNetworkSchema).nullable().optional(),
+const NerdctlInspectContainerNetworkSettingsSchema = z.object({
+    Networks: z.record(z.string(), NerdctlInspectNetworkSchema).nullable().optional(),
     IPAddress: z.string().optional(),
-    Ports: z.record(z.string(), z.array(FinchInspectContainerPortHostSchema).nullable()).nullable().optional(),
+    Ports: z.record(z.string(), z.array(NerdctlInspectContainerPortHostSchema).nullable()).nullable().optional(),
 });
 
-const FinchInspectContainerStateSchema = z.object({
+const NerdctlInspectContainerStateSchema = z.object({
     Status: z.string().optional(),
     StartedAt: z.string().optional(),
     FinishedAt: z.string().optional(),
 });
 
-export const FinchInspectContainerRecordSchema = z.object({
+export const NerdctlInspectContainerRecordSchema = z.object({
     Id: z.string(),
     Name: z.string(),
     Image: z.string(),
     Created: z.string(),
-    Mounts: z.array(FinchInspectContainerMountSchema).optional(),
-    State: FinchInspectContainerStateSchema.optional(),
-    Config: FinchInspectContainerConfigSchema.optional(),
-    HostConfig: FinchInspectContainerHostConfigSchema.optional(),
-    NetworkSettings: FinchInspectContainerNetworkSettingsSchema.optional(),
+    Mounts: z.array(NerdctlInspectContainerMountSchema).optional(),
+    State: NerdctlInspectContainerStateSchema.optional(),
+    Config: NerdctlInspectContainerConfigSchema.optional(),
+    HostConfig: NerdctlInspectContainerHostConfigSchema.optional(),
+    NetworkSettings: NerdctlInspectContainerNetworkSettingsSchema.optional(),
 });
 
-type FinchInspectContainerRecord = z.infer<typeof FinchInspectContainerRecordSchema>;
+type NerdctlInspectContainerRecord = z.infer<typeof NerdctlInspectContainerRecordSchema>;
 
-export function normalizeFinchInspectContainerRecord(container: FinchInspectContainerRecord, raw: string): InspectContainersItem {
+export function normalizeNerdctlInspectContainerRecord(container: NerdctlInspectContainerRecord, raw: string): InspectContainersItem {
     const environmentVariables = parseDockerLikeEnvironmentVariables(container.Config?.Env ?? []);
 
     const networks = Object.entries(container.NetworkSettings?.Networks ?? {}).map<InspectContainersItemNetwork>(([name, network]) => {

@@ -7,8 +7,8 @@ import { z } from 'zod/v4';
 import { ListNetworkItem } from '../../contracts/ContainerClient';
 import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
 
-// Finch (nerdctl) network list output - Docker-compatible format
-export const FinchListNetworkRecordSchema = z.object({
+// Nerdctl (nerdctl) network list output - Docker-compatible format
+export const NerdctlListNetworkRecordSchema = z.object({
     ID: z.string().optional(),
     Name: z.string(),
     Driver: z.string().optional(),
@@ -19,9 +19,9 @@ export const FinchListNetworkRecordSchema = z.object({
     CreatedAt: z.string().optional(),
 });
 
-type FinchListNetworkRecord = z.infer<typeof FinchListNetworkRecordSchema>;
+type NerdctlListNetworkRecord = z.infer<typeof NerdctlListNetworkRecordSchema>;
 
-export function normalizeFinchListNetworkRecord(network: FinchListNetworkRecord): ListNetworkItem {
+export function normalizeNerdctlListNetworkRecord(network: NerdctlListNetworkRecord): ListNetworkItem {
     // nerdctl outputs booleans as "true"/"false" strings in list format
     const internal = network.Internal?.toLowerCase() === 'true';
     const ipv6 = network.IPv6?.toLowerCase() === 'true';

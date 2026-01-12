@@ -7,9 +7,9 @@ import { z } from 'zod/v4';
 import { InspectVolumesItem } from '../../contracts/ContainerClient';
 import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
 
-// Finch (nerdctl) volume inspect output - Docker-compatible format
+// Nerdctl (nerdctl) volume inspect output - Docker-compatible format
 // Note: Labels can be an empty string "" when no labels are set (in volume ls), or a record
-export const FinchInspectVolumeRecordSchema = z.object({
+export const NerdctlInspectVolumeRecordSchema = z.object({
     Name: z.string(),
     Driver: z.string().optional(),
     Mountpoint: z.string().optional(),
@@ -20,9 +20,9 @@ export const FinchInspectVolumeRecordSchema = z.object({
     Size: z.string().optional(),
 });
 
-type FinchInspectVolumeRecord = z.infer<typeof FinchInspectVolumeRecordSchema>;
+type NerdctlInspectVolumeRecord = z.infer<typeof NerdctlInspectVolumeRecordSchema>;
 
-export function normalizeFinchInspectVolumeRecord(volume: FinchInspectVolumeRecord, raw: string): InspectVolumesItem {
+export function normalizeNerdctlInspectVolumeRecord(volume: NerdctlInspectVolumeRecord, raw: string): InspectVolumesItem {
     // Labels can be:
     // - A record/object (normal case)
     // - An empty string "" when no labels are set

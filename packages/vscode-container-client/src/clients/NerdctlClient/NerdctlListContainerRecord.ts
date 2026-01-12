@@ -10,8 +10,8 @@ import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
 import { parseDockerRawPortString } from '../DockerClientBase/parseDockerRawPortString';
 
-// Finch (nerdctl) container list output format
-export const FinchListContainerRecordSchema = z.object({
+// Nerdctl (nerdctl) container list output format
+export const NerdctlListContainerRecordSchema = z.object({
     ID: z.string(),
     Names: z.string(),
     Image: z.string(),
@@ -23,13 +23,13 @@ export const FinchListContainerRecordSchema = z.object({
     Status: z.string().optional(),
 });
 
-export type FinchListContainerRecord = z.infer<typeof FinchListContainerRecordSchema>;
+export type NerdctlListContainerRecord = z.infer<typeof NerdctlListContainerRecordSchema>;
 
 /**
- * Normalizes nerdctl/Finch container status to standard state values.
+ * Normalizes nerdctl/Nerdctl container status to standard state values.
  * nerdctl uses "Up" instead of "running", "Exited" instead of "exited", etc.
  */
-function normalizeFinchContainerState(status: string | undefined): string {
+function normalizeNerdctlContainerState(status: string | undefined): string {
     if (!status) {
         return 'unknown';
     }
@@ -88,7 +88,7 @@ function extractNetworksFromLabels(labels: Record<string, string>): string[] {
     return [];
 }
 
-export function normalizeFinchListContainerRecord(container: FinchListContainerRecord, strict: boolean): ListContainersItem {
+export function normalizeNerdctlListContainerRecord(container: NerdctlListContainerRecord, strict: boolean): ListContainersItem {
     // nerdctl outputs names as a single string
     const name = container.Names?.trim() || '';
 
@@ -144,7 +144,7 @@ export function normalizeFinchListContainerRecord(container: FinchListContainerR
 
     // Normalize state: nerdctl uses Status field with values like "Up", "Exited"
     // instead of State field with "running", "exited"
-    const state = normalizeFinchContainerState(container.State || container.Status);
+    const state = normalizeNerdctlContainerState(container.State || container.Status);
 
     return {
         id: container.ID,

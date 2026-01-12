@@ -5,9 +5,9 @@
 
 import { z } from 'zod/v4';
 
-// Finch (nerdctl) version output structure
+// Nerdctl (nerdctl) version output structure
 // nerdctl uses a different version format than Docker
-export const FinchVersionRecordSchema = z.object({
+export const NerdctlVersionRecordSchema = z.object({
     Client: z.object({
         Version: z.string().optional(),
         GitCommit: z.string().optional(),

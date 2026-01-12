@@ -9,8 +9,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DockerClient } from '../clients/DockerClient/DockerClient';
 import { DockerComposeClient } from '../clients/DockerComposeClient/DockerComposeClient';
-import { FinchClient } from '../clients/FinchClient/FinchClient';
-import { FinchComposeClient } from '../clients/FinchComposeClient/FinchComposeClient';
+import { NerdctlClient } from '../clients/NerdctlClient/NerdctlClient';
+import { NerdctlComposeClient } from '../clients/NerdctlComposeClient/NerdctlComposeClient';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { PodmanComposeClient } from '../clients/PodmanComposeClient/PodmanComposeClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
@@ -50,8 +50,8 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
             containerClient = new PodmanClient(); // Used for validating that the containers are created and removed correctly
             client = new PodmanComposeClient();
         } else if (clientTypeToTest === 'finch') {
-            containerClient = new FinchClient(); // Used for validating that the containers are created and removed correctly
-            client = new FinchComposeClient();
+            containerClient = new NerdctlClient('finch', 'Finch', 'Runs container commands using the Finch CLI'); // Used for validating that the containers are created and removed correctly
+            client = new NerdctlComposeClient('finch', 'Finch Compose', 'Runs orchestrator commands using the Finch Compose CLI');
         } else {
             throw new Error('Invalid clientTypeToTest');
         }

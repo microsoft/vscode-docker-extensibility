@@ -55,46 +55,46 @@ import { withDockerMountsArg } from '../DockerClientBase/withDockerMountsArg';
 import { withDockerPlatformArg } from '../DockerClientBase/withDockerPlatformArg';
 import { withDockerPortsArg } from '../DockerClientBase/withDockerPortsArg';
 import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
-import { FinchEventRecordSchema, parseContainerdEventPayload, parseContainerdTopic } from './FinchEventRecord';
-import { withFinchExposedPortsArg } from './withFinchExposedPortsArg';
-import { FinchInspectContainerRecordSchema, normalizeFinchInspectContainerRecord } from './FinchInspectContainerRecord';
-import { FinchInspectImageRecordSchema, normalizeFinchInspectImageRecord } from './FinchInspectImageRecord';
-import { FinchInspectNetworkRecordSchema, normalizeFinchInspectNetworkRecord } from './FinchInspectNetworkRecord';
-import { FinchInspectVolumeRecordSchema, normalizeFinchInspectVolumeRecord } from './FinchInspectVolumeRecord';
-import { FinchListContainerRecordSchema, normalizeFinchListContainerRecord } from './FinchListContainerRecord';
-import { FinchListImageRecordSchema, normalizeFinchListImageRecord } from './FinchListImageRecord';
-import { FinchListNetworkRecordSchema, normalizeFinchListNetworkRecord } from './FinchListNetworkRecord';
-import { FinchVersionRecordSchema } from './FinchVersionRecord';
+import { NerdctlEventRecordSchema, parseContainerdEventPayload, parseContainerdTopic } from './NerdctlEventRecord';
+import { withNerdctlExposedPortsArg } from './withNerdctlExposedPortsArg';
+import { NerdctlInspectContainerRecordSchema, normalizeNerdctlInspectContainerRecord } from './NerdctlInspectContainerRecord';
+import { NerdctlInspectImageRecordSchema, normalizeNerdctlInspectImageRecord } from './NerdctlInspectImageRecord';
+import { NerdctlInspectNetworkRecordSchema, normalizeNerdctlInspectNetworkRecord } from './NerdctlInspectNetworkRecord';
+import { NerdctlInspectVolumeRecordSchema, normalizeNerdctlInspectVolumeRecord } from './NerdctlInspectVolumeRecord';
+import { NerdctlListContainerRecordSchema, normalizeNerdctlListContainerRecord } from './NerdctlListContainerRecord';
+import { NerdctlListImageRecordSchema, normalizeNerdctlListImageRecord } from './NerdctlListImageRecord';
+import { NerdctlListNetworkRecordSchema, normalizeNerdctlListNetworkRecord } from './NerdctlListNetworkRecord';
+import { NerdctlVersionRecordSchema } from './NerdctlVersionRecord';
 
-export class FinchClient extends DockerClientBase implements IContainersClient {
+export class NerdctlClient extends DockerClientBase implements IContainersClient {
     /**
-     * The ID of the Finch client
+     * The ID of the Nerdctl client
      */
-    public static ClientId = 'com.microsoft.visualstudio.containers.finch';
+    public static ClientId = 'com.microsoft.visualstudio.containers.nerdctl';
 
     /**
      * The default argument given to `--format`
-     * Finch (nerdctl) uses the same format as Docker
+     * Nerdctl uses the same format as Docker
      */
     protected readonly defaultFormatForJson: string = "{{json .}}";
 
     /**
-     * Constructs a new {@link FinchClient}
-     * @param commandName (Optional, default `finch`) The command that will be run
+     * Constructs a new {@link NerdctlClient}
+     * @param commandName (Optional, default `nerdctl`) The command that will be run
      * as the base command. If quoting is necessary, it is the responsibility of the
-     * caller to add.
-     * @param displayName (Optional, default 'Finch') The human-friendly display
+     * caller to add. Use `finch` for AWS Nerdctl.
+     * @param displayName (Optional, default 'Nerdctl') The human-friendly display
      * name of the client
      * @param description (Optional, with default) The human-friendly description of
      * the client
      */
     public constructor(
-        commandName: string = 'finch',
-        displayName: string = 'Finch',
-        description: string = 'Runs container commands using the Finch CLI'
+        commandName: string = 'nerdctl',
+        displayName: string = 'Nerdctl',
+        description: string = 'Runs container commands using the nerdctl CLI'
     ) {
         super(
-            FinchClient.ClientId,
+            NerdctlClient.ClientId,
             commandName,
             displayName,
             description
@@ -104,9 +104,9 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     //#region RunContainer Command
 
     /**
-     * Generates run container command args with Finch-specific handling for exposed ports.
+     * Generates run container command args with nerdctl-specific handling for exposed ports.
      *
-     * Finch/nerdctl doesn't support `--expose` and `--publish-all` flags.
+     * nerdctl doesn't support `--expose` and `--publish-all` flags.
      * Instead, when both `publishAllPorts` and `exposePorts` are specified, we convert
      * exposed ports to explicit `-p <containerPort>` arguments which bind them to
      * random host ports (equivalent to Docker's --expose + --publish-all behavior).
@@ -120,8 +120,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
             withFlagArg('--rm', options.removeOnExit),
             withNamedArg('--name', options.name),
             withDockerPortsArg(options.ports),
-            // Finch alternative: Convert exposePorts + publishAllPorts to -p <port> args
-            withFinchExposedPortsArg(options.exposePorts, options.publishAllPorts),
+            // nerdctl alternative: Convert exposePorts + publishAllPorts to -p <port> args
+            withNerdctlExposedPortsArg(options.exposePorts, options.publishAllPorts),
             withNamedArg('--network', options.network),
             withNamedArg('--network-alias', options.networkAlias),
             withDockerAddHostArg(options.addHost),
@@ -143,9 +143,9 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
     protected override parseVersionCommandOutput(output: string, strict: boolean): Promise<VersionItem> {
         try {
-            const version = FinchVersionRecordSchema.parse(JSON.parse(output));
+            const version = NerdctlVersionRecordSchema.parse(JSON.parse(output));
 
-            // Finch/nerdctl may not have a traditional ApiVersion
+            // nerdctl may not have a traditional ApiVersion
             // Extract version info from the Client object
             const clientVersion = version.Client.Version;
 
@@ -162,7 +162,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
             // If parsing fails with the new schema, try to extract version from output
             // as nerdctl might output version info differently
             if (strict) {
-                throw new Error('Failed to parse Finch version output');
+                throw new Error('Failed to parse nerdctl version output');
             }
 
             return Promise.resolve({
@@ -177,7 +177,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     //#region Info Command
 
     protected override parseInfoCommandOutput(output: string, strict: boolean): Promise<InfoItem> {
-        // Finch/nerdctl info output is similar to Docker but may have different fields
+        // nerdctl info output is similar to Docker but may have different fields
         try {
             const info = JSON.parse(output) as { OperatingSystem?: string; OSType?: string };
             // Normalize osType to valid enum values
@@ -208,7 +208,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     //#region GetEventStream Command
 
     /**
-     * Finch/nerdctl event stream limitations:
+     * nerdctl event stream limitations:
      * - Does NOT support --since and --until flags (no historical replay)
      * - Does NOT support Docker-style filters (type=, event=)
      * - Does NOT support label filtering (containerd events don't include label data)
@@ -219,16 +219,16 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
      * - Filter by event actions (create, delete, start, stop, etc.)
      * - Filter by since/until timestamps (when provided)
      *
-     * @throws {CommandNotSupportedError} if labels filter is provided (not supported by Finch)
+     * @throws {CommandNotSupportedError} if labels filter is provided (not supported by nerdctl)
      */
     protected override getEventStreamCommandArgs(options: EventStreamCommandOptions): CommandLineArgs {
-        // Label filtering is not supported by Finch - containerd events don't include label data
+        // Label filtering is not supported by nerdctl - containerd events don't include label data
         // Throw a clear error rather than silently ignoring the filter
         if (options.labels && Object.keys(options.labels).length > 0) {
-            throw new CommandNotSupportedError('Label filtering for events is not supported by Finch');
+            throw new CommandNotSupportedError('Label filtering for events is not supported by nerdctl');
         }
 
-        // Finch/nerdctl events command doesn't support Docker-style filters
+        // nerdctl events command doesn't support Docker-style filters
         // All filtering is done client-side in parseEventStreamCommandOutput
         return composeArgs(
             withArg('events'),
@@ -259,14 +259,14 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                     throw new CancellationError('Event stream cancelled', cancellationToken);
                 }
 
-                // Skip empty lines (Finch outputs newlines between events)
+                // Skip empty lines (nerdctl outputs newlines between events)
                 const trimmedLine = line.trim();
                 if (!trimmedLine) {
                     continue;
                 }
 
                 try {
-                    const item = FinchEventRecordSchema.parse(JSON.parse(trimmedLine));
+                    const item = NerdctlEventRecordSchema.parse(JSON.parse(trimmedLine));
 
                     // Parse the containerd topic to get type and action
                     const typeAction = parseContainerdTopic(item.Topic);
@@ -415,8 +415,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                         return;
                     }
 
-                    const rawImage = FinchListImageRecordSchema.parse(JSON.parse(imageJson));
-                    images.push(normalizeFinchListImageRecord(rawImage));
+                    const rawImage = NerdctlListImageRecordSchema.parse(JSON.parse(imageJson));
+                    images.push(normalizeNerdctlListImageRecord(rawImage));
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -448,8 +448,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
         for (const item of items) {
             try {
-                const inspect = FinchInspectImageRecordSchema.parse(item);
-                results.push(normalizeFinchInspectImageRecord(inspect, JSON.stringify(item)));
+                const inspect = NerdctlInspectImageRecordSchema.parse(item);
+                results.push(normalizeNerdctlInspectImageRecord(inspect, JSON.stringify(item)));
             } catch (err) {
                 if (strict) {
                     throw err;
@@ -474,8 +474,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                         return;
                     }
 
-                    const rawContainer = FinchListContainerRecordSchema.parse(JSON.parse(containerJson));
-                    containers.push(normalizeFinchListContainerRecord(rawContainer, strict));
+                    const rawContainer = NerdctlListContainerRecordSchema.parse(JSON.parse(containerJson));
+                    containers.push(normalizeNerdctlListContainerRecord(rawContainer, strict));
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -503,8 +503,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
         for (const item of items) {
             try {
-                const inspect = FinchInspectContainerRecordSchema.parse(item);
-                results.push(normalizeFinchInspectContainerRecord(inspect, JSON.stringify(item)));
+                const inspect = NerdctlInspectContainerRecordSchema.parse(item);
+                results.push(normalizeNerdctlInspectContainerRecord(inspect, JSON.stringify(item)));
             } catch (err) {
                 if (strict) {
                     throw err;
@@ -519,12 +519,12 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
     //#region ListNetworks Command
 
-    // Finch/nerdctl doesn't support --no-trunc for network ls
+    // nerdctl doesn't support --no-trunc for network ls
     protected override getListNetworksCommandArgs(options: ListNetworksCommandOptions): CommandLineArgs {
         return composeArgs(
             withArg('network', 'ls'),
             withDockerLabelFilterArgs(options.labels),
-            // Note: Finch doesn't support --no-trunc for network ls
+            // Note: nerdctl doesn't support --no-trunc for network ls
             withDockerJsonFormatArg(this.defaultFormatForJson),
         )();
     }
@@ -539,8 +539,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                         return;
                     }
 
-                    const rawNetwork = FinchListNetworkRecordSchema.parse(JSON.parse(networkJson));
-                    results.push(normalizeFinchListNetworkRecord(rawNetwork));
+                    const rawNetwork = NerdctlListNetworkRecordSchema.parse(JSON.parse(networkJson));
+                    results.push(normalizeNerdctlListNetworkRecord(rawNetwork));
                 } catch (err) {
                     if (strict) {
                         throw err;
@@ -568,8 +568,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
         for (const item of items) {
             try {
-                const inspect = FinchInspectNetworkRecordSchema.parse(item);
-                results.push(normalizeFinchInspectNetworkRecord(inspect, JSON.stringify(item)));
+                const inspect = NerdctlInspectNetworkRecordSchema.parse(item);
+                results.push(normalizeNerdctlInspectNetworkRecord(inspect, JSON.stringify(item)));
             } catch (err) {
                 if (strict) {
                     throw err;
@@ -594,7 +594,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
                         return;
                     }
 
-                    const rawVolume = FinchInspectVolumeRecordSchema.parse(JSON.parse(volumeJson));
+                    const rawVolume = NerdctlInspectVolumeRecordSchema.parse(JSON.parse(volumeJson));
 
                     // Labels can be:
                     // - A record/object (normal case)
@@ -650,8 +650,8 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
 
         for (const item of items) {
             try {
-                const inspect = FinchInspectVolumeRecordSchema.parse(item);
-                results.push(normalizeFinchInspectVolumeRecord(inspect, JSON.stringify(item)));
+                const inspect = NerdctlInspectVolumeRecordSchema.parse(item);
+                results.push(normalizeNerdctlInspectVolumeRecord(inspect, JSON.stringify(item)));
             } catch (err) {
                 if (strict) {
                     throw err;
@@ -677,7 +677,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     }
 
     /**
-     * Finch/nerdctl doesn't support streaming tar archives to stdout via `cp container:/path -`.
+     * nerdctl doesn't support streaming tar archives to stdout via `cp container:/path -`.
      * Instead, we use a shell command that:
      * 1. Creates a temp file
      * 2. Copies from container to temp file
@@ -714,7 +714,7 @@ export class FinchClient extends DockerClientBase implements IContainersClient {
     //#region WriteFile Command
 
     /**
-     * Finch/nerdctl doesn't support reading tar archives from stdin via `cp - container:/path`.
+     * nerdctl doesn't support reading tar archives from stdin via `cp - container:/path`.
      * Instead, we use a shell command that:
      * 1. Creates a temp file
      * 2. Reads tar archive from stdin to temp file

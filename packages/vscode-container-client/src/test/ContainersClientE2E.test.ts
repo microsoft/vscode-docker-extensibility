@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as stream from 'stream';
 import { FileType } from 'vscode';
 import { DockerClient } from '../clients/DockerClient/DockerClient';
-import { FinchClient } from '../clients/FinchClient/FinchClient';
+import { NerdctlClient } from '../clients/NerdctlClient/NerdctlClient';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
@@ -47,7 +47,7 @@ describe('(integration) ContainersClientE2E', function () {
         } else if (clientTypeToTest === 'podman') {
             client = new PodmanClient();
         } else if (clientTypeToTest === 'finch') {
-            client = new FinchClient();
+            client = new NerdctlClient('finch', 'Finch', 'Runs container commands using the Finch CLI');
         } else {
             throw new Error('Invalid clientTypeToTest');
         }

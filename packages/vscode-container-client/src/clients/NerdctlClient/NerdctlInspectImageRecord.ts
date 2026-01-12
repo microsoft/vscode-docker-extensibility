@@ -10,8 +10,8 @@ import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { parseDockerLikeEnvironmentVariables } from '../DockerClientBase/parseDockerLikeEnvironmentVariables';
 
-// Finch (nerdctl) inspect image output - similar to Docker with some optional fields
-const FinchInspectImageConfigSchema = z.object({
+// Nerdctl (nerdctl) inspect image output - similar to Docker with some optional fields
+const NerdctlInspectImageConfigSchema = z.object({
     Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
     Cmd: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
     Env: z.array(z.string()).optional().nullable(),
@@ -22,10 +22,10 @@ const FinchInspectImageConfigSchema = z.object({
     User: z.string().nullable().optional(),
 });
 
-export const FinchInspectImageRecordSchema = z.object({
+export const NerdctlInspectImageRecordSchema = z.object({
     Id: z.string(),
     RepoTags: z.array(z.string()).optional().nullable(),
-    Config: FinchInspectImageConfigSchema.optional(),
+    Config: NerdctlInspectImageConfigSchema.optional(),
     RepoDigests: z.array(z.string()).optional().nullable(),
     Architecture: z.string().optional(),
     Os: z.string().optional(),
@@ -33,9 +33,9 @@ export const FinchInspectImageRecordSchema = z.object({
     User: z.string().optional(),
 });
 
-type FinchInspectImageRecord = z.infer<typeof FinchInspectImageRecordSchema>;
+type NerdctlInspectImageRecord = z.infer<typeof NerdctlInspectImageRecordSchema>;
 
-export function normalizeFinchInspectImageRecord(image: FinchInspectImageRecord, raw: string): InspectImagesItem {
+export function normalizeNerdctlInspectImageRecord(image: NerdctlInspectImageRecord, raw: string): InspectImagesItem {
     const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(image.RepoTags?.[0]);
 
     const environmentVariables = parseDockerLikeEnvironmentVariables(image.Config?.Env ?? []);
