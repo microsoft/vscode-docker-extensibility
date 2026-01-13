@@ -344,6 +344,9 @@ describe('(integration) ContainersClientE2E', function () {
                     detached: true,
                     name: testContainerName,
                     network: testContainerNetworkName,
+                    // Keep container running - uses trap to handle SIGTERM for fast shutdown
+                    entrypoint: 'sh',
+                    command: ['-c', "trap 'exit 0' TERM; while true; do sleep 1; done"],
                     mounts: [
                         { type: 'bind', source: testContainerBindMountSource, destination: '/data1', readOnly: true },
                         { type: 'volume', source: testContainerVolumeName, destination: '/data2', readOnly: false }
@@ -488,8 +491,8 @@ describe('(integration) ContainersClientE2E', function () {
                 client.runContainer({
                     imageRef: imageToTest,
                     detached: true,
-                    entrypoint: 'sh',
-                    command: ['-c', `"echo '${content}'"`]
+                    entrypoint: 'echo',
+                    command: [content]
                 })
             ))!;
 
@@ -1033,6 +1036,9 @@ describe('(integration) ContainersClientE2E', function () {
                 client.runContainer({
                     imageRef: 'alpine:latest',
                     detached: true,
+                    // Keep container running for filesystem operations
+                    entrypoint: 'sh',
+                    command: ['-c', "trap 'exit 0' TERM; while true; do sleep 1; done"],
                 })
             ))!;
 
