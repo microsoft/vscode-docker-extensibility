@@ -5,17 +5,21 @@
 
 import { z } from 'zod/v4';
 import { ListImagesItem } from '../../contracts/ContainerClient';
-import { dayjs } from '../../utils/dayjs';
+import { dateStringWithFallbackSchema } from '../../contracts/ZodTransforms';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { tryParseSize } from '../DockerClientBase/tryParseSize';
 
-// Nerdctl (nerdctl) uses a format similar to Docker but with some differences
-// nerdctl image ls --format '{{json .}}' outputs per-line JSON
+/**
+ * Nerdctl (nerdctl) uses a format similar to Docker but with some differences.
+ * nerdctl image ls --format '{{json .}}' outputs per-line JSON.
+ * Date transformation is applied during parsing.
+ */
 export const NerdctlListImageRecordSchema = z.object({
     ID: z.string().optional(),
     Repository: z.string(),
     Tag: z.string().optional(),
-    CreatedAt: z.string().optional(),
+    // Date string transformed to Date object with fallback to current time
+    CreatedAt: dateStringWithFallbackSchema.optional(),
     CreatedSince: z.string().optional(),
     Size: z.union([z.string(), z.number()]).optional(),
     Digest: z.string().optional(),
@@ -24,15 +28,11 @@ export const NerdctlListImageRecordSchema = z.object({
 
 export type NerdctlListImageRecord = z.infer<typeof NerdctlListImageRecordSchema>;
 
+/**
+ * Normalize a parsed NerdctlListImageRecord to the common ListImagesItem format.
+ * Date transformation is already done by the schema.
+ */
 export function normalizeNerdctlListImageRecord(image: NerdctlListImageRecord): ListImagesItem {
-    // Parse creation date with validation - use current time as fallback (less misleading than epoch)
-    let createdAt: Date;
-    if (image.CreatedAt) {
-        const parsedDate = dayjs.utc(image.CreatedAt);
-        createdAt = parsedDate.isValid() ? parsedDate.toDate() : new Date();
-    } else {
-        createdAt = new Date(); // Use current time as fallback
-    }
 
     // Use the shared tryParseSize utility for consistent size parsing
     const size = tryParseSize(image.Size);
@@ -44,7 +44,7 @@ export function normalizeNerdctlListImageRecord(image: NerdctlListImageRecord): 
     return {
         id: image.ID || '',
         image: parseDockerLikeImageName(repositoryAndTag),
-        createdAt,
+        createdAt: image.CreatedAt ?? new Date(),
         size,
     };
 }

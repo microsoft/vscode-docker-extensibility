@@ -5,19 +5,23 @@
 
 import { z } from 'zod/v4';
 import { ListContainersItem, PortBinding } from '../../contracts/ContainerClient';
+import { labelsStringSchema } from '../../contracts/ZodTransforms';
 import { dayjs } from '../../utils/dayjs';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
-import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
 import { parseDockerRawPortString } from '../DockerClientBase/parseDockerRawPortString';
 
-// Nerdctl (nerdctl) container list output format
+/**
+ * Nerdctl (nerdctl) container list output format.
+ * Labels are transformed during parsing from "key=value,key2=value2" to Record.
+ */
 export const NerdctlListContainerRecordSchema = z.object({
     ID: z.string(),
     Names: z.string(),
     Image: z.string(),
     Ports: z.string().optional(),
     Networks: z.string().optional(),
-    Labels: z.string().optional(),
+    // Labels transformed from string to Record during parsing
+    Labels: labelsStringSchema.optional(),
     CreatedAt: z.string().optional(),
     State: z.string().optional(),
     Status: z.string().optional(),
@@ -130,8 +134,8 @@ export function normalizeNerdctlListContainerRecord(container: NerdctlListContai
         });
     }
 
-    // Parse labels from string format "key=value,key2=value2"
-    const labels = parseDockerLikeLabels(container.Labels || '');
+    // Labels are already parsed by the schema transform
+    const labels = container.Labels ?? {};
 
     // Extract networks: prefer Networks field if present, otherwise extract from labels
     // In nerdctl, networks may be stored in Labels as JSON under 'nerdctl/networks' key

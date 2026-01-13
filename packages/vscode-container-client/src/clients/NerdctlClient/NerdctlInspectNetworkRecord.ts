@@ -5,6 +5,7 @@
 
 import { z } from 'zod/v4';
 import { InspectNetworksItem } from '../../contracts/ContainerClient';
+import { dateStringSchema } from '../../contracts/ZodTransforms';
 
 // Nerdctl (nerdctl) network inspect output - Docker-compatible format
 const NerdctlNetworkIpamConfigSchema = z.object({
@@ -17,11 +18,15 @@ const NerdctlNetworkIpamSchema = z.object({
     Config: z.array(NerdctlNetworkIpamConfigSchema).optional(),
 });
 
+/**
+ * Nerdctl network inspect schema with date transformation.
+ */
 export const NerdctlInspectNetworkRecordSchema = z.object({
     Name: z.string(),
     Id: z.string().optional(),
     Driver: z.string().optional(),
-    Created: z.string().optional(),
+    // Date string transformed to Date object (undefined if invalid)
+    Created: dateStringSchema.optional(),
     Scope: z.string().optional(),
     Internal: z.boolean().optional(),
     EnableIPv6: z.boolean().optional(),
@@ -31,8 +36,12 @@ export const NerdctlInspectNetworkRecordSchema = z.object({
     IPAM: NerdctlNetworkIpamSchema.optional(),
 });
 
-type NerdctlInspectNetworkRecord = z.infer<typeof NerdctlInspectNetworkRecordSchema>;
+export type NerdctlInspectNetworkRecord = z.infer<typeof NerdctlInspectNetworkRecordSchema>;
 
+/**
+ * Normalize a parsed NerdctlInspectNetworkRecord to the common InspectNetworksItem format.
+ * Date transformation is already done by the schema.
+ */
 export function normalizeNerdctlInspectNetworkRecord(network: NerdctlInspectNetworkRecord, raw: string): InspectNetworksItem {
     // Build ipam config array, keeping entries where at least one of Subnet or Gateway is defined
     const ipamConfig = (network.IPAM?.Config ?? [])
@@ -42,20 +51,11 @@ export function normalizeNerdctlInspectNetworkRecord(network: NerdctlInspectNetw
             gateway: config.Gateway ?? '',
         }));
 
-    // Validate createdAt date to avoid Invalid Date
-    let createdAt: Date | undefined;
-    if (network.Created) {
-        const parsedDate = new Date(network.Created);
-        if (!isNaN(parsedDate.getTime())) {
-            createdAt = parsedDate;
-        }
-    }
-
     return {
         name: network.Name,
         id: network.Id,
         driver: network.Driver,
-        createdAt,
+        createdAt: network.Created,
         scope: network.Scope,
         internal: network.Internal,
         ipv6: network.EnableIPv6,

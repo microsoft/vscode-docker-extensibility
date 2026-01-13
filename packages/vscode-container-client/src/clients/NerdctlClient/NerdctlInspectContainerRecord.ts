@@ -6,7 +6,7 @@
 import { toArray } from '@microsoft/vscode-processutils';
 import { z } from 'zod/v4';
 import { InspectContainersItem, InspectContainersItemBindMount, InspectContainersItemMount, InspectContainersItemNetwork, InspectContainersItemVolumeMount, PortBinding } from '../../contracts/ContainerClient';
-import { dayjs } from '../../utils/dayjs';
+import { dateStringSchema } from '../../contracts/ZodTransforms';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { normalizeIpAddress } from '../DockerClientBase/normalizeIpAddress';
 import { parseDockerLikeEnvironmentVariables } from '../DockerClientBase/parseDockerLikeEnvironmentVariables';
@@ -66,15 +66,17 @@ const NerdctlInspectContainerNetworkSettingsSchema = z.object({
 
 const NerdctlInspectContainerStateSchema = z.object({
     Status: z.string().optional(),
-    StartedAt: z.string().optional(),
-    FinishedAt: z.string().optional(),
+    // Date strings transformed to Date objects
+    StartedAt: dateStringSchema.optional(),
+    FinishedAt: dateStringSchema.optional(),
 });
 
 export const NerdctlInspectContainerRecordSchema = z.object({
     Id: z.string(),
     Name: z.string(),
     Image: z.string(),
-    Created: z.string(),
+    // Date string transformed to Date object
+    Created: dateStringSchema,
     Mounts: z.array(NerdctlInspectContainerMountSchema).optional(),
     State: NerdctlInspectContainerStateSchema.optional(),
     Config: NerdctlInspectContainerConfigSchema.optional(),
@@ -145,13 +147,10 @@ export function normalizeNerdctlInspectContainerRecord(container: NerdctlInspect
 
     const labels = container.Config?.Labels ?? {};
 
-    const createdAt = dayjs.utc(container.Created);
-    const startedAt = container.State?.StartedAt
-        ? dayjs.utc(container.State?.StartedAt)
-        : undefined;
-    const finishedAt = container.State?.FinishedAt
-        ? dayjs.utc(container.State?.FinishedAt)
-        : undefined;
+    // Dates are already parsed by the schema transforms
+    const createdAt = container.Created ?? new Date();
+    const startedAt = container.State?.StartedAt;
+    const finishedAt = container.State?.FinishedAt;
 
     return {
         id: container.Id,
@@ -169,13 +168,10 @@ export function normalizeNerdctlInspectContainerRecord(container: NerdctlInspect
         entrypoint: toArray(container.Config?.Entrypoint ?? []),
         command: toArray(container.Config?.Cmd ?? []),
         currentDirectory: container.Config?.WorkingDir || undefined,
-        createdAt: createdAt.toDate(),
-        startedAt: startedAt && (startedAt.isSame(createdAt) || startedAt.isAfter(createdAt))
-            ? startedAt.toDate()
-            : undefined,
-        finishedAt: finishedAt && (finishedAt.isSame(createdAt) || finishedAt.isAfter(createdAt))
-            ? finishedAt.toDate()
-            : undefined,
+        createdAt,
+        // Only include startedAt/finishedAt if they are after or same as createdAt
+        startedAt: startedAt && startedAt >= createdAt ? startedAt : undefined,
+        finishedAt: finishedAt && finishedAt >= createdAt ? finishedAt : undefined,
         raw,
     };
 }

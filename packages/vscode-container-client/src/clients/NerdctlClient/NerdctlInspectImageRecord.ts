@@ -6,7 +6,7 @@
 import { toArray } from '@microsoft/vscode-processutils';
 import { z } from 'zod/v4';
 import { ImageNameInfo, InspectImagesItem, PortBinding } from '../../contracts/ContainerClient';
-import { dayjs } from '../../utils/dayjs';
+import { architectureStringSchema, dateStringSchema, osTypeStringSchema } from '../../contracts/ZodTransforms';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
 import { parseDockerLikeEnvironmentVariables } from '../DockerClientBase/parseDockerLikeEnvironmentVariables';
 
@@ -22,19 +22,29 @@ const NerdctlInspectImageConfigSchema = z.object({
     User: z.string().nullable().optional(),
 });
 
+/**
+ * Nerdctl inspect image schema with transforms for dates, architecture, and OS.
+ */
 export const NerdctlInspectImageRecordSchema = z.object({
     Id: z.string(),
     RepoTags: z.array(z.string()).optional().nullable(),
     Config: NerdctlInspectImageConfigSchema.optional(),
     RepoDigests: z.array(z.string()).optional().nullable(),
-    Architecture: z.string().optional(),
-    Os: z.string().optional(),
-    Created: z.string().nullable().optional(),
+    // Architecture normalized to 'amd64' | 'arm64' | undefined
+    Architecture: architectureStringSchema.optional(),
+    // OS normalized to 'linux' | 'windows' | undefined
+    Os: osTypeStringSchema.optional(),
+    // Date string transformed to Date object
+    Created: dateStringSchema.nullable().optional(),
     User: z.string().optional(),
 });
 
-type NerdctlInspectImageRecord = z.infer<typeof NerdctlInspectImageRecordSchema>;
+export type NerdctlInspectImageRecord = z.infer<typeof NerdctlInspectImageRecordSchema>;
 
+/**
+ * Normalize a parsed NerdctlInspectImageRecord to the common InspectImagesItem format.
+ * Many transformations are already done by the schema.
+ */
 export function normalizeNerdctlInspectImageRecord(image: NerdctlInspectImageRecord, raw: string): InspectImagesItem {
     const imageNameInfo: ImageNameInfo = parseDockerLikeImageName(image.RepoTags?.[0]);
 
@@ -59,16 +69,6 @@ export function normalizeNerdctlInspectImageRecord(image: NerdctlInspectImageRec
 
     const labels = image.Config?.Labels ?? {};
 
-    const architecture = image.Architecture?.toLowerCase() === 'amd64'
-        ? 'amd64'
-        : image.Architecture?.toLowerCase() === 'arm64' ? 'arm64' : undefined;
-
-    const os = image.Os?.toLowerCase() === 'linux'
-        ? 'linux'
-        : image.Os?.toLowerCase() === 'windows'
-            ? 'windows'
-            : undefined;
-
     const isLocalImage = !(image.RepoDigests ?? []).some((digest) => !digest.toLowerCase().startsWith('localhost/'));
 
     return {
@@ -83,12 +83,11 @@ export function normalizeNerdctlInspectImageRecord(image: NerdctlInspectImageRec
         entrypoint: toArray(image.Config?.Entrypoint || []),
         command: toArray(image.Config?.Cmd || []),
         currentDirectory: image.Config?.WorkingDir || undefined,
-        architecture,
-        operatingSystem: os,
-        createdAt: image.Created ? (() => {
-            const parsed = dayjs(image.Created);
-            return parsed.isValid() ? parsed.toDate() : undefined;
-        })() : undefined,
+        // Architecture and OS are already normalized by the schema
+        architecture: image.Architecture,
+        operatingSystem: image.Os,
+        // Date is already parsed by the schema
+        createdAt: image.Created ?? undefined,
         // Prefer Config.User but fall back to top-level User if not present
         user: image.Config?.User ?? image.User ?? undefined,
         raw,
