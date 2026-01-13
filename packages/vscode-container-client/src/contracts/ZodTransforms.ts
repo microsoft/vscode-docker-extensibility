@@ -25,7 +25,7 @@ export const dateStringSchema = z.string().transform((str): Date | undefined => 
  */
 export const dateStringWithFallbackSchema = z.string().transform((str): Date => {
     const parsed = dayjs.utc(str);
-    return parsed.isValid() ? parsed.toDate() : new Date();
+    return parsed.isValid() ? parsed.toDate() : dayjs.utc().toDate();
 });
 
 /**

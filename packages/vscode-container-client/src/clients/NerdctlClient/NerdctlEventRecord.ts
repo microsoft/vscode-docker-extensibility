@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { z } from 'zod/v4';
-import { EventAction, EventType } from '../../contracts/ZodEnums';
+import { EventAction, EventActionSchema, EventType, EventTypeSchema } from '../../contracts/ZodEnums';
 
 /**
  * Schema for the nested Event payload in containerd events.
@@ -80,8 +80,25 @@ const topicToTypeActionMap: Record<string, { type: EventType; action: EventActio
 };
 
 /**
+ * Validates and returns a value if it matches the EventType schema, undefined otherwise.
+ */
+function validateEventType(value: string): EventType | undefined {
+    const result = EventTypeSchema.safeParse(value);
+    return result.success ? result.data : undefined;
+}
+
+/**
+ * Validates and returns a value if it matches the EventAction schema, undefined otherwise.
+ */
+function validateEventAction(value: string): EventAction | undefined {
+    const result = EventActionSchema.safeParse(value);
+    return result.success ? result.data : undefined;
+}
+
+/**
  * Parse the containerd topic string to extract type and action.
  * Topics are in format: /type/action (e.g., /containers/create, /tasks/start)
+ * Returns undefined if the type or action cannot be validated against known enum values.
  */
 export function parseContainerdTopic(topic: string): { type: EventType; action: EventAction } | undefined {
     // First check exact matches
@@ -94,34 +111,42 @@ export function parseContainerdTopic(topic: string): { type: EventType; action: 
     const parts = topic.split('/').filter(Boolean);
     if (parts.length >= 2) {
         const category = parts[0];
-        const action = parts[1];
+        const rawAction = parts[1];
 
         // Map category to Docker event type
-        let type: EventType;
+        let mappedType: string;
         switch (category) {
             case 'containers':
-                type = 'container';
+                mappedType = 'container';
                 break;
             case 'tasks':
-                type = 'container'; // Tasks are container-related
+                mappedType = 'container'; // Tasks are container-related
                 break;
             case 'images':
-                type = 'image';
+                mappedType = 'image';
                 break;
             case 'networks':
-                type = 'network';
+                mappedType = 'network';
                 break;
             case 'volumes':
-                type = 'volume';
+                mappedType = 'volume';
                 break;
             case 'snapshot':
                 // Snapshot events are internal containerd events, not typically exposed in Docker
                 return undefined;
             default:
-                type = category;
+                // Unknown category - validate against schema
+                mappedType = category;
         }
 
-        return { type, action };
+        // Validate both type and action against their respective schemas
+        const type = validateEventType(mappedType);
+        const action = validateEventAction(rawAction);
+
+        // Only return if both are valid
+        if (type !== undefined && action !== undefined) {
+            return { type, action };
+        }
     }
 
     return undefined;
