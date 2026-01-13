@@ -55,7 +55,7 @@ import { withDockerMountsArg } from '../DockerClientBase/withDockerMountsArg';
 import { withDockerPlatformArg } from '../DockerClientBase/withDockerPlatformArg';
 import { withDockerPortsArg } from '../DockerClientBase/withDockerPortsArg';
 import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
-import { NerdctlEventRecordSchema, parseContainerdEventPayload, parseContainerdTopic } from './NerdctlEventRecord';
+import { NerdctlEventRecordSchema, getActorFromEventPayload, parseContainerdTopic } from './NerdctlEventRecord';
 import { withNerdctlExposedPortsArg } from './withNerdctlExposedPortsArg';
 import { NerdctlInspectContainerRecordSchema, normalizeNerdctlInspectContainerRecord } from './NerdctlInspectContainerRecord';
 import { NerdctlInspectImageRecordSchema, normalizeNerdctlInspectImageRecord } from './NerdctlInspectImageRecord';
@@ -300,8 +300,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
                         break;
                     }
 
-                    // Parse the actor from the nested Event JSON
-                    const actor = parseContainerdEventPayload(item.Event);
+                    // Extract the actor from the already-parsed Event payload
+                    const actor = getActorFromEventPayload(item.Event);
 
                     yield {
                         type,
