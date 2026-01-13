@@ -125,7 +125,8 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
             );
 
             expect(response).to.be.a('string');
-            expect(response).to.include('Docker Compose version');
+            // Docker: "Docker Compose version", Podman: "podman-compose version", Finch/nerdctl: "nerdctl Compose version"
+            expect(response).to.match(/(?:Docker|nerdctl) Compose version|podman-compose version/i);
         });
     });
 
@@ -196,6 +197,11 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
 
     describe('Start', function () {
         before('Start', async function () {
+            // --no-start flag is not supported by nerdctl/finch compose
+            if (clientTypeToTest === 'finch') {
+                this.skip();
+            }
+
             // Create services but make sure they're stopped
             await defaultRunner.getCommandRunner()(
                 client.up({
@@ -209,6 +215,11 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         });
 
         it('StartCommand', async function () {
+            // --no-start flag is not supported by nerdctl/finch compose
+            if (clientTypeToTest === 'finch') {
+                this.skip();
+            }
+
             // Start the services
             await defaultRunner.getCommandRunner()(
                 client.start({
@@ -374,6 +385,11 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         });
 
         it('ConfigImages', async function () {
+            // --images flag is only supported by Docker Compose
+            if (clientTypeToTest !== 'docker') {
+                this.skip();
+            }
+
             const images = await defaultRunner.getCommandRunner()(
                 client.config({
                     files: [composeFilePath],
@@ -386,6 +402,11 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         });
 
         it('ConfigProfiles', async function () {
+            // --profiles flag is only supported by Docker Compose
+            if (clientTypeToTest !== 'docker') {
+                this.skip();
+            }
+
             // The test docker-compose.yml doesn't define profiles, but the command should still work
             const profiles = await defaultRunner.getCommandRunner()(
                 client.config({
@@ -399,6 +420,11 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         });
 
         it('ConfigVolumes', async function () {
+            // --volumes flag is only supported by Docker Compose
+            if (clientTypeToTest !== 'docker') {
+                this.skip();
+            }
+
             // The test docker-compose.yml doesn't define volumes, but the command should still work
             const volumes = await defaultRunner.getCommandRunner()(
                 client.config({
@@ -421,11 +447,11 @@ services:
     image: alpine:latest
     volumes:
       - test-volume:/test-volume
-    tty: true # Will keep the container running
+    entrypoint: ["sh", "-c", "trap 'exit 0' TERM; while true; do sleep 1; done"] # Responds to SIGTERM
 
   backend:
     image: alpine:latest
-    entrypoint: ["tail", "-f", "/dev/null"] # Another way to keep the container running
+    entrypoint: ["sh", "-c", "trap 'exit 0' TERM; while true; do sleep 1; done"] # Responds to SIGTERM
 
 volumes:
   test-volume:
