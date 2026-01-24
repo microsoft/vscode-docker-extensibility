@@ -16,6 +16,16 @@ To contribute bug fixes, features, or design changes:
   * To build, open the Command Palette (<kbd>F1</kbd> by default) and type in `Tasks: Run Build Task`.
   * Debug: press <kbd>F5</kbd> (by default) to start debugging.
 
+## Package and connect vscode-docker-extensibilty to vscode-containers for testing
+  * npm run build
+  * npm run package
+  From the directory that contains the repository for vscode-containers
+  * for vscode-container-client `npm install /path/to/vscode-docker-extensibility/packages/vscode-container-client`
+  * for vscode-docker-registries `npm install /path/to/vscode-docker-extensibility/packages/vscode-docker-registries`
+  * for vscode-inproc-mcp `npm install /path/to/vscode-docker-extensibility/packages/vscode-inproc-mcp`
+  * for vscode-processutils `npm install /path/to/vscode-docker-extensibility/packages/vscode-processutils`
+
+
 ## Legal
 
 Before we can accept your pull request you will need to sign a **Contribution License Agreement**. All you need to do is to submit a pull request, then the PR will get appropriately labelled (e.g. `cla-required`, `cla-norequired`, `cla-signed`, `cla-already-signed`). If you already signed the agreement we will continue with reviewing the PR, otherwise system will tell you how you can sign the CLA. Once you sign the CLA all future PR's will be labeled as `cla-signed`.
