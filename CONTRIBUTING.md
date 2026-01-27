@@ -11,7 +11,7 @@ The primary documentation for the extension is available at the [VS Code documen
 ## Code
 To contribute bug fixes, features, or design changes:
   * Clone the repository locally and open in Visual Studio Code.
-  * Install [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [TypeScript + Webpack Problem Matchers](https://marketplace.visualstudio.com/items?itemName=amodio.tsl-problem-matcher) for Visual Studio Code.
+  * Install [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) for Visual Studio Code.
   * Open the terminal (<kbd>CTRL</kbd>+ <kbd>\`</kbd> by default) and run `npm install -ws`.
   * To build, open the Command Palette (<kbd>F1</kbd> by default) and type in `Tasks: Run Build Task`.
   * Debug: press <kbd>F5</kbd> (by default) to start debugging.
