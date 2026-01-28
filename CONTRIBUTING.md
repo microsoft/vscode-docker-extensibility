@@ -21,9 +21,6 @@ To contribute bug fixes, features, or design changes:
   * `npm run package`
   From the directory that contains the repository for vscode-containers
   * for vscode-container-client `npm install /path/to/vscode-docker-extensibility/packages/vscode-container-client`
-  * for vscode-docker-registries `npm install /path/to/vscode-docker-extensibility/packages/vscode-docker-registries`
-  * for vscode-inproc-mcp `npm install /path/to/vscode-docker-extensibility/packages/vscode-inproc-mcp`
-  * for vscode-processutils `npm install /path/to/vscode-docker-extensibility/packages/vscode-processutils`
 
 
 ## Legal
