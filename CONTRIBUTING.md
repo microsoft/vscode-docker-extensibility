@@ -17,8 +17,8 @@ To contribute bug fixes, features, or design changes:
   * Debug: press <kbd>F5</kbd> (by default) to start debugging.
 
 ## Package and connect vscode-docker-extensibilty to vscode-containers for testing
-  * npm run build
-  * npm run package
+  * `npm run build`
+  * `npm run package`
   From the directory that contains the repository for vscode-containers
   * for vscode-container-client `npm install /path/to/vscode-docker-extensibility/packages/vscode-container-client`
   * for vscode-docker-registries `npm install /path/to/vscode-docker-extensibility/packages/vscode-docker-registries`
