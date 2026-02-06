@@ -47,20 +47,20 @@ const PodmanInspectContainerConfigSchema = z.object({
     Image: z.string(),
     Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]),
     Cmd: z.union([z.array(z.string()), z.string(), z.null()]),
-    Env: z.optional(z.nullable(z.array(z.string()))),
-    Labels: z.optional(z.nullable(z.record(z.string(), z.string()))),
-    WorkingDir: z.optional(z.nullable(z.string())),
+    Env: z.nullish(z.array(z.string())),
+    Labels: z.nullish(z.record(z.string(), z.string())),
+    WorkingDir: z.nullish(z.string()),
 });
 
 const PodmanInspectContainerHostConfigSchema = z.object({
-    PublishAllPorts: z.optional(z.nullable(z.boolean())),
+    PublishAllPorts: z.nullish(z.boolean()),
     Isolation: z.optional(z.string()),
 });
 
 const PodmanInspectContainerNetworkSettingsSchema = z.object({
-    Networks: z.optional(z.nullable(z.record(z.string(), PodmanInspectNetworkSchema))),
+    Networks: z.nullish(z.record(z.string(), PodmanInspectNetworkSchema)),
     IPAddress: z.optional(z.string()),
-    Ports: z.optional(z.nullable(z.record(z.string(), z.array(PodmanInspectContainerPortHostSchema)))),
+    Ports: z.nullish(z.record(z.string(), z.array(PodmanInspectContainerPortHostSchema))),
 });
 
 const PodmanInspectContainerStateSchema = z.object({

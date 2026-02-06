@@ -14,6 +14,6 @@ export const PodmanListNetworkRecordSchema = z.object({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     ipv6_enabled: z.optional(z.boolean()), // Not in v3
     internal: z.optional(z.boolean()), // Not in v3
-    Labels: z.nullable(z.optional(z.record(z.string(), z.string()))), // v3
-    labels: z.nullable(z.optional(z.record(z.string(), z.string()))), // Maybe in v4?
+    Labels: z.nullish(z.record(z.string(), z.string())), // v3
+    labels: z.nullish(z.record(z.string(), z.string())), // Maybe in v4?
 });

@@ -9,7 +9,7 @@ export const PodmanListImageRecordSchema = z.object({
     Id: z.string(),
     Names: z.optional(z.array(z.string())),
     Size: z.number(),
-    Labels: z.nullable(z.optional(z.record(z.string(), z.string()))),
+    Labels: z.nullish(z.record(z.string(), z.string())),
     Created: z.number(),
 });
 

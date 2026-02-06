@@ -14,11 +14,11 @@ const DockerInspectImageConfigSchema = z.object({
     Entrypoint: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
     Cmd: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
     Env: z.optional(z.array(z.string())),
-    Labels: z.optional(z.nullable(z.record(z.string(), z.string()))),
-    ExposedPorts: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
-    Volumes: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
-    WorkingDir: z.optional(z.nullable(z.string())),
-    User: z.optional(z.nullable(z.string())),
+    Labels: z.nullish(z.record(z.string(), z.string())),
+    ExposedPorts: z.nullish(z.record(z.string(), z.unknown())),
+    Volumes: z.nullish(z.record(z.string(), z.unknown())),
+    WorkingDir: z.nullish(z.string()),
+    User: z.nullish(z.string()),
 });
 
 export const DockerInspectImageRecordSchema = z.object({
@@ -28,7 +28,7 @@ export const DockerInspectImageRecordSchema = z.object({
     RepoDigests: z.array(z.string()),
     Architecture: z.string(),
     Os: z.string(),
-    Created: z.optional(z.nullable(z.string())),
+    Created: z.nullish(z.string()),
     User: z.optional(z.string()),
 });
 

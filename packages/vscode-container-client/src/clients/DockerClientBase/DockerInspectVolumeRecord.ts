@@ -12,8 +12,8 @@ export const DockerInspectVolumeRecordSchema = z.object({
     Driver: z.string(),
     Mountpoint: z.string(),
     Scope: z.string(),
-    Labels: z.optional(z.nullable(z.record(z.string(), z.string()))),
-    Options: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
+    Labels: z.nullish(z.record(z.string(), z.string())),
+    Options: z.nullish(z.record(z.string(), z.unknown())),
     CreatedAt: z.string(),
 });
 

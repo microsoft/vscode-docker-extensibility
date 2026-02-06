@@ -14,10 +14,10 @@ const PodmanInspectImageConfigSchema = z.object({
     Entrypoint: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
     Cmd: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
     Env: z.optional(z.array(z.string())),
-    ExposedPorts: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
-    Volumes: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
-    WorkingDir: z.optional(z.nullable(z.string())),
-    User: z.optional(z.nullable(z.string())),
+    ExposedPorts: z.nullish(z.record(z.string(), z.unknown())),
+    Volumes: z.nullish(z.record(z.string(), z.unknown())),
+    WorkingDir: z.nullish(z.string()),
+    User: z.nullish(z.string()),
 });
 
 export const PodmanInspectImageRecordSchema = z.object({

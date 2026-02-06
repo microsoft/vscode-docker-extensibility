@@ -59,9 +59,9 @@ const DockerInspectContainerHostConfigSchema = z.object({
 });
 
 const DockerInspectContainerNetworkSettingsSchema = z.object({
-    Networks: z.optional(z.nullable(z.record(z.string(), DockerInspectContainerNetworkSchema))),
+    Networks: z.nullish(z.record(z.string(), DockerInspectContainerNetworkSchema)),
     IPAddress: z.optional(z.string()),
-    Ports: z.optional(z.nullable(z.record(z.string(), z.optional(z.nullable(z.array(DockerInspectContainerPortHostSchema)))))),
+    Ports: z.nullish(z.record(z.string(), z.nullish(z.array(DockerInspectContainerPortHostSchema)))),
 });
 
 const DockerInspectContainerStateSchema = z.object({
