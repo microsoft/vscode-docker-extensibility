@@ -1,3 +1,7 @@
+## 0.2.1 - 6 February 2026
+### Changed
+* Switching from `zod/v4` to `zod/mini` for better tree shaking. [#TODO](https://github.com/microsoft/vscode-docker-extensibility/pull/TODO)
+
 ## 0.2.0 - 1 December 2025
 ### Breaking Changes
 * Updated to use `@modelcontextprotocol/sdk` v1.23. [#319](https://github.com/microsoft/vscode-docker-extensibility/pull/319)
