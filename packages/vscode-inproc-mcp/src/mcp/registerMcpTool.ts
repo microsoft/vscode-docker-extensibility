@@ -5,7 +5,7 @@
 
 import type { McpServer, RegisteredTool } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import type { z } from 'zod/v4';
+import type { z } from 'zod/mini';
 import type { CopilotTool, ToolIOSchema } from '../contracts/CopilotTool';
 import { McpTool } from './McpTool';
 import { isEmptyObjectSchema, isVoidishSchema } from './schema/schemaTypeChecks';

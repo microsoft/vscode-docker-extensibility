@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { CancellationTokenLike } from '@microsoft/vscode-processutils';
-import type { z } from 'zod/v4';
+import type { z } from 'zod/mini';
 
 /**
  * Represents a tool that can be used by Copilot
