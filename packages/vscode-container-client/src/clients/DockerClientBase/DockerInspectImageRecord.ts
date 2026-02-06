@@ -11,14 +11,14 @@ import { parseDockerLikeImageName } from "../../utils/parseDockerLikeImageName";
 import { parseDockerLikeEnvironmentVariables } from "./parseDockerLikeEnvironmentVariables";
 
 const DockerInspectImageConfigSchema = z.object({
-    Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
-    Cmd: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
-    Env: z.array(z.string()).optional(),
-    Labels: z.record(z.string(), z.string()).nullable().optional(),
-    ExposedPorts: z.record(z.string(), z.unknown()).nullable().optional(),
-    Volumes: z.record(z.string(), z.unknown()).nullable().optional(),
-    WorkingDir: z.string().nullable().optional(),
-    User: z.string().nullable().optional(),
+    Entrypoint: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
+    Cmd: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
+    Env: z.optional(z.array(z.string())),
+    Labels: z.optional(z.nullable(z.record(z.string(), z.string()))),
+    ExposedPorts: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
+    Volumes: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
+    WorkingDir: z.optional(z.nullable(z.string())),
+    User: z.optional(z.nullable(z.string())),
 });
 
 export const DockerInspectImageRecordSchema = z.object({
@@ -28,8 +28,8 @@ export const DockerInspectImageRecordSchema = z.object({
     RepoDigests: z.array(z.string()),
     Architecture: z.string(),
     Os: z.string(),
-    Created: z.string().nullable().optional(),
-    User: z.string().optional(),
+    Created: z.optional(z.nullable(z.string())),
+    User: z.optional(z.string()),
 });
 
 type DockerInspectImageRecord = z.infer<typeof DockerInspectImageRecordSchema>;

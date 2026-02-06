@@ -11,6 +11,6 @@ export const DockerVolumeRecordSchema = z.object({
     Labels: z.string(),
     Mountpoint: z.string(),
     Scope: z.string(),
-    CreatedAt: z.string().optional(),
-    Size: z.string().optional(),
+    CreatedAt: z.optional(z.string()),
+    Size: z.optional(z.string()),
 });

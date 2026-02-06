@@ -7,14 +7,14 @@ import { z } from 'zod/mini';
 import { InspectNetworksItem } from '../../contracts/ContainerClient';
 
 export const PodmanInspectNetworkRecordSchema = z.object({
-    id: z.string().optional(), // Not in v3
-    driver: z.string().optional(), // Not in v3
-    created: z.string().optional(), // Not in v3
+    id: z.optional(z.string()), // Not in v3
+    driver: z.optional(z.string()), // Not in v3
+    created: z.optional(z.string()), // Not in v3
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    ipv6_enabled: z.boolean().optional(), // Not in v3
-    internal: z.boolean().optional(), // Not in v3
+    ipv6_enabled: z.optional(z.boolean()), // Not in v3
+    internal: z.optional(z.boolean()), // Not in v3
     name: z.string(),
-    labels: z.record(z.string(), z.string()).optional().nullable(),
+    labels: z.nullable(z.optional(z.record(z.string(), z.string()))),
 });
 
 type PodmanInspectNetworkRecord = z.infer<typeof PodmanInspectNetworkRecordSchema>;

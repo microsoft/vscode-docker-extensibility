@@ -7,6 +7,6 @@ import { z } from 'zod/mini';
 import { ContainerOSSchema } from '../../contracts/ZodEnums';
 
 export const DockerInfoRecordSchema = z.object({
-    OperatingSystem: z.string().optional(),
-    OSType: ContainerOSSchema.optional(),
+    OperatingSystem: z.optional(z.string()),
+    OSType: z.optional(ContainerOSSchema),
 });

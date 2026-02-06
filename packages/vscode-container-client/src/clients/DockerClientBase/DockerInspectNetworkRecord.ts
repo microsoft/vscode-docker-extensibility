@@ -14,7 +14,7 @@ const DockerIpamConfigSchema = z.object({
 
 const DockerIpamSchema = z.object({
     Driver: z.string(),
-    Config: z.array(DockerIpamConfigSchema).optional(),
+    Config: z.optional(z.array(DockerIpamConfigSchema)),
 });
 
 export const DockerInspectNetworkRecordSchema = z.object({

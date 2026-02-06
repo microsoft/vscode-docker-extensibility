@@ -91,7 +91,7 @@ export class McpTool<TInSchema extends ToolIOSchema, TOutSchema extends ToolIOSc
                 }
 
                 return {
-                    content: result.map(item => ({
+                    content: result.map((item: unknown) => ({
                         type: 'text',
                         text: JSON.stringify(item),
                     })),

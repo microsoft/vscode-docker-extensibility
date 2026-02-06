@@ -18,7 +18,7 @@ export const DockerListContainerRecordSchema = z.object({
     Networks: z.string(),
     Labels: z.string(),
     CreatedAt: z.string(),
-    State: z.string().optional(),
+    State: z.optional(z.string()),
     Status: z.string(),
 });
 

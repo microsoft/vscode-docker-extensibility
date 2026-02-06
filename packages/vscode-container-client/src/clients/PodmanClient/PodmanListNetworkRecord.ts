@@ -6,14 +6,14 @@
 import { z } from 'zod/mini';
 
 export const PodmanListNetworkRecordSchema = z.object({
-    Name: z.string().optional(), // v3
-    name: z.string().optional(), // Not in v3
-    id: z.string().optional(), // Not in v3
-    driver: z.string().optional(), // Not in v3
-    created: z.string().optional(), // Not in v3
+    Name: z.optional(z.string()), // v3
+    name: z.optional(z.string()), // Not in v3
+    id: z.optional(z.string()), // Not in v3
+    driver: z.optional(z.string()), // Not in v3
+    created: z.optional(z.string()), // Not in v3
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    ipv6_enabled: z.boolean().optional(), // Not in v3
-    internal: z.boolean().optional(), // Not in v3
-    Labels: z.record(z.string(), z.string()).optional().nullable(), // v3
-    labels: z.record(z.string(), z.string()).optional().nullable(), // Maybe in v4?
+    ipv6_enabled: z.optional(z.boolean()), // Not in v3
+    internal: z.optional(z.boolean()), // Not in v3
+    Labels: z.nullable(z.optional(z.record(z.string(), z.string()))), // v3
+    labels: z.nullable(z.optional(z.record(z.string(), z.string()))), // Maybe in v4?
 });

@@ -7,7 +7,7 @@ import { z } from 'zod/mini';
 
 export const DockerInspectContextRecordSchema = z.object({
     Name: z.string(),
-    Metadata: z.object({
-        Description: z.string().optional(),
-    }).optional(),
+    Metadata: z.optional(z.object({
+        Description: z.optional(z.string()),
+    })),
 });

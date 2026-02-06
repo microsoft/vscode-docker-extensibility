@@ -9,7 +9,7 @@ export const PodmanVersionRecordSchema = z.object({
     Client: z.object({
         APIVersion: z.string(),
     }),
-    Server: z.object({
+    Server: z.optional(z.object({
         APIVersion: z.string(),
-    }).optional(),
+    })),
 });

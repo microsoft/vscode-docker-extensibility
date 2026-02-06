@@ -8,6 +8,6 @@ import { z } from 'zod/mini';
 export const DockerContextRecordSchema = z.object({
     Name: z.string(),
     Current: z.boolean(),
-    Description: z.string().optional(),
-    DockerEndpoint: z.string().optional(),
+    Description: z.optional(z.string()),
+    DockerEndpoint: z.optional(z.string()),
 });

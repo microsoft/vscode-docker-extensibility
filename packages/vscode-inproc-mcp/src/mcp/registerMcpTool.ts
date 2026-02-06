@@ -61,7 +61,7 @@ export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema exten
             inputSchema: normalizedInputSchema,
             outputSchema: normalizedOutputSchema,
         },
-        async (input, extra) => {
+        async (input: unknown, extra: RequestHandlerExtra<never, never>) => {
             // If the input is void, MCP SDK will call with (extra) instead of (undefined, extra)
             // We won't want that, so detect that case and call appropriately
             if (inputIsRequestHandlerExtra(input)) {

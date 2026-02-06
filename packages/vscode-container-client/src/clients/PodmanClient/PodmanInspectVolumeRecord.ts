@@ -11,9 +11,9 @@ export const PodmanInspectVolumeRecordSchema = z.object({
     Driver: z.string(),
     Mountpoint: z.string(),
     CreatedAt: z.string(),
-    Labels: z.record(z.string(), z.string()).optional(),
+    Labels: z.optional(z.record(z.string(), z.string())),
     Scope: z.string(),
-    Options: z.record(z.string(), z.unknown()).optional(),
+    Options: z.optional(z.record(z.string(), z.unknown())),
 });
 
 type PodmanInspectVolumeRecord = z.infer<typeof PodmanInspectVolumeRecordSchema>;
