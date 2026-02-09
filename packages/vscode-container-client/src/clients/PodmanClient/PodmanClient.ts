@@ -8,7 +8,7 @@ import {
     CancellationTokenLike
 } from '@microsoft/vscode-processutils';
 import * as readline from 'readline';
-import { z } from 'zod/mini';
+import * as z from 'zod/mini';
 import {
     EventItem,
     EventStreamCommandOptions,

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenLike } from '@microsoft/vscode-processutils';
-import { z } from 'zod/mini';
+import * as z from 'zod/mini';
 import { CopilotToolBase } from '../base/CopilotToolBase';
 import type { ToolExecutionExtras, ToolIOSchema } from '../contracts/CopilotTool';
 import { getErrorMessage } from '../utils/getErrorMessage';
