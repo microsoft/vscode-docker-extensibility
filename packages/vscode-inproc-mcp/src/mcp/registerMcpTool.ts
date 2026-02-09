@@ -41,7 +41,7 @@ export function registerMcpTool<TInSchema extends ToolIOSchema, TOutSchema exten
         normalizedInputSchema = undefined;
     } else if (isEmptyObjectSchema(mcpTool.inputSchema)) {
         // Input cannot be an empty object or the LLM will not know what to do with it, so error out if that was passed in
-        throw new Error('MCP tools cannot have an empty object input schema. Use ZodVoid for no input, or define a non-empty object schema.');
+        throw new Error('MCP tools cannot have an empty object input schema. Use ZodMiniVoid for no input, or define a non-empty object schema.');
     } else {
         normalizedInputSchema = mcpTool.inputSchema;
     }

@@ -1,6 +1,6 @@
-## 0.5.3 - 6 February 2026
+## 0.5.3 - 9 February 2026
 ### Changed
-* Switching from `zod/v4` to `zod/mini` for better tree shaking. [#TODO](https://github.com/microsoft/vscode-docker-extensibility/pull/TODO)
+* Switching from `zod/v4` to `zod/mini` for better tree shaking. [#337](https://github.com/microsoft/vscode-docker-extensibility/pull/337)
 
 ## 0.5.2 - 1 December 2025
 ### Changed
