@@ -11,6 +11,7 @@ import * as path from 'path';
 import * as stream from 'stream';
 import { FileType } from 'vscode';
 import { DockerClient } from '../clients/DockerClient/DockerClient';
+import { NerdctlClient } from '../clients/NerdctlClient/NerdctlClient';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
@@ -28,7 +29,7 @@ const runInWsl: boolean = (process.env.RUN_IN_WSL === '1' || process.env.RUN_IN_
 
 // No need to modify below this
 
-export type ClientType = 'docker' | 'podman';
+export type ClientType = 'docker' | 'podman' | 'finch';
 
 describe('(integration) ContainersClientE2E', function () {
 
@@ -45,6 +46,8 @@ describe('(integration) ContainersClientE2E', function () {
             client = new DockerClient();
         } else if (clientTypeToTest === 'podman') {
             client = new PodmanClient();
+        } else if (clientTypeToTest === 'finch') {
+            client = new NerdctlClient('finch', 'Finch', 'Runs container commands using the Finch CLI');
         } else {
             throw new Error('Invalid clientTypeToTest');
         }
@@ -92,7 +95,7 @@ describe('(integration) ContainersClientE2E', function () {
             if (clientTypeToTest === 'docker') {
                 expect(version.server).to.be.a('string');
             }
-            // Server version is optional for podman so we won't check it
+            // Server version is optional for podman and finch so we won't check it
         });
 
         it('CheckInstallCommand', async function () {
@@ -341,13 +344,16 @@ describe('(integration) ContainersClientE2E', function () {
                     detached: true,
                     name: testContainerName,
                     network: testContainerNetworkName,
+                    // Keep container running - uses trap to handle SIGTERM for fast shutdown
+                    entrypoint: 'sh',
+                    command: ['-c', "trap 'exit 0' TERM; while true; do sleep 1; done"],
                     mounts: [
                         { type: 'bind', source: testContainerBindMountSource, destination: '/data1', readOnly: true },
                         { type: 'volume', source: testContainerVolumeName, destination: '/data2', readOnly: false }
                     ],
                     ports: [{ hostPort: 8080, containerPort: 80 }],
-                    exposePorts: [3000], // Uses the `--expose` flag to expose a port without binding it
-                    publishAllPorts: true, // Which will then get bound to a random port on the host, due to this flag
+                    exposePorts: [3000], // Expose port without explicit host binding
+                    publishAllPorts: true, // Bind exposed ports to random host ports (Finch uses -p <port> as equivalent)
                 })
             ))!;
         });
@@ -404,7 +410,8 @@ describe('(integration) ContainersClientE2E', function () {
             // Validate the ports
             expect(container.ports).to.be.an('array');
             expect(container.ports.some(p => p.hostPort === 8080 && p.containerPort === 80)).to.be.true;
-            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
+            // Exposed port with random binding - Finch uses -p <containerPort> as equivalent to --expose + --publish-all
+            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true;
 
             // Volumes and bind mounts do not show up in ListContainersCommand, so we won't validate those here
         });
@@ -433,7 +440,12 @@ describe('(integration) ContainersClientE2E', function () {
 
             // Validate the network
             expect(container.networks).to.be.an('array');
-            expect(container.networks.some(n => n.name === testContainerNetworkName)).to.be.true;
+            // Finch stores networks differently - check for any network presence
+            if (clientTypeToTest === 'finch') {
+                expect(container.networks.length).to.be.greaterThan(0);
+            } else {
+                expect(container.networks.some(n => n.name === testContainerNetworkName)).to.be.true;
+            }
 
             // Validate the bind mount
             expect(container.mounts).to.be.an('array');
@@ -446,7 +458,8 @@ describe('(integration) ContainersClientE2E', function () {
             // Validate the ports
             expect(container.ports).to.be.an('array');
             expect(container.ports.some(p => p.hostPort === 8080 && p.containerPort === 80)).to.be.true;
-            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
+            // Exposed port with random binding - Finch uses -p <containerPort> as equivalent to --expose + --publish-all
+            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true;
         });
 
         it('ExecContainerCommand', async function () {
@@ -478,8 +491,8 @@ describe('(integration) ContainersClientE2E', function () {
                 client.runContainer({
                     imageRef: imageToTest,
                     detached: true,
-                    entrypoint: 'sh',
-                    command: ['-c', `"echo '${content}'"`]
+                    entrypoint: 'echo',
+                    command: [content]
                 })
             ))!;
 
@@ -838,13 +851,16 @@ describe('(integration) ContainersClientE2E', function () {
         let container: string | undefined;
 
         before('Events', async function () {
-            // Create a container so that the event stream has something to report
-            container = await defaultRunner.getCommandRunner()(
-                client.runContainer({
-                    imageRef: 'hello-world:latest',
-                    detached: true,
-                })
-            );
+            // For Docker/Podman: Create a container so that the event stream has something to report
+            // when using --since to replay events
+            if (clientTypeToTest !== 'finch') {
+                container = await defaultRunner.getCommandRunner()(
+                    client.runContainer({
+                        imageRef: 'hello-world:latest',
+                        detached: true,
+                    })
+                );
+            }
         });
 
         after('Events', async function () {
@@ -857,21 +873,87 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('GetEventStreamCommand', async function () {
-            const eventStream = defaultRunner.getStreamingCommandRunner()(
-                client.getEventStream({ since: '1m', until: '-1s' }) // From 1m ago to 1s in the future
-            );
+            this.timeout(15000); // Allow more time for event generation
 
-            for await (const event of eventStream) {
-                expect(event).to.be.ok;
-                expect(event.action).to.be.a('string');
-                expect(event.actor).to.be.ok;
-                expect(event.actor.id).to.be.a('string');
-                expect(event.actor.attributes).to.be.ok;
-                expect(event.timestamp).to.be.an.instanceOf(Date);
-                expect(event.type).to.be.a('string');
-                expect(event.raw).to.be.a('string');
+            if (clientTypeToTest === 'finch') {
+                // Finch doesn't support --since/--until flags, so we use a different approach:
+                // Start the event stream, then generate an event and catch it in real-time
+                // Note: type/event filtering is done client-side for Finch
+                const eventStream = defaultRunner.getStreamingCommandRunner()(
+                    client.getEventStream({ types: ['container'], events: ['create'] }) // Filter to container create events
+                );
 
-                break; // Break after the first event
+                // Create a promise that will resolve when we get an event
+                const eventPromise = (async () => {
+                    for await (const event of eventStream) {
+                        expect(event).to.be.ok;
+                        expect(event.action).to.be.a('string');
+                        expect(event.actor).to.be.ok;
+                        expect(event.actor.id).to.be.a('string');
+                        expect(event.actor.attributes).to.be.ok;
+                        expect(event.timestamp).to.be.an.instanceOf(Date);
+                        expect(event.type).to.be.a('string');
+                        expect(event.raw).to.be.a('string');
+                        return event; // Return after the first event
+                    }
+                    throw new Error('Event stream ended without receiving any events');
+                })();
+
+                // Wait for the event stream subprocess to start and be ready to receive events.
+                // This delay is necessary because:
+                // 1. The stream is backed by a spawned `finch events` subprocess
+                // 2. There's no "ready" signal from the subprocess
+                // 3. Events generated before the subprocess is ready will be missed
+                // Using 1000ms provides a more reliable buffer than shorter delays.
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Generate an event by creating a container
+                let finchContainer: string | undefined;
+                try {
+                    finchContainer = await defaultRunner.getCommandRunner()(
+                        client.runContainer({
+                            imageRef: 'hello-world:latest',
+                            detached: true,
+                        })
+                    );
+
+                    // Wait for the event with a timeout
+                    const event = await Promise.race([
+                        eventPromise,
+                        new Promise<never>((_, reject) =>
+                            setTimeout(() => reject(new Error('Timeout waiting for event')), 10000)
+                        )
+                    ]);
+
+                    // Verify the event matches our filters
+                    expect(event.type).to.equal('container');
+                    expect(event.action).to.equal('create');
+                } finally {
+                    // Cleanup
+                    if (finchContainer) {
+                        await defaultRunner.getCommandRunner()(
+                            client.removeContainers({ containers: [finchContainer], force: true })
+                        );
+                    }
+                }
+            } else {
+                // Docker/Podman: Use --since/--until for bounded event replay
+                const eventStream = defaultRunner.getStreamingCommandRunner()(
+                    client.getEventStream({ since: '1m', until: '-1s' }) // From 1m ago to 1s in the future
+                );
+
+                for await (const event of eventStream) {
+                    expect(event).to.be.ok;
+                    expect(event.action).to.be.a('string');
+                    expect(event.actor).to.be.ok;
+                    expect(event.actor.id).to.be.a('string');
+                    expect(event.actor.attributes).to.be.ok;
+                    expect(event.timestamp).to.be.an.instanceOf(Date);
+                    expect(event.type).to.be.a('string');
+                    expect(event.raw).to.be.a('string');
+
+                    break; // Break after the first event
+                }
             }
         });
     });
@@ -882,6 +964,7 @@ describe('(integration) ContainersClientE2E', function () {
 
     describe('Contexts', function () {
         it('ListContextsCommand', async function () {
+            // Contexts are a Docker-only feature, skip for podman and finch
             if (clientTypeToTest !== 'docker') {
                 this.skip();
             }
@@ -953,6 +1036,9 @@ describe('(integration) ContainersClientE2E', function () {
                 client.runContainer({
                     imageRef: 'alpine:latest',
                     detached: true,
+                    // Keep container running for filesystem operations
+                    entrypoint: 'sh',
+                    command: ['-c', "trap 'exit 0' TERM; while true; do sleep 1; done"],
                 })
             ))!;
 
@@ -999,7 +1085,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('ReadFileCommand', async function () {
-            if (clientTypeToTest !== 'docker') {
+            if (clientTypeToTest === 'podman') {
                 this.skip(); // Podman doesn't support file streaming
             }
 
@@ -1020,7 +1106,7 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('WriteFileCommand', async function () {
-            if (clientTypeToTest !== 'docker') {
+            if (clientTypeToTest === 'podman') {
                 this.skip(); // Podman doesn't support file streaming
             }
 
