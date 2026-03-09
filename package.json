@@ -20,9 +20,5 @@
         "@types/node": "22.x",
         "@types/vscode": "1.105.0",
         "tsconfig-paths": "^4.0.0"
-    },
-    "overrides": {
-        "diff": "^8.0.3",
-        "serialize-javascript": "^7.0.3"
     }
 }
