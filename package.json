@@ -16,13 +16,9 @@
         "test": "npm run --workspaces test"
     },
     "devDependencies": {
-        "@microsoft/vscode-azext-eng": "1.0.0-alpha.16",
+        "@microsoft/vscode-azext-eng": "1.0.0-alpha.8",
         "@types/node": "22.x",
         "@types/vscode": "1.105.0",
         "tsconfig-paths": "^4.0.0"
-    },
-    "overrides": {
-        "diff": "^8.0.3",
-        "serialize-javascript": "^7.0.5"
     }
 }

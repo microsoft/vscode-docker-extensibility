@@ -23,6 +23,7 @@ export function parsePruneLikeOutput(output: string, options: PruneParseOptions)
     const resourceRegex = options?.resourceRegex ?? ResourceRegex;
 
     const deletedResources: string[] = [];
+    let spaceReclaimed: number = 0;
 
     // match resources
     resourceRegex.lastIndex = 0;
@@ -34,7 +35,7 @@ export function parsePruneLikeOutput(output: string, options: PruneParseOptions)
     // match space reclaimed
     PruneSpaceReclaimedRegex.lastIndex = 0;
     const spaceMatched = PruneSpaceReclaimedRegex.exec(output)?.[0];
-    const spaceReclaimed = tryParseSize(spaceMatched) || 0;
+    spaceReclaimed = tryParseSize(spaceMatched) || 0;
 
     return {
         spaceReclaimed: spaceReclaimed,
