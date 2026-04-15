@@ -43,8 +43,7 @@ export async function httpRequest<T>(url: string, request: RequestLike, throwOnF
         request.duplex = 'half';
     }
 
-    const fetchRequest = new Request(url, request);
-    const response: Response = await fetch(fetchRequest);
+    const response: Response = await fetch(url, request);
 
     if (throwOnFailure && response.status === 401) {
         throw new UnauthorizedError(vscode.l10n.t('Request to \'{0}\' failed with response 401: Unauthorized', url));
