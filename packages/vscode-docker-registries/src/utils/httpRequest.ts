@@ -38,12 +38,12 @@ export interface ResponseLike<T> extends Response {
 }
 
 export async function httpRequest<T>(url: string, request: RequestLike, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
-    if (!!request.body && request.duplex === undefined) {
+    const requestInit: RequestLike = !!request.body && request.duplex === undefined
         // node-fetch requires the "duplex" option to be set to "half" in order to send a body
-        request.duplex = 'half';
-    }
+        ? { ...request, duplex: 'half' }
+        : request;
 
-    const response: Response = await fetch(url, request);
+    const response: Response = await fetch(url, requestInit);
 
     if (throwOnFailure && response.status === 401) {
         throw new UnauthorizedError(vscode.l10n.t('Request to \'{0}\' failed with response 401: Unauthorized', url));
