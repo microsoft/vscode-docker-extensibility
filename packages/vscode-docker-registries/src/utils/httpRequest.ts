@@ -38,6 +38,11 @@ export interface ResponseLike<T> extends Response {
 }
 
 export async function httpRequest<T>(url: string, request: RequestLike, throwOnFailure: boolean = true): Promise<ResponseLike<T>> {
+    if (!!request.body && request.duplex === undefined) {
+        // node-fetch requires the "duplex" option to be set to "half" in order to send a body
+        request.duplex = 'half';
+    }
+
     const fetchRequest = new Request(url, request);
     const response: Response = await fetch(fetchRequest);
 
