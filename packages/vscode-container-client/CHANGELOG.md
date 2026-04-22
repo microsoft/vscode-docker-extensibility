@@ -1,3 +1,7 @@
+## 0.5.4 - 22 April 2026
+### Changed
+* Removed runtime imports of `'vscode'`. [#358](https://github.com/microsoft/vscode-docker-extensibility/pull/358)
+
 ## 0.5.3 - 9 February 2026
 ### Changed
 * Switching from `zod/v4` to `zod/mini` for better tree shaking. [#337](https://github.com/microsoft/vscode-docker-extensibility/pull/337)
