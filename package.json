@@ -16,9 +16,10 @@
         "test": "npm run --workspaces test"
     },
     "devDependencies": {
-        "@microsoft/vscode-azext-eng": "1.0.0-alpha.8",
+        "@microsoft/vscode-azext-eng": "1.1.0-alpha.1",
         "@types/node": "22.x",
         "@types/vscode": "1.105.0",
-        "tsconfig-paths": "^4.0.0"
+        "tsconfig-paths": "^4.0.0",
+        "tsx": "*"
     }
 }
