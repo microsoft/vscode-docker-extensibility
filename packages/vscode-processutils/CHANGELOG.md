@@ -1,3 +1,7 @@
+## 0.2.3 - 19 June 2026
+### Changed
+* Updated `which` to v7.
+
 ## 0.2.2 - 22 April 2026
 ### Changed
 * Removed runtime imports of `'vscode'`. [#358](https://github.com/microsoft/vscode-docker-extensibility/pull/358)

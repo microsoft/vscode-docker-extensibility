@@ -1,7 +1,7 @@
 {
     "name": "@microsoft/vscode-processutils",
     "author": "Microsoft Corporation",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "description": "Library support for building command lines and running external processes, primarily for use in VS Code.",
     "license": "See LICENSE in the project root for license information.",
     "repository": {
@@ -26,7 +26,7 @@
     },
     "dependencies": {
         "tree-kill": "^1.2.2",
-        "which": "^5.0.0"
+        "which": "^7.0.0"
     },
     "devDependencies": {
         "@types/which": "^3.0.4",
