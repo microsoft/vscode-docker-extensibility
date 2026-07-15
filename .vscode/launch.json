@@ -87,7 +87,8 @@
             "description": "Select the container runtime to use for integration tests",
             "options": [
                 "docker",
-                "podman"
+                "podman",
+                "wslc"
             ],
             "default": "docker"
         },
