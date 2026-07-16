@@ -360,76 +360,13 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
         return new Date(value);
     }
 
-    /**
-     * Parse JSON output that could be either:
-     * - A JSON array (nerdctl default behavior)
-     * - Newline-separated JSON objects (when --format "{{json .}}" is used)
-     * - A single JSON object
-     *
-     * This handles the case where inspect commands with multiple targets may output
-     * one JSON object per line instead of an array.
-     */
-    private parseJsonArrayOrLines(output: string): unknown[] {
-        const trimmed = output.trim();
-        if (!trimmed) {
-            return [];
-        }
-
-        // First, try to parse as a single JSON value (array or object)
-        try {
-            const parsed: unknown = JSON.parse(trimmed);
-            if (Array.isArray(parsed)) {
-                return parsed as unknown[];
-            }
-            // Single object
-            return [parsed];
-        } catch {
-            // If that fails, try parsing as newline-separated JSON objects
-            const results: unknown[] = [];
-            for (const line of trimmed.split('\n')) {
-                const trimmedLine = line.trim();
-                if (!trimmedLine) {
-                    continue;
-                }
-                try {
-                    results.push(JSON.parse(trimmedLine));
-                } catch {
-                    // Skip unparseable lines in non-strict mode
-                }
-            }
-            return results;
-        }
-    }
-
     //#endregion
 
     //#region ListImages Command
 
     protected override parseListImagesCommandOutput(_options: ListImagesCommandOptions, output: string, strict: boolean): Promise<ListImagesItem[]> {
-        const images = new Array<ListImagesItem>();
-
-        try {
-            output.split('\n').forEach((imageJson) => {
-                try {
-                    if (!imageJson) {
-                        return;
-                    }
-
-                    const rawImage = NerdctlListImageRecordSchema.parse(JSON.parse(imageJson));
-                    images.push(normalizeNerdctlListImageRecord(rawImage));
-                } catch (err) {
-                    if (strict) {
-                        throw err;
-                    }
-                }
-            });
-        } catch (err) {
-            if (strict) {
-                throw err;
-            }
-        }
-
-        return Promise.resolve(images);
+        return this.parsePerLineJson(output, strict, (imageJson) =>
+            normalizeNerdctlListImageRecord(NerdctlListImageRecordSchema.parse(JSON.parse(imageJson))));
     }
 
     //#endregion
@@ -441,23 +378,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
         output: string,
         strict: boolean,
     ): Promise<Array<InspectImagesItem>> {
-        const results = new Array<InspectImagesItem>();
-
-        // Handle both JSON array and newline-separated JSON objects
-        const items = this.parseJsonArrayOrLines(output);
-
-        for (const item of items) {
-            try {
-                const inspect = NerdctlInspectImageRecordSchema.parse(item);
-                results.push(normalizeNerdctlInspectImageRecord(inspect, JSON.stringify(item)));
-            } catch (err) {
-                if (strict) {
-                    throw err;
-                }
-            }
-        }
-
-        return Promise.resolve(results);
+        return this.parseInspectJson(output, strict, (item) =>
+            normalizeNerdctlInspectImageRecord(NerdctlInspectImageRecordSchema.parse(item), JSON.stringify(item)));
     }
 
     //#endregion
@@ -465,30 +387,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
     //#region ListContainers Command
 
     protected override parseListContainersCommandOutput(_options: ListContainersCommandOptions, output: string, strict: boolean): Promise<ListContainersItem[]> {
-        const containers = new Array<ListContainersItem>();
-
-        try {
-            output.split('\n').forEach((containerJson) => {
-                try {
-                    if (!containerJson) {
-                        return;
-                    }
-
-                    const rawContainer = NerdctlListContainerRecordSchema.parse(JSON.parse(containerJson));
-                    containers.push(normalizeNerdctlListContainerRecord(rawContainer, strict));
-                } catch (err) {
-                    if (strict) {
-                        throw err;
-                    }
-                }
-            });
-        } catch (err) {
-            if (strict) {
-                throw err;
-            }
-        }
-
-        return Promise.resolve(containers);
+        return this.parsePerLineJson(output, strict, (containerJson) =>
+            normalizeNerdctlListContainerRecord(NerdctlListContainerRecordSchema.parse(JSON.parse(containerJson)), strict));
     }
 
     //#endregion
@@ -496,23 +396,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
     //#region InspectContainers Command
 
     protected override parseInspectContainersCommandOutput(_options: InspectContainersCommandOptions, output: string, strict: boolean): Promise<InspectContainersItem[]> {
-        const results = new Array<InspectContainersItem>();
-
-        // Handle both JSON array and newline-separated JSON objects
-        const items = this.parseJsonArrayOrLines(output);
-
-        for (const item of items) {
-            try {
-                const inspect = NerdctlInspectContainerRecordSchema.parse(item);
-                results.push(normalizeNerdctlInspectContainerRecord(inspect, JSON.stringify(item)));
-            } catch (err) {
-                if (strict) {
-                    throw err;
-                }
-            }
-        }
-
-        return Promise.resolve(results);
+        return this.parseInspectJson(output, strict, (item) =>
+            normalizeNerdctlInspectContainerRecord(NerdctlInspectContainerRecordSchema.parse(item), JSON.stringify(item)));
     }
 
     //#endregion
@@ -530,30 +415,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
     }
 
     protected override parseListNetworksCommandOutput(_options: ListNetworksCommandOptions, output: string, strict: boolean): Promise<ListNetworkItem[]> {
-        const results = new Array<ListNetworkItem>();
-
-        try {
-            output.split('\n').forEach((networkJson) => {
-                try {
-                    if (!networkJson) {
-                        return;
-                    }
-
-                    const rawNetwork = NerdctlListNetworkRecordSchema.parse(JSON.parse(networkJson));
-                    results.push(normalizeNerdctlListNetworkRecord(rawNetwork));
-                } catch (err) {
-                    if (strict) {
-                        throw err;
-                    }
-                }
-            });
-        } catch (err) {
-            if (strict) {
-                throw err;
-            }
-        }
-
-        return Promise.resolve(results);
+        return this.parsePerLineJson(output, strict, (networkJson) =>
+            normalizeNerdctlListNetworkRecord(NerdctlListNetworkRecordSchema.parse(JSON.parse(networkJson))));
     }
 
     //#endregion
@@ -561,23 +424,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
     //#region InspectNetworks Command
 
     protected override parseInspectNetworksCommandOutput(_options: InspectNetworksCommandOptions, output: string, strict: boolean): Promise<InspectNetworksItem[]> {
-        const results = new Array<InspectNetworksItem>();
-
-        // Handle both JSON array and newline-separated JSON objects
-        const items = this.parseJsonArrayOrLines(output);
-
-        for (const item of items) {
-            try {
-                const inspect = NerdctlInspectNetworkRecordSchema.parse(item);
-                results.push(normalizeNerdctlInspectNetworkRecord(inspect, JSON.stringify(item)));
-            } catch (err) {
-                if (strict) {
-                    throw err;
-                }
-            }
-        }
-
-        return Promise.resolve(results);
+        return this.parseInspectJson(output, strict, (item) =>
+            normalizeNerdctlInspectNetworkRecord(NerdctlInspectNetworkRecordSchema.parse(item), JSON.stringify(item)));
     }
 
     //#endregion
@@ -585,57 +433,34 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
     //#region ListVolumes Command
 
     protected override parseListVolumesCommandOutput(_options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
-        const volumes = new Array<ListVolumeItem>();
+        return this.parsePerLineJson(output, strict, (volumeJson) => {
+            const rawVolume = NerdctlInspectVolumeRecordSchema.parse(JSON.parse(volumeJson));
 
-        try {
-            output.split('\n').forEach((volumeJson) => {
-                try {
-                    if (!volumeJson) {
-                        return;
-                    }
+            // Labels can be:
+            // - A record/object (normal case)
+            // - An empty string "" when no labels are set
+            // - A string like "key=value,key2=value2" (parse with parseDockerLikeLabels)
+            const labels: Record<string, string> = typeof rawVolume.Labels === 'string'
+                ? parseDockerLikeLabels(rawVolume.Labels)
+                : rawVolume.Labels ?? {};
 
-                    const rawVolume = NerdctlInspectVolumeRecordSchema.parse(JSON.parse(volumeJson));
-
-                    // Labels can be:
-                    // - A record/object (normal case)
-                    // - An empty string "" when no labels are set
-                    // - A string like "key=value,key2=value2" (parse with parseDockerLikeLabels)
-                    let labels: Record<string, string>;
-                    if (typeof rawVolume.Labels === 'string') {
-                        labels = parseDockerLikeLabels(rawVolume.Labels);
-                    } else {
-                        labels = rawVolume.Labels ?? {};
-                    }
-
-                    // Parse and validate CreatedAt
-                    let createdAt: Date | undefined;
-                    if (rawVolume.CreatedAt) {
-                        const parsed = dayjs.utc(rawVolume.CreatedAt);
-                        createdAt = parsed.isValid() ? parsed.toDate() : undefined;
-                    }
-
-                    volumes.push({
-                        name: rawVolume.Name,
-                        driver: rawVolume.Driver || 'local',
-                        labels,
-                        mountpoint: rawVolume.Mountpoint || '',
-                        scope: rawVolume.Scope || 'local',
-                        createdAt,
-                        size: undefined, // nerdctl doesn't always provide size in list
-                    });
-                } catch (err) {
-                    if (strict) {
-                        throw err;
-                    }
-                }
-            });
-        } catch (err) {
-            if (strict) {
-                throw err;
+            // Parse and validate CreatedAt
+            let createdAt: Date | undefined;
+            if (rawVolume.CreatedAt) {
+                const parsed = dayjs.utc(rawVolume.CreatedAt);
+                createdAt = parsed.isValid() ? parsed.toDate() : undefined;
             }
-        }
 
-        return Promise.resolve(volumes);
+            return {
+                name: rawVolume.Name,
+                driver: rawVolume.Driver || 'local',
+                labels,
+                mountpoint: rawVolume.Mountpoint || '',
+                scope: rawVolume.Scope || 'local',
+                createdAt,
+                size: undefined, // nerdctl doesn't always provide size in list
+            };
+        });
     }
 
     //#endregion
@@ -643,23 +468,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
     //#region InspectVolumes Command
 
     protected override parseInspectVolumesCommandOutput(_options: InspectVolumesCommandOptions, output: string, strict: boolean): Promise<InspectVolumesItem[]> {
-        const results = new Array<InspectVolumesItem>();
-
-        // Handle both JSON array and newline-separated JSON objects
-        const items = this.parseJsonArrayOrLines(output);
-
-        for (const item of items) {
-            try {
-                const inspect = NerdctlInspectVolumeRecordSchema.parse(item);
-                results.push(normalizeNerdctlInspectVolumeRecord(inspect, JSON.stringify(item)));
-            } catch (err) {
-                if (strict) {
-                    throw err;
-                }
-            }
-        }
-
-        return Promise.resolve(results);
+        return this.parseInspectJson(output, strict, (item) =>
+            normalizeNerdctlInspectVolumeRecord(NerdctlInspectVolumeRecordSchema.parse(item), JSON.stringify(item)));
     }
 
     //#endregion

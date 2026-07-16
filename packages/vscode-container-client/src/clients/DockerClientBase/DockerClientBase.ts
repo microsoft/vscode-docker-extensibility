@@ -138,6 +138,107 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      */
     protected readonly defaultFormatForJson: string = "{{json .}}";
 
+    //#region Output parsing helpers
+
+    /**
+     * Parse newline-delimited JSON output (one JSON object per line, as emitted
+     * by `--format "{{json .}}"`) into normalized items. Empty lines are skipped.
+     * In non-strict mode, per-line and top-level parse errors are swallowed and
+     * whatever was successfully parsed is returned; in strict mode they propagate.
+     * @param output The raw command output
+     * @param strict Whether to throw on parse errors
+     * @param parseOne Callback that parses and normalizes a single line of JSON
+     * @returns The normalized items
+     */
+    protected parsePerLineJson<T>(output: string, strict: boolean, parseOne: (json: string) => T): Promise<Array<T>> {
+        const results = new Array<T>();
+
+        try {
+            for (const line of output.split('\n')) {
+                if (!line) {
+                    continue;
+                }
+
+                try {
+                    results.push(parseOne(line));
+                } catch (err) {
+                    if (strict) {
+                        throw err;
+                    }
+                }
+            }
+        } catch (err) {
+            if (strict) {
+                throw err;
+            }
+        }
+
+        return Promise.resolve(results);
+    }
+
+    /**
+     * Parse command output that may be either a single JSON value (array or
+     * object) or newline-delimited JSON objects. This handles clients/commands
+     * that inconsistently emit a JSON array vs. one object per line (e.g. multi
+     * target inspect).
+     * @param output The raw command output
+     * @returns The parsed values as a flat array of unknowns
+     */
+    protected parseJsonArrayOrLines(output: string): Array<unknown> {
+        const trimmed = output.trim();
+        if (!trimmed) {
+            return [];
+        }
+
+        // First, try to parse the whole output as a single JSON value
+        try {
+            const parsed: unknown = JSON.parse(trimmed);
+            return Array.isArray(parsed) ? parsed as Array<unknown> : [parsed];
+        } catch {
+            // Otherwise, fall back to newline-delimited JSON objects
+            const results = new Array<unknown>();
+            for (const line of trimmed.split('\n')) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) {
+                    continue;
+                }
+                try {
+                    results.push(JSON.parse(trimmedLine));
+                } catch {
+                    // Skip unparseable lines; strictness is enforced by the caller during normalization
+                }
+            }
+            return results;
+        }
+    }
+
+    /**
+     * Parse inspect-style output (a JSON array or newline-delimited JSON objects)
+     * into normalized items. In non-strict mode, per-item normalization errors are
+     * swallowed; in strict mode they propagate.
+     * @param output The raw command output
+     * @param strict Whether to throw on normalization errors
+     * @param normalizeOne Callback that validates and normalizes a single parsed record
+     * @returns The normalized items
+     */
+    protected parseInspectJson<T>(output: string, strict: boolean, normalizeOne: (item: unknown) => T): Promise<Array<T>> {
+        const results = new Array<T>();
+
+        for (const item of this.parseJsonArrayOrLines(output)) {
+            try {
+                results.push(normalizeOne(item));
+            } catch (err) {
+                if (strict) {
+                    throw err;
+                }
+            }
+        }
+
+        return Promise.resolve(results);
+    }
+
+    //#endregion
+
     //#region Information Commands
 
     protected getInfoCommandArgs(
