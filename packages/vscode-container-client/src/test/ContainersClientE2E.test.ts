@@ -12,6 +12,7 @@ import * as stream from 'stream';
 import { FileType } from '../typings/FileType';
 import { DockerClient } from '../clients/DockerClient/DockerClient';
 import { PodmanClient } from '../clients/PodmanClient/PodmanClient';
+import { WslcClient } from '../clients/WslcClient/WslcClient';
 import { ShellStreamCommandRunnerFactory, ShellStreamCommandRunnerOptions } from '../commandRunners/shellStream';
 import { WslShellCommandRunnerFactory, WslShellCommandRunnerOptions } from '../commandRunners/wslStream';
 import { IContainersClient, ListContainersItem, ListImagesItem, ListNetworkItem, ListVolumeItem } from '../contracts/ContainerClient';
@@ -28,7 +29,11 @@ const runInWsl: boolean = (process.env.RUN_IN_WSL === '1' || process.env.RUN_IN_
 
 // No need to modify below this
 
-export type ClientType = 'docker' | 'podman';
+export type ClientType = 'docker' | 'podman' | 'wslc';
+
+// wslc does not support the `--expose` flag on `run`, but it does support
+// network create/list/inspect/remove/prune.
+const supportsExposeFlag = clientTypeToTest !== 'wslc';
 
 describe('(integration) ContainersClientE2E', function () {
 
@@ -45,6 +50,8 @@ describe('(integration) ContainersClientE2E', function () {
             client = new DockerClient();
         } else if (clientTypeToTest === 'podman') {
             client = new PodmanClient();
+        } else if (clientTypeToTest === 'wslc') {
+            client = new WslcClient();
         } else {
             throw new Error('Invalid clientTypeToTest');
         }
@@ -346,8 +353,8 @@ describe('(integration) ContainersClientE2E', function () {
                         { type: 'volume', source: testContainerVolumeName, destination: '/data2', readOnly: false }
                     ],
                     ports: [{ hostPort: 8080, containerPort: 80 }],
-                    exposePorts: [3000], // Uses the `--expose` flag to expose a port without binding it
-                    publishAllPorts: true, // Which will then get bound to a random port on the host, due to this flag
+                    exposePorts: supportsExposeFlag ? [3000] : undefined, // wslc has no --expose flag
+                    publishAllPorts: true, // exposed ports get random host bindings
                 })
             ))!;
         });
@@ -404,7 +411,10 @@ describe('(integration) ContainersClientE2E', function () {
             // Validate the ports
             expect(container.ports).to.be.an('array');
             expect(container.ports.some(p => p.hostPort === 8080 && p.containerPort === 80)).to.be.true;
-            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
+            if (supportsExposeFlag) {
+                // wslc has no --expose flag, so no random-binding port to validate
+                expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
+            }
 
             // Volumes and bind mounts do not show up in ListContainersCommand, so we won't validate those here
         });
@@ -440,13 +450,19 @@ describe('(integration) ContainersClientE2E', function () {
             expect(container.mounts.some(m => m.type === 'bind' && m.source === testContainerBindMountSource && m.destination === '/data1' && m.readOnly === true)).to.be.true;
 
             // Validate the volume
-            expect(container.mounts).to.be.an('array');
-            expect(container.mounts.some(m => m.type === 'volume' && m.source === testContainerVolumeName && m.destination === '/data2' && m.readOnly === false)).to.be.true;
+            // NOTE: wslc omits named-volume mounts from `inspect` output (only bind mounts appear),
+            // even though the volume is functionally mounted. Skip this assertion for wslc.
+            if (clientTypeToTest !== 'wslc') {
+                expect(container.mounts).to.be.an('array');
+                expect(container.mounts.some(m => m.type === 'volume' && m.source === testContainerVolumeName && m.destination === '/data2' && m.readOnly === false)).to.be.true;
+            }
 
             // Validate the ports
             expect(container.ports).to.be.an('array');
             expect(container.ports.some(p => p.hostPort === 8080 && p.containerPort === 80)).to.be.true;
-            expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
+            if (supportsExposeFlag) {
+                expect(container.ports.some(p => p.containerPort === 3000 && !!p.hostPort && p.hostPort > 0 && p.hostPort < 65536)).to.be.true; // Exposed port with random binding
+            }
         });
 
         it('ExecContainerCommand', async function () {
@@ -535,6 +551,10 @@ describe('(integration) ContainersClientE2E', function () {
         });
 
         it('RestartContainersCommand', async function () {
+            if (clientTypeToTest === 'wslc') {
+                this.skip(); // wslc has no `restart` subcommand
+            }
+
             // Restart the container
             const restartedContainers = await defaultRunner.getCommandRunner()(
                 client.restartContainers({ container: [testContainerId], time: 1 })
@@ -838,6 +858,10 @@ describe('(integration) ContainersClientE2E', function () {
         let container: string | undefined;
 
         before('Events', async function () {
+            if (clientTypeToTest === 'wslc') {
+                this.skip(); // wslc has no `events` subcommand
+            }
+
             // Create a container so that the event stream has something to report
             container = await defaultRunner.getCommandRunner()(
                 client.runContainer({

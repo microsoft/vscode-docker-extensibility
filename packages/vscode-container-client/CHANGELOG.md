@@ -1,3 +1,10 @@
+## 0.6.0 - TBD
+### Added
+* Added `WslcClient` for the Windows Subsystem for Linux Container (`wslc`) CLI as an alternative container runtime. Windows-only.
+
+### Fixed
+* `execContainer` now emits `--detach` instead of `--detached` when `detached: true` is passed.
+
 ## 0.5.4 - 22 April 2026
 ### Changed
 * Removed runtime imports of `'vscode'`. [#359](https://github.com/microsoft/vscode-docker-extensibility/pull/359)
