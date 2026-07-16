@@ -15,8 +15,8 @@ class TestClient extends NerdctlClient {
         return this.parsePerLineJson(output, strict, parseOne);
     }
 
-    public jsonArrayOrLines(output: string): unknown[] {
-        return this.parseJsonArrayOrLines(output);
+    public jsonArrayOrLines(output: string, strict?: boolean): unknown[] {
+        return this.parseJsonArrayOrLines(output, strict);
     }
 
     public inspectJson<T>(output: string, strict: boolean, normalizeOne: (item: unknown) => T): Promise<T[]> {
@@ -50,6 +50,12 @@ describe('(unit) DockerClientBase output parsing helpers', () => {
             }
             expect(threw).to.be.true;
         });
+
+        it('Should tolerate CRLF line endings in strict mode', async () => {
+            const output = '{"a":1}\r\n{"a":2}\r\n';
+            const result = await client.perLineJson(output, true, (json) => JSON.parse(json) as { a: number });
+            expect(result).to.deep.equal([{ a: 1 }, { a: 2 }]);
+        });
     });
 
     describe('parseJsonArrayOrLines', () => {
@@ -68,6 +74,14 @@ describe('(unit) DockerClientBase output parsing helpers', () => {
         it('Should return an empty array for empty/whitespace output', () => {
             expect(client.jsonArrayOrLines('   \n  ')).to.deep.equal([]);
         });
+
+        it('Should skip bad newline-delimited lines in non-strict mode', () => {
+            expect(client.jsonArrayOrLines('{"a":1}\nnot-json\n{"a":2}')).to.deep.equal([{ a: 1 }, { a: 2 }]);
+        });
+
+        it('Should throw on bad newline-delimited lines in strict mode', () => {
+            expect(() => client.jsonArrayOrLines('{"a":1}\nnot-json', true)).to.throw();
+        });
     });
 
     describe('parseInspectJson', () => {
@@ -85,6 +99,17 @@ describe('(unit) DockerClientBase output parsing helpers', () => {
                 return value;
             });
             expect(result).to.deep.equal([2]);
+        });
+
+        it('Should propagate malformed-JSON errors in strict mode', async () => {
+            // Newline-delimited output with an unparseable line; strict inspect must not silently drop it.
+            let threw = false;
+            try {
+                await client.inspectJson('{"a":1}\nnot-json', true, (item) => (item as { a: number }).a);
+            } catch {
+                threw = true;
+            }
+            expect(threw).to.be.true;
         });
     });
 });

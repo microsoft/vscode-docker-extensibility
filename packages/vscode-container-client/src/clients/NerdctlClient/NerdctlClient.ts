@@ -508,12 +508,20 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
         const escapedContainerPath = this.shellEscapeSingleQuote(containerPath);
         const escapedCommand = this.shellEscapeSingleQuote(this.commandName);
 
-        // Use /bin/sh for portability; properly escape all interpolated values
+        // Match Docker's `cp <container>:<path> -`, whose tar archive names its top
+        // entry after the source path's basename. Copy to a temp file of the same
+        // basename and tar that name so downstream tar consumers see the same entry.
+        const posixSegments = options.path.split('/').filter((segment) => segment.length > 0);
+        const baseName = posixSegments.length > 0 ? posixSegments[posixSegments.length - 1] : 'content';
+        const escapedBaseName = this.shellEscapeSingleQuote(baseName);
+
+        // Use /bin/sh for portability; properly escape all interpolated values.
+        // An EXIT trap removes the temp dir even if `cp`/`tar` fails (no leak).
         return Promise.resolve({
             command: '/bin/sh',
             args: [
                 '-c',
-                `TMPDIR=$(mktemp -d) && ${escapedCommand} cp ${escapedContainerPath} "$TMPDIR/content" && tar -C "$TMPDIR" -cf - content && rm -rf "$TMPDIR"`,
+                `TMPDIR=$(mktemp -d) && trap 'rm -rf "$TMPDIR"' EXIT && ${escapedCommand} cp ${escapedContainerPath} "$TMPDIR"/${escapedBaseName} && tar -C "$TMPDIR" -cf - ${escapedBaseName}`,
             ],
             parseStream: (output) => byteStreamToGenerator(output),
         });
@@ -547,12 +555,13 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
         const escapedContainerPath = this.shellEscapeSingleQuote(containerPath);
         const escapedCommand = this.shellEscapeSingleQuote(this.commandName);
 
-        // Use /bin/sh for portability; properly escape all interpolated values
+        // Use /bin/sh for portability; properly escape all interpolated values.
+        // An EXIT trap removes the temp dir even if `tar`/`cp` fails (no leak).
         return Promise.resolve({
             command: '/bin/sh',
             args: [
                 '-c',
-                `TMPDIR=$(mktemp -d) && tar -C "$TMPDIR" -xf - && ${escapedCommand} cp "$TMPDIR/." ${escapedContainerPath} && rm -rf "$TMPDIR"`,
+                `TMPDIR=$(mktemp -d) && trap 'rm -rf "$TMPDIR"' EXIT && tar -C "$TMPDIR" -xf - && ${escapedCommand} cp "$TMPDIR/." ${escapedContainerPath}`,
             ],
         });
     }

@@ -49,6 +49,23 @@ describe('(unit) getActorFromEventPayload', () => {
     it('Should fall back to the key field for snapshot events', () => {
         expect(getActorFromEventPayload({ key: 'snap-1' })).to.deep.equal({ id: 'snap-1', attributes: {} });
     });
+
+    it('Should fall back to container_id for containerd task events', () => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        expect(getActorFromEventPayload({ container_id: 'task-container' }))
+            .to.deep.equal({ id: 'task-container', attributes: {} });
+    });
+
+    it('Should fall back to camelCase containerId for containerd task events', () => {
+        expect(getActorFromEventPayload({ containerId: 'task-container' }))
+            .to.deep.equal({ id: 'task-container', attributes: {} });
+    });
+
+    it('Should prefer id over container_id when both are present', () => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        expect(getActorFromEventPayload({ id: 'primary', container_id: 'secondary' }))
+            .to.deep.equal({ id: 'primary', attributes: {} });
+    });
 });
 
 describe('(unit) NerdctlEventRecordSchema', () => {

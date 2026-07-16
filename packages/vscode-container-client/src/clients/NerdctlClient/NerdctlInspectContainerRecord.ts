@@ -36,7 +36,7 @@ const NerdctlInspectContainerVolumeMountSchema = z.object({
 const NerdctlInspectContainerMountSchema = z.union([
     NerdctlInspectContainerBindMountSchema,
     NerdctlInspectContainerVolumeMountSchema,
-]);
+]).nullable().catch(null); // tmpfs/npipe or otherwise-unrecognized mounts become null instead of failing the whole container inspect
 
 const NerdctlInspectNetworkSchema = z.object({
     Gateway: z.string().optional(),

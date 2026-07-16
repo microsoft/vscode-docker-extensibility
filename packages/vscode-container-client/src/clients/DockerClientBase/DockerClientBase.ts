@@ -153,23 +153,20 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     protected parsePerLineJson<T>(output: string, strict: boolean, parseOne: (json: string) => T): Promise<Array<T>> {
         const results = new Array<T>();
 
-        try {
-            for (const line of output.split('\n')) {
-                if (!line) {
-                    continue;
-                }
-
-                try {
-                    results.push(parseOne(line));
-                } catch (err) {
-                    if (strict) {
-                        throw err;
-                    }
-                }
+        for (const line of output.split('\n')) {
+            // Trim to tolerate CRLF line endings and stray whitespace; a bare
+            // "\r" would otherwise be treated as a non-empty (unparseable) line.
+            const trimmedLine = line.trim();
+            if (!trimmedLine) {
+                continue;
             }
-        } catch (err) {
-            if (strict) {
-                throw err;
+
+            try {
+                results.push(parseOne(trimmedLine));
+            } catch (err) {
+                if (strict) {
+                    throw err;
+                }
             }
         }
 
@@ -182,9 +179,10 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
      * that inconsistently emit a JSON array vs. one object per line (e.g. multi
      * target inspect).
      * @param output The raw command output
+     * @param strict Whether to throw when a newline-delimited line fails to parse
      * @returns The parsed values as a flat array of unknowns
      */
-    protected parseJsonArrayOrLines(output: string): Array<unknown> {
+    protected parseJsonArrayOrLines(output: string, strict: boolean = false): Array<unknown> {
         const trimmed = output.trim();
         if (!trimmed) {
             return [];
@@ -195,21 +193,26 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             const parsed: unknown = JSON.parse(trimmed);
             return Array.isArray(parsed) ? parsed as Array<unknown> : [parsed];
         } catch {
-            // Otherwise, fall back to newline-delimited JSON objects
-            const results = new Array<unknown>();
-            for (const line of trimmed.split('\n')) {
-                const trimmedLine = line.trim();
-                if (!trimmedLine) {
-                    continue;
-                }
-                try {
-                    results.push(JSON.parse(trimmedLine));
-                } catch {
-                    // Skip unparseable lines; strictness is enforced by the caller during normalization
-                }
-            }
-            return results;
+            // Not a single JSON value (e.g. newline-delimited objects); fall through.
         }
+
+        // Fall back to newline-delimited JSON objects
+        const results = new Array<unknown>();
+        for (const line of trimmed.split('\n')) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine) {
+                continue;
+            }
+            try {
+                results.push(JSON.parse(trimmedLine));
+            } catch (err) {
+                if (strict) {
+                    throw err;
+                }
+                // Otherwise skip unparseable lines
+            }
+        }
+        return results;
     }
 
     /**
@@ -224,7 +227,7 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     protected parseInspectJson<T>(output: string, strict: boolean, normalizeOne: (item: unknown) => T): Promise<Array<T>> {
         const results = new Array<T>();
 
-        for (const item of this.parseJsonArrayOrLines(output)) {
+        for (const item of this.parseJsonArrayOrLines(output, strict)) {
             try {
                 results.push(normalizeOne(item));
             } catch (err) {
