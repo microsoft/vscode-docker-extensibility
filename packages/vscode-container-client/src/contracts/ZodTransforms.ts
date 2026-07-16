@@ -38,22 +38,41 @@ export const dateStringWithFallbackSchema = z.pipe(z.string(), z.transform((str)
 export const booleanStringSchema = z.stringbool();
 
 /**
- * Schema that transforms Docker-like label strings to a Record<string, string>.
- * Handles comma-separated "key=value" format.
- * Empty strings result in an empty object.
+ * Parse a Docker-like label string (comma-separated `key=value` pairs) into a
+ * {@link Labels} record.
+ *
+ * `docker ... ls` and `nerdctl` join labels with commas and do NOT escape
+ * commas inside values (e.g. multiple compose config files in
+ * `com.docker.compose.project.config_files`). A fragment without an `=` is
+ * therefore treated as a continuation of the previous label's value and
+ * stitched back together. Empty/whitespace input yields an empty record.
  */
-export const labelsStringSchema = z.pipe(z.string(), z.transform((rawLabels): Labels => {
-    if (!rawLabels || rawLabels.trim() === '') {
-        return {};
-    }
-    return rawLabels.split(',').reduce((labels, labelPair) => {
-        const index = labelPair.indexOf('=');
-        if (index > 0) {
-            labels[labelPair.substring(0, index)] = labelPair.substring(index + 1);
+export function parseLabelsString(rawLabels: string): Labels {
+    const labels: Labels = {};
+    let lastKey: string | undefined;
+
+    for (const fragment of rawLabels.split(',')) {
+        const index = fragment.indexOf('=');
+
+        if (index < 0) {
+            if (lastKey !== undefined) {
+                labels[lastKey] += `,${fragment}`;
+            }
+            continue;
         }
-        return labels;
-    }, {} as Labels);
-}));
+
+        lastKey = fragment.substring(0, index);
+        labels[lastKey] = fragment.substring(index + 1);
+    }
+
+    return labels;
+}
+
+/**
+ * Schema that transforms Docker-like label strings to a Record<string, string>.
+ * The parsing logic lives in {@link parseLabelsString}.
+ */
+export const labelsStringSchema = z.pipe(z.string(), z.transform(parseLabelsString));
 
 /**
  * Schema that handles labels as either a string (to be parsed) or already an object.

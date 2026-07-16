@@ -68,6 +68,17 @@ describe('(unit) ZodTransforms', () => {
             expect(labelsStringSchema.parse('')).to.deep.equal({});
             expect(labelsStringSchema.parse('   ')).to.deep.equal({});
         });
+
+        it('Should preserve commas in label values', () => {
+            expect(labelsStringSchema.parse('com.docker.compose.project.config_files=/a/base.yml,/a/local.yml,com.docker.compose.project=demo')).to.deep.equal({
+                'com.docker.compose.project.config_files': '/a/base.yml,/a/local.yml',
+                'com.docker.compose.project': 'demo',
+            });
+        });
+
+        it('Should preserve equals signs in label values', () => {
+            expect(labelsStringSchema.parse('foo=a=b,baz=qux')).to.deep.equal({ foo: 'a=b', baz: 'qux' });
+        });
     });
 
     describe('labelsSchema', () => {
