@@ -153,16 +153,14 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
     protected parsePerLineJson<T>(output: string, strict: boolean, parseOne: (json: string) => T): Promise<Array<T>> {
         const results = new Array<T>();
 
-        for (const line of output.split('\n')) {
-            // Trim to tolerate CRLF line endings and stray whitespace; a bare
-            // "\r" would otherwise be treated as a non-empty (unparseable) line.
-            const trimmedLine = line.trim();
-            if (!trimmedLine) {
+        // Split on \r?\n so both LF and CRLF line endings are handled cleanly.
+        for (const line of output.split(/\r?\n/)) {
+            if (!line) {
                 continue;
             }
 
             try {
-                results.push(parseOne(trimmedLine));
+                results.push(parseOne(line));
             } catch (err) {
                 if (strict) {
                     throw err;
@@ -196,15 +194,14 @@ export abstract class DockerClientBase extends ConfigurableClient implements ICo
             // Not a single JSON value (e.g. newline-delimited objects); fall through.
         }
 
-        // Fall back to newline-delimited JSON objects
+        // Fall back to newline-delimited JSON objects (LF or CRLF)
         const results = new Array<unknown>();
-        for (const line of trimmed.split('\n')) {
-            const trimmedLine = line.trim();
-            if (!trimmedLine) {
+        for (const line of trimmed.split(/\r?\n/)) {
+            if (!line) {
                 continue;
             }
             try {
-                results.push(JSON.parse(trimmedLine));
+                results.push(JSON.parse(line));
             } catch (err) {
                 if (strict) {
                     throw err;
