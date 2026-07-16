@@ -31,6 +31,13 @@ const runInWsl: boolean = (process.env.RUN_IN_WSL === '1' || process.env.RUN_IN_
 
 export type ClientType = 'docker' | 'podman' | 'finch';
 
+/**
+ * Shell command that keeps a container alive while responding to SIGTERM for a
+ * fast shutdown. Shared across the E2E suites (and re-used by the orchestrator
+ * E2E compose files).
+ */
+export const KeepAliveShellCommand = "trap 'exit 0' TERM; while true; do sleep 1; done";
+
 describe('(integration) ContainersClientE2E', function () {
 
     // #region Test Setup
@@ -346,7 +353,7 @@ describe('(integration) ContainersClientE2E', function () {
                     network: testContainerNetworkName,
                     // Keep container running - uses trap to handle SIGTERM for fast shutdown
                     entrypoint: 'sh',
-                    command: ['-c', "trap 'exit 0' TERM; while true; do sleep 1; done"],
+                    command: ['-c', KeepAliveShellCommand],
                     mounts: [
                         { type: 'bind', source: testContainerBindMountSource, destination: '/data1', readOnly: true },
                         { type: 'volume', source: testContainerVolumeName, destination: '/data2', readOnly: false }
@@ -1038,7 +1045,7 @@ describe('(integration) ContainersClientE2E', function () {
                     detached: true,
                     // Keep container running for filesystem operations
                     entrypoint: 'sh',
-                    command: ['-c', "trap 'exit 0' TERM; while true; do sleep 1; done"],
+                    command: ['-c', KeepAliveShellCommand],
                 })
             ))!;
 

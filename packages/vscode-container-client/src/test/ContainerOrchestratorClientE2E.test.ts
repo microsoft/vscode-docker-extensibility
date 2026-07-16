@@ -19,7 +19,7 @@ import { IContainersClient } from '../contracts/ContainerClient';
 import { IContainerOrchestratorClient } from '../contracts/ContainerOrchestratorClient';
 import { ICommandRunnerFactory } from '../contracts/CommandRunner';
 import { wslifyPath } from '../utils/wslifyPath';
-import { ClientType, validateContainerExists } from './ContainersClientE2E.test';
+import { ClientType, KeepAliveShellCommand, validateContainerExists } from './ContainersClientE2E.test';
 
 // Modify the below options to configure the tests
 const clientTypeToTest: ClientType = (process.env.CONTAINER_CLIENT_TYPE || 'docker') as ClientType;
@@ -447,11 +447,11 @@ services:
     image: alpine:latest
     volumes:
       - test-volume:/test-volume
-    entrypoint: ["sh", "-c", "trap 'exit 0' TERM; while true; do sleep 1; done"] # Responds to SIGTERM
+    entrypoint: ["sh", "-c", "${KeepAliveShellCommand}"] # Responds to SIGTERM
 
   backend:
     image: alpine:latest
-    entrypoint: ["sh", "-c", "trap 'exit 0' TERM; while true; do sleep 1; done"] # Responds to SIGTERM
+    entrypoint: ["sh", "-c", "${KeepAliveShellCommand}"] # Responds to SIGTERM
 
 volumes:
   test-volume:

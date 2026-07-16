@@ -26,7 +26,7 @@ export type NerdctlEventPayload = z.infer<typeof NerdctlEventPayloadSchema>;
  */
 const EventJsonStringSchema = z.string().transform((str): NerdctlEventPayload | undefined => {
     try {
-        const parsed = JSON.parse(str);
+        const parsed: unknown = JSON.parse(str);
         // Validate against the payload schema
         const result = NerdctlEventPayloadSchema.safeParse(parsed);
         return result.success ? result.data : undefined;

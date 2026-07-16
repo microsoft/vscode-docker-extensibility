@@ -727,7 +727,7 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
      * properly escapes paths to prevent shell injection.
      */
     override writeFile(options: WriteFileCommandOptions): Promise<VoidCommandResponse> {
-        // If inputFile is specified, we can use finch cp directly (no stdin needed)
+        // If inputFile is specified, we can use `<command> cp` directly (no stdin needed)
         if (options.inputFile) {
             return super.writeFile(options);
         }

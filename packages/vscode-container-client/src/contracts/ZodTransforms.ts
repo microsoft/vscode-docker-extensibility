@@ -3,16 +3,19 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { z } from 'zod/v4';
+import { dayjs } from '../utils/dayjs';
 import { Labels } from './ContainerClient';
-
-dayjs.extend(utc);
 
 /**
  * Schema that transforms a date string to a Date object.
  * Returns undefined if the date is invalid.
+ *
+ * Uses the shared {@link dayjs} wrapper so that Docker/nerdctl-style timestamps
+ * (e.g. `2024-06-01 12:00:00 +0000 UTC`) as well as ISO strings are parsed
+ * consistently with the rest of the clients. Zod's built-in date helpers
+ * (`z.iso.datetime`, `z.coerce.date`) only understand strict ISO input and
+ * cannot parse the space-separated Docker format.
  */
 export const dateStringSchema = z.string().transform((str): Date | undefined => {
     const parsed = dayjs.utc(str);
@@ -29,12 +32,10 @@ export const dateStringWithFallbackSchema = z.string().transform((str): Date => 
 });
 
 /**
- * Schema that transforms "true"/"false" strings to boolean values.
- * Case-insensitive. Returns false for any other value.
+ * Schema that transforms boolean-like strings (e.g. "true"/"false") to booleans.
+ * Backed by Zod v4's `z.stringbool()`.
  */
-export const booleanStringSchema = z.string().transform((str): boolean => {
-    return str.toLowerCase() === 'true';
-});
+export const booleanStringSchema = z.stringbool();
 
 /**
  * Schema that transforms Docker-like label strings to a Record<string, string>.
@@ -69,8 +70,12 @@ export const labelsSchema = z.union([
  */
 export const osTypeStringSchema = z.string().transform((str): 'linux' | 'windows' | undefined => {
     const lower = str.toLowerCase();
-    if (lower === 'linux') return 'linux';
-    if (lower === 'windows') return 'windows';
+    if (lower === 'linux') {
+        return 'linux';
+    }
+    if (lower === 'windows') {
+        return 'windows';
+    }
     return undefined;
 });
 
@@ -80,85 +85,11 @@ export const osTypeStringSchema = z.string().transform((str): 'linux' | 'windows
  */
 export const architectureStringSchema = z.string().transform((str): 'amd64' | 'arm64' | undefined => {
     const lower = str.toLowerCase();
-    if (lower === 'amd64' || lower === 'x86_64') return 'amd64';
-    if (lower === 'arm64' || lower === 'aarch64') return 'arm64';
+    if (lower === 'amd64' || lower === 'x86_64') {
+        return 'amd64';
+    }
+    if (lower === 'arm64' || lower === 'aarch64') {
+        return 'arm64';
+    }
     return undefined;
 });
-
-/**
- * Schema that normalizes protocol strings to 'tcp' | 'udp' | undefined.
- * Case-insensitive matching.
- */
-export const protocolStringSchema = z.string().transform((str): 'tcp' | 'udp' | undefined => {
-    const lower = str.toLowerCase();
-    if (lower === 'tcp') return 'tcp';
-    if (lower === 'udp') return 'udp';
-    return undefined;
-});
-
-/**
- * Schema for parsing port/protocol strings like "8080/tcp" or "53/udp".
- * Returns an object with containerPort (number) and protocol.
- */
-export const portProtocolStringSchema = z.string().transform((str): { containerPort: number; protocol: 'tcp' | 'udp' | undefined } | undefined => {
-    const [portStr, protocolStr] = str.split('/');
-    const containerPort = parseInt(portStr, 10);
-    if (!Number.isFinite(containerPort)) {
-        return undefined;
-    }
-    const protocol = protocolStr?.toLowerCase() === 'tcp'
-        ? 'tcp'
-        : protocolStr?.toLowerCase() === 'udp'
-            ? 'udp'
-            : undefined;
-    return { containerPort, protocol };
-});
-
-/**
- * Schema that transforms a string number to an actual number.
- * Returns undefined if parsing fails.
- */
-export const numericStringSchema = z.string().transform((str): number | undefined => {
-    const num = parseInt(str, 10);
-    return Number.isFinite(num) ? num : undefined;
-});
-
-/**
- * Schema that normalizes container state strings to standard states.
- * Handles various formats from Docker, Podman, and nerdctl.
- */
-export const containerStateStringSchema = z.string().transform((status): 'created' | 'running' | 'paused' | 'restarting' | 'removing' | 'exited' | 'dead' | undefined => {
-    const lowerStatus = status.toLowerCase();
-
-    if (lowerStatus.startsWith('up') || lowerStatus === 'running') {
-        return 'running';
-    }
-    if (lowerStatus.startsWith('exited') || lowerStatus.startsWith('exit')) {
-        return 'exited';
-    }
-    if (lowerStatus === 'created') {
-        return 'created';
-    }
-    if (lowerStatus === 'paused') {
-        return 'paused';
-    }
-    if (lowerStatus === 'restarting') {
-        return 'restarting';
-    }
-    if (lowerStatus === 'removing') {
-        return 'removing';
-    }
-    if (lowerStatus === 'dead') {
-        return 'dead';
-    }
-
-    return undefined;
-});
-
-/**
- * Helper to create an optional version of any transform schema.
- * The transform is only applied if the value is present.
- */
-export function optionalTransform<T extends z.ZodType>(schema: T) {
-    return schema.optional();
-}

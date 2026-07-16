@@ -29,14 +29,11 @@ export class NerdctlComposeClient extends DockerComposeClientBase implements ICo
      * name of the client
      * @param description (Optional, with default) The human-friendly description of
      * the client
-     * @param composeV2 (Optional, default `true`) If true, `compose` will be added as the
-     * first argument to all commands. The base command should be `nerdctl`.
      */
     public constructor(
         commandName: string = 'nerdctl',
         displayName: string = 'Nerdctl Compose',
-        description: string = 'Runs orchestrator commands using the Nerdctl Compose CLI',
-        composeV2: boolean = true
+        description: string = 'Runs orchestrator commands using the Nerdctl Compose CLI'
     ) {
         super(
             NerdctlComposeClient.ClientId,
@@ -46,7 +43,7 @@ export class NerdctlComposeClient extends DockerComposeClientBase implements ICo
         );
 
         // Nerdctl always uses the V2 compose syntax (nerdctl compose <command>)
-        this.composeV2 = composeV2;
+        this.composeV2 = true;
     }
 
     /**
