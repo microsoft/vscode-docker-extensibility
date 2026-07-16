@@ -1145,6 +1145,63 @@ describe('(integration) ContainersClientE2E', function () {
             expect(fileContent).to.be.ok;
             expect(fileContent).to.include(content);
         });
+
+        it('WriteFileCommand (streamed to stdin)', async function () {
+            if (clientTypeToTest === 'podman') {
+                this.skip(); // Podman doesn't support file streaming
+            }
+
+            // Exercises the stdin write path (`cp - <container>:<path>`) rather than
+            // the host-side `inputFile` copy. We obtain a real tarball by reading an
+            // existing file back out of the container, then stream those exact bytes
+            // into a *different* directory so the assertion proves the streamed write
+            // created the file.
+            const content = `Streamed via stdin! ${Date.now()}`;
+            let tempFilePath = path.join(os.tmpdir(), 'streamed.txt');
+            await fs.writeFile(tempFilePath, content);
+
+            if (runInWsl) {
+                tempFilePath = wslifyPath(tempFilePath);
+            }
+
+            // Seed a source file at /tmp/streamed.txt (host-side copy; this is setup only).
+            await defaultRunner.getCommandRunner()(
+                client.writeFile({ container: containerId, path: '/tmp/streamed.txt', inputFile: tempFilePath })
+            );
+
+            // Read it back out as a tarball (entry name: `streamed.txt`).
+            const readBackStream = defaultRunner.getStreamingCommandRunner()(
+                client.readFile({ container: containerId, path: '/tmp/streamed.txt' })
+            );
+
+            const tarChunks: Buffer[] = [];
+            for await (const chunk of readBackStream) {
+                tarChunks.push(chunk);
+            }
+            const tarball = Buffer.concat(tarChunks);
+            expect(tarball.length).to.be.greaterThan(0);
+
+            // Stream the tarball into /root via stdin. No `inputFile` is provided, so
+            // this uses `cp - <container>:/root`, which extracts to /root/streamed.txt.
+            const stdInPipe = stream.Readable.from([tarball]);
+            const streamingRunnerFactory = defaultRunnerFactory({ stdInPipe, shellProvider: new NoShell() });
+            await streamingRunnerFactory.getCommandRunner()(
+                client.writeFile({ container: containerId, path: '/root' })
+            );
+
+            // Verify the streamed file landed in the new directory.
+            const verifyStream = defaultRunner.getStreamingCommandRunner()(
+                client.readFile({ container: containerId, path: '/root/streamed.txt' })
+            );
+
+            let fileContent: string = "";
+            for await (const chunk of verifyStream) {
+                fileContent += chunk.toString();
+            }
+
+            expect(fileContent).to.be.ok;
+            expect(fileContent).to.include(content);
+        });
     });
 
     // #endregion
