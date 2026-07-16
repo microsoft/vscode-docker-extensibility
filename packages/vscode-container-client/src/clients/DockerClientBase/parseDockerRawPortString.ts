@@ -12,7 +12,11 @@ const shortFormRegex = /^(?<containerPort>\d+)\/(?<protocol>tcp|udp)$/i;
 // - hostPort->containerPort[/protocol]
 // - hostIp:hostPort->containerPort[/protocol]
 // - [ipv6]:hostPort->containerPort[/protocol]
-const longFormRegex = /^(?:(?<hostPortOnly>\d+)|(?<hostIpOrHost>[^:\s[\]]+):(?<hostPort>\d+)|\[(?<hostIpv6>[^\]]+)\]:(?<hostPortV6>\d+))\s*->\s*(?<containerPort>\d+)(?:\/(?<protocol>tcp|udp))?$/i;
+// - bare IPv6 host without brackets, e.g. Docker's `:::8080->80/tcp` wildcard
+//   or `::1:8080->80/tcp`. The optional host is captured lazily up to the last
+//   `:` before the host port, so embedded IPv6 colons are preserved; brackets
+//   (if any) are stripped by normalizeIpAddress.
+const longFormRegex = /^(?:(?<host>\[[^\]]*\]|[^\s]*?):)?(?<hostPort>\d+)\s*->\s*(?<containerPort>\d+)(?:\/(?<protocol>tcp|udp))?$/i;
 
 /**
  * Attempt to parse a Docker-like raw port binding string
@@ -38,19 +42,12 @@ export function parseDockerRawPortString(portString: string): PortBinding | unde
         return undefined;
     }
 
-    const hostPortRaw = longMatch.groups.hostPortOnly
-        ?? longMatch.groups.hostPort
-        ?? longMatch.groups.hostPortV6;
-    if (!hostPortRaw) {
-        return undefined;
-    }
-
-    const hostIp = normalizeIpAddress(longMatch.groups.hostIpv6 ?? longMatch.groups.hostIpOrHost);
+    const hostIp = normalizeIpAddress(longMatch.groups.host);
     const protocol = (longMatch.groups.protocol?.toLowerCase() as 'tcp' | 'udp' | undefined) ?? 'tcp';
 
     return {
         ...(hostIp !== undefined ? { hostIp } : {}),
-        hostPort: Number.parseInt(hostPortRaw, 10),
+        hostPort: Number.parseInt(longMatch.groups.hostPort, 10),
         containerPort: Number.parseInt(longMatch.groups.containerPort, 10),
         protocol,
     };

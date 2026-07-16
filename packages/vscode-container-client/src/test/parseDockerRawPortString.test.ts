@@ -29,6 +29,21 @@ describe('(unit) parseDockerRawPortString', () => {
             input: '0.0.0.0:3000->3000',
             expected: { hostIp: '0.0.0.0', hostPort: 3000, containerPort: 3000, protocol: 'tcp' },
         },
+        {
+            // Docker's IPv6 unspecified-address wildcard form (no brackets)
+            input: ':::8080->80/tcp',
+            expected: { hostIp: '::', hostPort: 8080, containerPort: 80, protocol: 'tcp' },
+        },
+        {
+            // Docker's IPv6 wildcard, bracketed form
+            input: '[::]:8080->80/tcp',
+            expected: { hostIp: '::', hostPort: 8080, containerPort: 80, protocol: 'tcp' },
+        },
+        {
+            // Bare (unbracketed) IPv6 host with embedded colons
+            input: '::1:8080->80/tcp',
+            expected: { hostIp: '::1', hostPort: 8080, containerPort: 80, protocol: 'tcp' },
+        },
     ];
 
     validCases.forEach(({ input, expected }) => {
