@@ -52,6 +52,9 @@ describe('(integration) ContainerOrchestratorClientE2E', function () {
         } else if (clientTypeToTest === 'finch') {
             containerClient = new NerdctlClient('finch', 'Finch', 'Runs container commands using the Finch CLI'); // Used for validating that the containers are created and removed correctly
             client = new NerdctlComposeClient('finch', 'Finch Compose', 'Runs orchestrator commands using the Finch Compose CLI');
+        } else if (clientTypeToTest === 'nerdctl') {
+            containerClient = new NerdctlClient('nerdctl', 'Nerdctl', 'Runs container commands using the nerdctl CLI'); // Used for validating that the containers are created and removed correctly
+            client = new NerdctlComposeClient('nerdctl', 'Nerdctl Compose', 'Runs orchestrator commands using the nerdctl compose CLI');
         } else {
             throw new Error('Invalid clientTypeToTest');
         }

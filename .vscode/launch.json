@@ -31,7 +31,7 @@
                 "<node_internals>/**"
             ],
             "env": {
-                "CONTAINER_CLIENT_TYPE": "${input:containerRuntime}", // Set to 'docker' or 'podman'
+                "CONTAINER_CLIENT_TYPE": "${input:containerRuntime}", // Set to 'docker', 'podman', or 'nerdctl'
                 "RUN_IN_WSL": "0", // Set to 1 if running in WSL
                 "DOCKER_HUB_USERNAME": "${input:dockerHubUsername}",
                 "DOCKER_HUB_PAT": "${input:dockerHubPAT}"
@@ -87,7 +87,8 @@
             "description": "Select the container runtime to use for integration tests",
             "options": [
                 "docker",
-                "podman"
+                "podman",
+                "nerdctl"
             ],
             "default": "docker"
         },
