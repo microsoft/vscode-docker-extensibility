@@ -44,4 +44,18 @@ describe('(unit) parseDockerLikeLabels', () => {
             project: 'demo',
         });
     });
+
+    it('Should preserve commas in the final label value', () => {
+        expect(parseDockerLikeLabels('project=demo,files=/a.yml,/b.yml')).to.deep.equal({
+            project: 'demo',
+            files: '/a.yml,/b.yml',
+        });
+    });
+
+    it('Should preserve equals signs in label values', () => {
+        expect(parseDockerLikeLabels('foo=a=b,baz=qux')).to.deep.equal({
+            foo: 'a=b',
+            baz: 'qux',
+        });
+    });
 });
