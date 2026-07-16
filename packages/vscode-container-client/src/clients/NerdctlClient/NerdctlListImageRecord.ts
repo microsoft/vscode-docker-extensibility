@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { ListImagesItem } from '../../contracts/ContainerClient';
 import { dateStringWithFallbackSchema } from '../../contracts/ZodTransforms';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
@@ -15,15 +15,15 @@ import { tryParseSize } from '../DockerClientBase/tryParseSize';
  * Date transformation is applied during parsing.
  */
 export const NerdctlListImageRecordSchema = z.object({
-    ID: z.string().optional(),
+    ID: z.optional(z.string()),
     Repository: z.string(),
-    Tag: z.string().optional(),
+    Tag: z.optional(z.string()),
     // Date string transformed to Date object with fallback to current time
-    CreatedAt: dateStringWithFallbackSchema.optional(),
-    CreatedSince: z.string().optional(),
-    Size: z.union([z.string(), z.number()]).optional(),
-    Digest: z.string().optional(),
-    Platform: z.string().optional(),
+    CreatedAt: z.optional(dateStringWithFallbackSchema),
+    CreatedSince: z.optional(z.string()),
+    Size: z.optional(z.union([z.string(), z.number()])),
+    Digest: z.optional(z.string()),
+    Platform: z.optional(z.string()),
 });
 
 export type NerdctlListImageRecord = z.infer<typeof NerdctlListImageRecordSchema>;

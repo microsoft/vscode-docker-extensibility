@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { toArray } from '@microsoft/vscode-processutils';
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { ImageNameInfo, InspectImagesItem, PortBinding } from '../../contracts/ContainerClient';
 import { architectureStringSchema, dateStringSchema, osTypeStringSchema } from '../../contracts/ZodTransforms';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
@@ -12,14 +12,14 @@ import { parseDockerLikeEnvironmentVariables } from '../DockerClientBase/parseDo
 
 // Nerdctl (nerdctl) inspect image output - similar to Docker with some optional fields
 const NerdctlInspectImageConfigSchema = z.object({
-    Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
-    Cmd: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
-    Env: z.array(z.string()).optional().nullable(),
-    Labels: z.record(z.string(), z.string()).nullable().optional(),
-    ExposedPorts: z.record(z.string(), z.unknown()).nullable().optional(),
-    Volumes: z.record(z.string(), z.unknown()).nullable().optional(),
-    WorkingDir: z.string().nullable().optional(),
-    User: z.string().nullable().optional(),
+    Entrypoint: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
+    Cmd: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
+    Env: z.nullable(z.optional(z.array(z.string()))),
+    Labels: z.optional(z.nullable(z.record(z.string(), z.string()))),
+    ExposedPorts: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
+    Volumes: z.optional(z.nullable(z.record(z.string(), z.unknown()))),
+    WorkingDir: z.optional(z.nullable(z.string())),
+    User: z.optional(z.nullable(z.string())),
 });
 
 /**
@@ -27,16 +27,16 @@ const NerdctlInspectImageConfigSchema = z.object({
  */
 export const NerdctlInspectImageRecordSchema = z.object({
     Id: z.string(),
-    RepoTags: z.array(z.string()).optional().nullable(),
-    Config: NerdctlInspectImageConfigSchema.optional(),
-    RepoDigests: z.array(z.string()).optional().nullable(),
+    RepoTags: z.nullable(z.optional(z.array(z.string()))),
+    Config: z.optional(NerdctlInspectImageConfigSchema),
+    RepoDigests: z.nullable(z.optional(z.array(z.string()))),
     // Architecture normalized to 'amd64' | 'arm64' | undefined
-    Architecture: architectureStringSchema.optional(),
+    Architecture: z.optional(architectureStringSchema),
     // OS normalized to 'linux' | 'windows' | undefined
-    Os: osTypeStringSchema.optional(),
+    Os: z.optional(osTypeStringSchema),
     // Date string transformed to Date object
-    Created: dateStringSchema.nullable().optional(),
-    User: z.string().optional(),
+    Created: z.optional(z.nullable(dateStringSchema)),
+    User: z.optional(z.string()),
 });
 
 export type NerdctlInspectImageRecord = z.infer<typeof NerdctlInspectImageRecordSchema>;

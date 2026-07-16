@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { dayjs } from '../utils/dayjs';
 import { Labels } from './ContainerClient';
 
@@ -17,19 +17,19 @@ import { Labels } from './ContainerClient';
  * (`z.iso.datetime`, `z.coerce.date`) only understand strict ISO input and
  * cannot parse the space-separated Docker format.
  */
-export const dateStringSchema = z.string().transform((str): Date | undefined => {
+export const dateStringSchema = z.pipe(z.string(), z.transform((str): Date | undefined => {
     const parsed = dayjs.utc(str);
     return parsed.isValid() ? parsed.toDate() : undefined;
-});
+}));
 
 /**
  * Schema that transforms a date string to a Date object with a fallback to current time.
  * Never returns undefined - always provides a valid Date.
  */
-export const dateStringWithFallbackSchema = z.string().transform((str): Date => {
+export const dateStringWithFallbackSchema = z.pipe(z.string(), z.transform((str): Date => {
     const parsed = dayjs.utc(str);
     return parsed.isValid() ? parsed.toDate() : dayjs.utc().toDate();
-});
+}));
 
 /**
  * Schema that transforms boolean-like strings (e.g. "true"/"false") to booleans.
@@ -42,7 +42,7 @@ export const booleanStringSchema = z.stringbool();
  * Handles comma-separated "key=value" format.
  * Empty strings result in an empty object.
  */
-export const labelsStringSchema = z.string().transform((rawLabels): Labels => {
+export const labelsStringSchema = z.pipe(z.string(), z.transform((rawLabels): Labels => {
     if (!rawLabels || rawLabels.trim() === '') {
         return {};
     }
@@ -53,22 +53,25 @@ export const labelsStringSchema = z.string().transform((rawLabels): Labels => {
         }
         return labels;
     }, {} as Labels);
-});
+}));
 
 /**
  * Schema that handles labels as either a string (to be parsed) or already an object.
  * This is common in Docker/nerdctl outputs where labels can come in either format.
  */
-export const labelsSchema = z.union([
-    labelsStringSchema,
-    z.record(z.string(), z.string()),
-]).transform((val): Labels => val ?? {});
+export const labelsSchema = z.pipe(
+    z.union([
+        labelsStringSchema,
+        z.record(z.string(), z.string()),
+    ]),
+    z.transform((val): Labels => val ?? {}),
+);
 
 /**
  * Schema that normalizes OS type strings to 'linux' | 'windows' | undefined.
  * Case-insensitive matching.
  */
-export const osTypeStringSchema = z.string().transform((str): 'linux' | 'windows' | undefined => {
+export const osTypeStringSchema = z.pipe(z.string(), z.transform((str): 'linux' | 'windows' | undefined => {
     const lower = str.toLowerCase();
     if (lower === 'linux') {
         return 'linux';
@@ -77,13 +80,13 @@ export const osTypeStringSchema = z.string().transform((str): 'linux' | 'windows
         return 'windows';
     }
     return undefined;
-});
+}));
 
 /**
  * Schema that normalizes architecture strings to 'amd64' | 'arm64' | undefined.
  * Case-insensitive matching.
  */
-export const architectureStringSchema = z.string().transform((str): 'amd64' | 'arm64' | undefined => {
+export const architectureStringSchema = z.pipe(z.string(), z.transform((str): 'amd64' | 'arm64' | undefined => {
     const lower = str.toLowerCase();
     if (lower === 'amd64' || lower === 'x86_64') {
         return 'amd64';
@@ -92,4 +95,4 @@ export const architectureStringSchema = z.string().transform((str): 'amd64' | 'a
         return 'arm64';
     }
     return undefined;
-});
+}));

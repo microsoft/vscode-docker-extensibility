@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { ListNetworkItem } from '../../contracts/ContainerClient';
 import { booleanStringSchema, dateStringSchema, labelsStringSchema } from '../../contracts/ZodTransforms';
 
@@ -12,17 +12,17 @@ import { booleanStringSchema, dateStringSchema, labelsStringSchema } from '../..
  * Transforms are applied during parsing to convert string values to proper types.
  */
 export const NerdctlListNetworkRecordSchema = z.object({
-    ID: z.string().optional(),
+    ID: z.optional(z.string()),
     Name: z.string(),
-    Driver: z.string().optional(),
-    Scope: z.string().optional(),
+    Driver: z.optional(z.string()),
+    Scope: z.optional(z.string()),
     // nerdctl outputs booleans as "true"/"false" strings - transform during parsing
-    IPv6: booleanStringSchema.optional(),
-    Internal: booleanStringSchema.optional(),
+    IPv6: z.optional(booleanStringSchema),
+    Internal: z.optional(booleanStringSchema),
     // Labels come as "key=value,key2=value2" string - transform to Record
-    Labels: labelsStringSchema.optional(),
+    Labels: z.optional(labelsStringSchema),
     // Date string transformed to Date object
-    CreatedAt: dateStringSchema.optional(),
+    CreatedAt: z.optional(dateStringSchema),
 });
 
 export type NerdctlListNetworkRecord = z.infer<typeof NerdctlListNetworkRecordSchema>;

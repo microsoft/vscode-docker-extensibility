@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { toArray } from '@microsoft/vscode-processutils';
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { InspectContainersItem, InspectContainersItemBindMount, InspectContainersItemMount, InspectContainersItemNetwork, InspectContainersItemVolumeMount, PortBinding } from '../../contracts/ContainerClient';
 import { dateStringSchema } from '../../contracts/ZodTransforms';
 import { parseDockerLikeImageName } from '../../utils/parseDockerLikeImageName';
@@ -13,15 +13,15 @@ import { parseDockerLikeEnvironmentVariables } from '../DockerClientBase/parseDo
 
 // Nerdctl (nerdctl) inspect container output - Docker-compatible format
 const NerdctlInspectContainerPortHostSchema = z.object({
-    HostIp: z.string().optional(),
-    HostPort: z.string().optional(),
+    HostIp: z.optional(z.string()),
+    HostPort: z.optional(z.string()),
 });
 
 const NerdctlInspectContainerBindMountSchema = z.object({
     Type: z.literal('bind'),
     Source: z.string(),
     Destination: z.string(),
-    RW: z.boolean().optional(),
+    RW: z.optional(z.boolean()),
 });
 
 const NerdctlInspectContainerVolumeMountSchema = z.object({
@@ -29,46 +29,46 @@ const NerdctlInspectContainerVolumeMountSchema = z.object({
     Name: z.string(),
     Source: z.string(),
     Destination: z.string(),
-    Driver: z.string().optional(),
-    RW: z.boolean().optional(),
+    Driver: z.optional(z.string()),
+    RW: z.optional(z.boolean()),
 });
 
-const NerdctlInspectContainerMountSchema = z.union([
+const NerdctlInspectContainerMountSchema = z.catch(z.nullable(z.union([
     NerdctlInspectContainerBindMountSchema,
     NerdctlInspectContainerVolumeMountSchema,
-]).nullable().catch(null); // tmpfs/npipe or otherwise-unrecognized mounts become null instead of failing the whole container inspect
+])), null); // tmpfs/npipe or otherwise-unrecognized mounts become null instead of failing the whole container inspect
 
 const NerdctlInspectNetworkSchema = z.object({
-    Gateway: z.string().optional(),
-    IPAddress: z.string().optional(),
-    MacAddress: z.string().optional(),
+    Gateway: z.optional(z.string()),
+    IPAddress: z.optional(z.string()),
+    MacAddress: z.optional(z.string()),
 });
 
 const NerdctlInspectContainerConfigSchema = z.object({
-    Image: z.string().optional(), // May not be present in all nerdctl versions
-    Entrypoint: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
-    Cmd: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
-    Env: z.array(z.string()).nullable().optional(),
-    Labels: z.record(z.string(), z.string()).nullable().optional(),
-    WorkingDir: z.string().nullable().optional(),
+    Image: z.optional(z.string()), // May not be present in all nerdctl versions
+    Entrypoint: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
+    Cmd: z.optional(z.union([z.array(z.string()), z.string(), z.null()])),
+    Env: z.optional(z.nullable(z.array(z.string()))),
+    Labels: z.optional(z.nullable(z.record(z.string(), z.string()))),
+    WorkingDir: z.optional(z.nullable(z.string())),
 });
 
 const NerdctlInspectContainerHostConfigSchema = z.object({
-    PublishAllPorts: z.boolean().nullable().optional(),
-    Isolation: z.string().optional(),
+    PublishAllPorts: z.optional(z.nullable(z.boolean())),
+    Isolation: z.optional(z.string()),
 });
 
 const NerdctlInspectContainerNetworkSettingsSchema = z.object({
-    Networks: z.record(z.string(), NerdctlInspectNetworkSchema).nullable().optional(),
-    IPAddress: z.string().optional(),
-    Ports: z.record(z.string(), z.array(NerdctlInspectContainerPortHostSchema).nullable()).nullable().optional(),
+    Networks: z.optional(z.nullable(z.record(z.string(), NerdctlInspectNetworkSchema))),
+    IPAddress: z.optional(z.string()),
+    Ports: z.optional(z.nullable(z.record(z.string(), z.nullable(z.array(NerdctlInspectContainerPortHostSchema))))),
 });
 
 const NerdctlInspectContainerStateSchema = z.object({
-    Status: z.string().optional(),
+    Status: z.optional(z.string()),
     // Date strings transformed to Date objects
-    StartedAt: dateStringSchema.optional(),
-    FinishedAt: dateStringSchema.optional(),
+    StartedAt: z.optional(dateStringSchema),
+    FinishedAt: z.optional(dateStringSchema),
 });
 
 export const NerdctlInspectContainerRecordSchema = z.object({
@@ -77,11 +77,11 @@ export const NerdctlInspectContainerRecordSchema = z.object({
     Image: z.string(),
     // Date string transformed to Date object
     Created: dateStringSchema,
-    Mounts: z.array(NerdctlInspectContainerMountSchema).optional(),
-    State: NerdctlInspectContainerStateSchema.optional(),
-    Config: NerdctlInspectContainerConfigSchema.optional(),
-    HostConfig: NerdctlInspectContainerHostConfigSchema.optional(),
-    NetworkSettings: NerdctlInspectContainerNetworkSettingsSchema.optional(),
+    Mounts: z.optional(z.array(NerdctlInspectContainerMountSchema)),
+    State: z.optional(NerdctlInspectContainerStateSchema),
+    Config: z.optional(NerdctlInspectContainerConfigSchema),
+    HostConfig: z.optional(NerdctlInspectContainerHostConfigSchema),
+    NetworkSettings: z.optional(NerdctlInspectContainerNetworkSettingsSchema),
 });
 
 type NerdctlInspectContainerRecord = z.infer<typeof NerdctlInspectContainerRecordSchema>;

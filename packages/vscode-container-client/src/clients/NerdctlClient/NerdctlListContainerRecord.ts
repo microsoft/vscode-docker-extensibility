@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { ListContainersItem, PortBinding } from '../../contracts/ContainerClient';
 import { labelsStringSchema } from '../../contracts/ZodTransforms';
 import { dayjs } from '../../utils/dayjs';
@@ -18,13 +18,13 @@ export const NerdctlListContainerRecordSchema = z.object({
     ID: z.string(),
     Names: z.string(),
     Image: z.string(),
-    Ports: z.string().optional(),
-    Networks: z.string().optional(),
+    Ports: z.optional(z.string()),
+    Networks: z.optional(z.string()),
     // Labels transformed from string to Record during parsing
-    Labels: labelsStringSchema.optional(),
-    CreatedAt: z.string().optional(),
-    State: z.string().optional(),
-    Status: z.string().optional(),
+    Labels: z.optional(labelsStringSchema),
+    CreatedAt: z.optional(z.string()),
+    State: z.optional(z.string()),
+    Status: z.optional(z.string()),
 });
 
 export type NerdctlListContainerRecord = z.infer<typeof NerdctlListContainerRecordSchema>;

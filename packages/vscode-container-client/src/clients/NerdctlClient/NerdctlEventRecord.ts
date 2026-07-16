@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { EventAction, EventActionSchema, EventType, EventTypeSchema } from '../../contracts/ZodEnums';
 
 /**
@@ -12,16 +12,16 @@ import { EventAction, EventActionSchema, EventType, EventTypeSchema } from '../.
  * Uses looseObject to allow additional unknown fields from containerd.
  */
 const NerdctlEventPayloadSchema = z.looseObject({
-    id: z.string().optional(),
+    id: z.optional(z.string()),
     // containerd task events (task/start, task/exit, etc.) identify the
     // container via 'container_id' (protojson may also camelCase to 'containerId')
     // rather than 'id'.
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    container_id: z.string().optional(),
-    containerId: z.string().optional(),
-    key: z.string().optional(), // snapshot events use 'key' instead of 'id'
-    image: z.string().optional(),
-    name: z.string().optional(),
+    container_id: z.optional(z.string()),
+    containerId: z.optional(z.string()),
+    key: z.optional(z.string()), // snapshot events use 'key' instead of 'id'
+    image: z.optional(z.string()),
+    name: z.optional(z.string()),
 });
 
 export type NerdctlEventPayload = z.infer<typeof NerdctlEventPayloadSchema>;
@@ -30,7 +30,7 @@ export type NerdctlEventPayload = z.infer<typeof NerdctlEventPayloadSchema>;
  * Transform that parses a JSON string into NerdctlEventPayload.
  * Returns undefined if parsing fails (lenient parsing for event streams).
  */
-const EventJsonStringSchema = z.string().transform((str): NerdctlEventPayload | undefined => {
+const EventJsonStringSchema = z.pipe(z.string(), z.transform((str): NerdctlEventPayload | undefined => {
     try {
         const parsed: unknown = JSON.parse(str);
         // Validate against the payload schema
@@ -40,7 +40,7 @@ const EventJsonStringSchema = z.string().transform((str): NerdctlEventPayload | 
         // Don't fail validation, just return undefined for invalid JSON
         return undefined;
     }
-});
+}));
 
 /**
  * Nerdctl/nerdctl outputs containerd native events, NOT Docker-compatible events.
@@ -58,12 +58,12 @@ const EventJsonStringSchema = z.string().transform((str): NerdctlEventPayload | 
  */
 export const NerdctlEventRecordSchema = z.object({
     Timestamp: z.string(),
-    ID: z.string().optional(),
-    Namespace: z.string().optional(),
+    ID: z.optional(z.string()),
+    Namespace: z.optional(z.string()),
     Topic: z.string(),
-    Status: z.string().optional(),
+    Status: z.optional(z.string()),
     // Event is a JSON string that gets parsed into NerdctlEventPayload via transform
-    Event: EventJsonStringSchema.optional(),
+    Event: z.optional(EventJsonStringSchema),
 });
 
 export type NerdctlEventRecord = z.infer<typeof NerdctlEventRecordSchema>;

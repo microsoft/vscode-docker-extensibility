@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { InspectVolumesItem } from '../../contracts/ContainerClient';
 import { dateStringWithFallbackSchema, labelsSchema } from '../../contracts/ZodTransforms';
 
@@ -13,15 +13,15 @@ import { dateStringWithFallbackSchema, labelsSchema } from '../../contracts/ZodT
  */
 export const NerdctlInspectVolumeRecordSchema = z.object({
     Name: z.string(),
-    Driver: z.string().optional(),
-    Mountpoint: z.string().optional(),
+    Driver: z.optional(z.string()),
+    Mountpoint: z.optional(z.string()),
     // Date string transformed to Date object with fallback to current time
-    CreatedAt: dateStringWithFallbackSchema.optional(),
+    CreatedAt: z.optional(dateStringWithFallbackSchema),
     // Labels can be a record, empty string, or "key=value,key2=value2" string
-    Labels: labelsSchema.optional().nullable(),
-    Scope: z.string().optional(),
-    Options: z.record(z.string(), z.unknown()).optional().nullable(),
-    Size: z.string().optional(),
+    Labels: z.nullable(z.optional(labelsSchema)),
+    Scope: z.optional(z.string()),
+    Options: z.nullable(z.optional(z.record(z.string(), z.unknown()))),
+    Size: z.optional(z.string()),
 });
 
 export type NerdctlInspectVolumeRecord = z.infer<typeof NerdctlInspectVolumeRecordSchema>;

@@ -3,23 +3,23 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 
 // Nerdctl (nerdctl) version output structure
 // nerdctl uses a different version format than Docker
 export const NerdctlVersionRecordSchema = z.object({
     Client: z.object({
-        Version: z.string().optional(),
-        GitCommit: z.string().optional(),
-        GoVersion: z.string().optional(),
-        Os: z.string().optional(),
-        Arch: z.string().optional(),
+        Version: z.optional(z.string()),
+        GitCommit: z.optional(z.string()),
+        GoVersion: z.optional(z.string()),
+        Os: z.optional(z.string()),
+        Arch: z.optional(z.string()),
     }),
-    Server: z.object({
-        Components: z.array(z.object({
+    Server: z.optional(z.object({
+        Components: z.optional(z.array(z.object({
             Name: z.string(),
             Version: z.string(),
-            Details: z.record(z.string(), z.unknown()).optional(),
-        })).optional(),
-    }).optional(),
+            Details: z.optional(z.record(z.string(), z.unknown())),
+        }))),
+    })),
 });

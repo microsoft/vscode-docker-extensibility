@@ -3,19 +3,19 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { z } from 'zod/v4';
+import * as z from 'zod/mini';
 import { InspectNetworksItem } from '../../contracts/ContainerClient';
 import { dateStringSchema } from '../../contracts/ZodTransforms';
 
 // Nerdctl (nerdctl) network inspect output - Docker-compatible format
 const NerdctlNetworkIpamConfigSchema = z.object({
-    Subnet: z.string().optional(),
-    Gateway: z.string().optional(),
+    Subnet: z.optional(z.string()),
+    Gateway: z.optional(z.string()),
 });
 
 const NerdctlNetworkIpamSchema = z.object({
-    Driver: z.string().optional(),
-    Config: z.array(NerdctlNetworkIpamConfigSchema).optional(),
+    Driver: z.optional(z.string()),
+    Config: z.optional(z.array(NerdctlNetworkIpamConfigSchema)),
 });
 
 /**
@@ -23,17 +23,17 @@ const NerdctlNetworkIpamSchema = z.object({
  */
 export const NerdctlInspectNetworkRecordSchema = z.object({
     Name: z.string(),
-    Id: z.string().optional(),
-    Driver: z.string().optional(),
+    Id: z.optional(z.string()),
+    Driver: z.optional(z.string()),
     // Date string transformed to Date object (undefined if invalid)
-    Created: dateStringSchema.optional(),
-    Scope: z.string().optional(),
-    Internal: z.boolean().optional(),
-    EnableIPv6: z.boolean().optional(),
-    Attachable: z.boolean().optional(),
-    Ingress: z.boolean().optional(),
-    Labels: z.record(z.string(), z.string()).nullable().optional(),
-    IPAM: NerdctlNetworkIpamSchema.optional(),
+    Created: z.optional(dateStringSchema),
+    Scope: z.optional(z.string()),
+    Internal: z.optional(z.boolean()),
+    EnableIPv6: z.optional(z.boolean()),
+    Attachable: z.optional(z.boolean()),
+    Ingress: z.optional(z.boolean()),
+    Labels: z.optional(z.nullable(z.record(z.string(), z.string()))),
+    IPAM: z.optional(NerdctlNetworkIpamSchema),
 });
 
 export type NerdctlInspectNetworkRecord = z.infer<typeof NerdctlInspectNetworkRecordSchema>;
