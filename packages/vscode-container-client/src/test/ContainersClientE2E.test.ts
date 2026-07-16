@@ -33,10 +33,25 @@ export type ClientType = 'docker' | 'podman' | 'finch' | 'nerdctl';
 
 /**
  * Shell command that keeps a container alive while responding to SIGTERM for a
- * fast shutdown. Shared across the E2E suites (and re-used by the orchestrator
- * E2E compose files).
+ * fast shutdown. Used by the orchestrator E2E compose files, where the process
+ * runs under `sh -c` without a TTY.
+ *
+ * NOTE: This is intentionally NOT used with `runContainer` (see
+ * {@link KeepAliveEntrypoint}). `runContainer` allocates a TTY for detached runs,
+ * and a non-interactive `sh -c <loop>` exits once that pseudo-TTY is torn down
+ * after the CLI detaches.
  */
 export const KeepAliveShellCommand = "trap 'exit 0' TERM; while true; do sleep 1; done";
+
+/**
+ * Entrypoint/command that keeps a container alive when started via `runContainer`.
+ * Because `runContainer` allocates a TTY for detached runs, a non-interactive
+ * `sh -c <loop>` would exit when the pseudo-TTY is torn down. Running
+ * `tail -f /dev/null` as PID 1 stays alive across every runtime (docker, podman,
+ * nerdctl, finch) and is stopped promptly by `docker stop` via SIGKILL.
+ */
+export const KeepAliveEntrypoint = 'tail';
+export const KeepAliveCommand = ['-f', '/dev/null'];
 
 describe('(integration) ContainersClientE2E', function () {
 
@@ -376,9 +391,9 @@ describe('(integration) ContainersClientE2E', function () {
                     detached: true,
                     name: testContainerName,
                     network: testContainerNetworkName,
-                    // Keep container running - uses trap to handle SIGTERM for fast shutdown
-                    entrypoint: 'sh',
-                    command: ['-c', KeepAliveShellCommand],
+                    // Keep container running - tail as PID 1 survives the detached TTY teardown
+                    entrypoint: KeepAliveEntrypoint,
+                    command: KeepAliveCommand,
                     mounts: [
                         { type: 'bind', source: testContainerBindMountSource, destination: '/data1', readOnly: true },
                         { type: 'volume', source: testContainerVolumeName, destination: '/data2', readOnly: false }
@@ -1082,8 +1097,8 @@ describe('(integration) ContainersClientE2E', function () {
                     imageRef: 'alpine:latest',
                     detached: true,
                     // Keep container running for filesystem operations
-                    entrypoint: 'sh',
-                    command: ['-c', KeepAliveShellCommand],
+                    entrypoint: KeepAliveEntrypoint,
+                    command: KeepAliveCommand,
                 })
             ))!;
 

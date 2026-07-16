@@ -12,7 +12,7 @@ const shortFormRegex = /^(?<containerPort>\d+)\/(?<protocol>tcp|udp)$/i;
 // - hostPort->containerPort[/protocol]
 // - hostIp:hostPort->containerPort[/protocol]
 // - [ipv6]:hostPort->containerPort[/protocol]
-const longFormRegex = /^(?:(?<hostPortOnly>\d+)|(?<hostIpOrHost>[^:\s\[\]]+):(?<hostPort>\d+)|\[(?<hostIpv6>[^\]]+)\]:(?<hostPortV6>\d+))\s*->\s*(?<containerPort>\d+)(?:\/(?<protocol>tcp|udp))?$/i;
+const longFormRegex = /^(?:(?<hostPortOnly>\d+)|(?<hostIpOrHost>[^:\s[\]]+):(?<hostPort>\d+)|\[(?<hostIpv6>[^\]]+)\]:(?<hostPortV6>\d+))\s*->\s*(?<containerPort>\d+)(?:\/(?<protocol>tcp|udp))?$/i;
 
 /**
  * Attempt to parse a Docker-like raw port binding string

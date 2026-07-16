@@ -122,15 +122,12 @@ export class ShellStreamCommandRunnerFactory<TOptions extends ShellStreamCommand
             dataStream.end();
 
             // If the consumer stopped iteration early, ensure the child process is
-            // fully terminated so test runs don't hang on open handles.
+            // fully terminated so test runs don't hang on open handles. We just
+            // aborted it above, so any rejection here is expected and intentionally
+            // ignored; errors from normal completion are surfaced by the awaited
+            // processPromise above.
             if (!streamFullyConsumed) {
-                try {
-                    await processPromise;
-                } catch (err) {
-                    if (!(err instanceof CancellationError)) {
-                        throw err;
-                    }
-                }
+                await processPromise.catch(() => { /* ignore abort/termination errors during cleanup */ });
             }
         }
     }
