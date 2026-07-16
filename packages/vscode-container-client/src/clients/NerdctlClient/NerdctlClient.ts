@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    byteStreamToGenerator,
     CancellationError,
     CancellationTokenLike,
     CommandLineArgs,
@@ -37,13 +36,10 @@ import {
     ListNetworksCommandOptions,
     ListVolumeItem,
     ListVolumesCommandOptions,
-    ReadFileCommandOptions,
     RunContainerCommandOptions,
-    VersionItem,
-    WriteFileCommandOptions
+    VersionItem
 } from '../../contracts/ContainerClient';
 import { CommandNotSupportedError } from '../../utils/CommandNotSupportedError';
-import { GeneratorCommandResponse, VoidCommandResponse } from '../../contracts/CommandRunner';
 import { dayjs } from '../../utils/dayjs';
 import { DockerClientBase } from '../DockerClientBase/DockerClientBase';
 import { withDockerAddHostArg } from '../DockerClientBase/withDockerAddHostArg';
@@ -474,97 +470,8 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
 
     //#endregion
 
-    //#region ReadFile Command
-
-    /**
-     * Escape a string for safe use in shell single quotes.
-     * Single quotes prevent all shell expansion, but single quotes themselves
-     * need special handling: close quote, add escaped quote, reopen quote.
-     * Example: O'Brien -> 'O'\''Brien'
-     */
-    private shellEscapeSingleQuote(value: string): string {
-        return "'" + value.replace(/'/g, "'\\''") + "'";
-    }
-
-    /**
-     * nerdctl doesn't support streaming tar archives to stdout via `cp container:/path -`.
-     * Instead, we use a shell command that:
-     * 1. Creates a temp file
-     * 2. Copies from container to temp file
-     * 3. Outputs temp file to stdout (as tar archive)
-     * 4. Cleans up temp file
-     *
-     * Note: This implementation uses /bin/sh (not bash) for portability and
-     * properly escapes paths to prevent shell injection.
-     */
-    override readFile(options: ReadFileCommandOptions): Promise<GeneratorCommandResponse<Buffer>> {
-        if (options.operatingSystem === 'windows') {
-            // Windows containers use exec with type command (same as Docker)
-            return super.readFile(options);
-        }
-
-        // Properly escape the container path for shell safety
-        const containerPath = `${options.container}:${options.path}`;
-        const escapedContainerPath = this.shellEscapeSingleQuote(containerPath);
-        const escapedCommand = this.shellEscapeSingleQuote(this.commandName);
-
-        // Match Docker's `cp <container>:<path> -`, whose tar archive names its top
-        // entry after the source path's basename. Copy to a temp file of the same
-        // basename and tar that name so downstream tar consumers see the same entry.
-        const posixSegments = options.path.split('/').filter((segment) => segment.length > 0);
-        const baseName = posixSegments.length > 0 ? posixSegments[posixSegments.length - 1] : 'content';
-        const escapedBaseName = this.shellEscapeSingleQuote(baseName);
-
-        // Use /bin/sh for portability; properly escape all interpolated values.
-        // An EXIT trap removes the temp dir even if `cp`/`tar` fails (no leak).
-        return Promise.resolve({
-            command: '/bin/sh',
-            args: [
-                '-c',
-                `TMPDIR=$(mktemp -d) && trap 'rm -rf "$TMPDIR"' EXIT && ${escapedCommand} cp ${escapedContainerPath} "$TMPDIR"/${escapedBaseName} && tar -C "$TMPDIR" -cf - ${escapedBaseName}`,
-            ],
-            parseStream: (output) => byteStreamToGenerator(output),
-        });
-    }
-
-    //#endregion
-
-    //#region WriteFile Command
-
-    /**
-     * nerdctl doesn't support reading tar archives from stdin via `cp - container:/path`.
-     * Instead, we use a shell command that:
-     * 1. Creates a temp file
-     * 2. Reads tar archive from stdin to temp file
-     * 3. Extracts and copies to container
-     * 4. Cleans up temp file
-     *
-     * Alternatively, if inputFile is provided, we use that directly.
-     *
-     * Note: This implementation uses /bin/sh (not bash) for portability and
-     * properly escapes paths to prevent shell injection.
-     */
-    override writeFile(options: WriteFileCommandOptions): Promise<VoidCommandResponse> {
-        // If inputFile is specified, we can use `<command> cp` directly (no stdin needed)
-        if (options.inputFile) {
-            return super.writeFile(options);
-        }
-
-        // Properly escape the container path for shell safety
-        const containerPath = `${options.container}:${options.path}`;
-        const escapedContainerPath = this.shellEscapeSingleQuote(containerPath);
-        const escapedCommand = this.shellEscapeSingleQuote(this.commandName);
-
-        // Use /bin/sh for portability; properly escape all interpolated values.
-        // An EXIT trap removes the temp dir even if `tar`/`cp` fails (no leak).
-        return Promise.resolve({
-            command: '/bin/sh',
-            args: [
-                '-c',
-                `TMPDIR=$(mktemp -d) && trap 'rm -rf "$TMPDIR"' EXIT && tar -C "$TMPDIR" -xf - && ${escapedCommand} cp "$TMPDIR/." ${escapedContainerPath}`,
-            ],
-        });
-    }
-
-    //#endregion
+    // ReadFile and WriteFile use the DockerClientBase implementations, which
+    // stream a tar archive via `<command> cp <container>:<path> -` and
+    // `<command> cp - <container>:<path>`. This requires nerdctl >= 2.3.0, which
+    // added stdin/stdout streaming support for `cp` (containerd/nerdctl#4704).
 }
