@@ -40,7 +40,6 @@ import {
     VersionItem
 } from '../../contracts/ContainerClient';
 import { CommandNotSupportedError } from '../../utils/CommandNotSupportedError';
-import { dayjs } from '../../utils/dayjs';
 import { DockerClientBase } from '../DockerClientBase/DockerClientBase';
 import { withDockerAddHostArg } from '../DockerClientBase/withDockerAddHostArg';
 import { withDockerEnvArg } from '../DockerClientBase/withDockerEnvArg';
@@ -50,7 +49,6 @@ import { withDockerLabelsArg } from '../DockerClientBase/withDockerLabelsArg';
 import { withDockerMountsArg } from '../DockerClientBase/withDockerMountsArg';
 import { withDockerPlatformArg } from '../DockerClientBase/withDockerPlatformArg';
 import { withDockerPortsArg } from '../DockerClientBase/withDockerPortsArg';
-import { parseDockerLikeLabels } from '../DockerClientBase/parseDockerLikeLabels';
 import { NerdctlEventRecordSchema, getActorFromEventPayload, parseContainerdTopic } from './NerdctlEventRecord';
 import { withNerdctlExposedPortsArg } from './withNerdctlExposedPortsArg';
 import { NerdctlInspectContainerRecordSchema, normalizeNerdctlInspectContainerRecord } from './NerdctlInspectContainerRecord';
@@ -249,6 +247,17 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
         const sinceTimestamp = options.since ? this.parseEventTimestamp(options.since) : undefined;
         const untilTimestamp = options.until ? this.parseEventTimestamp(options.until) : undefined;
 
+        // `nerdctl events` has no `--until`, so we emulate it client-side. In
+        // addition to breaking when an event newer than `until` arrives (below),
+        // arm a wall-clock timer so the stream still terminates if it goes quiet
+        // before `until` elapses, matching Docker's `events --until` behavior.
+        let untilTimer: NodeJS.Timeout | undefined;
+        if (untilTimestamp) {
+            const msUntilElapsed = Math.max(0, untilTimestamp.getTime() - Date.now());
+            untilTimer = setTimeout(() => lineReader.close(), msUntilElapsed);
+            untilTimer.unref?.();
+        }
+
         try {
             for await (const line of lineReader) {
                 if (cancellationToken.isCancellationRequested) {
@@ -313,6 +322,9 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
                 }
             }
         } finally {
+            if (untilTimer) {
+                clearTimeout(untilTimer);
+            }
             lineReader.close();
         }
     }
@@ -430,30 +442,17 @@ export class NerdctlClient extends DockerClientBase implements IContainersClient
 
     protected override parseListVolumesCommandOutput(_options: ListVolumesCommandOptions, output: string, strict: boolean): Promise<ListVolumeItem[]> {
         return this.parsePerLineJson(output, strict, (volumeJson) => {
+            // The schema already normalizes Labels (string/record -> record) and
+            // CreatedAt (string -> Date), so no further parsing is needed here.
             const rawVolume = NerdctlInspectVolumeRecordSchema.parse(JSON.parse(volumeJson));
-
-            // Labels can be:
-            // - A record/object (normal case)
-            // - An empty string "" when no labels are set
-            // - A string like "key=value,key2=value2" (parse with parseDockerLikeLabels)
-            const labels: Record<string, string> = typeof rawVolume.Labels === 'string'
-                ? parseDockerLikeLabels(rawVolume.Labels)
-                : rawVolume.Labels ?? {};
-
-            // Parse and validate CreatedAt
-            let createdAt: Date | undefined;
-            if (rawVolume.CreatedAt) {
-                const parsed = dayjs.utc(rawVolume.CreatedAt);
-                createdAt = parsed.isValid() ? parsed.toDate() : undefined;
-            }
 
             return {
                 name: rawVolume.Name,
                 driver: rawVolume.Driver || 'local',
-                labels,
+                labels: rawVolume.Labels ?? {},
                 mountpoint: rawVolume.Mountpoint || '',
                 scope: rawVolume.Scope || 'local',
-                createdAt,
+                createdAt: rawVolume.CreatedAt,
                 size: undefined, // nerdctl doesn't always provide size in list
             };
         });
