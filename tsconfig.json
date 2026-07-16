@@ -4,6 +4,9 @@
         "lib": [
             "es2022"
         ],
+        "types": [
+            "node"
+        ],
         "module": "es2022",
         "moduleResolution": "bundler",
         "sourceMap": true,

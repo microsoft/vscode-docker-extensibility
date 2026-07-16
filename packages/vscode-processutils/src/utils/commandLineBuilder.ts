@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ShellQuotedString, ShellQuoting } from 'vscode';
+import { ShellQuotedString, ShellQuoting } from '../typings/ShellQuoting';
 import { toArray } from './toArray';
 
 /**
@@ -20,6 +20,7 @@ export type CommandLineCurryFn = (cmdLineArgs?: CommandLineArgs) => CommandLineA
  */
 export function composeArgs(...cmdLineArgFns: Array<CommandLineCurryFn>): CommandLineCurryFn {
     return (cmdLineArgs: CommandLineArgs = []) => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         return cmdLineArgFns.reduce<CommandLineArgs>(
             (commandLineArgs: CommandLineArgs, cmdLineArgsFn) => cmdLineArgsFn(commandLineArgs),
             cmdLineArgs || [],
