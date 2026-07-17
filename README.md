@@ -1,3 +1,7 @@
+# ⚠️ Archived
+
+> **This repository has been archived.** Development has moved to [microsoft/vscode-containers](https://github.com/microsoft/vscode-containers). Please open new issues and pull requests in that repository.
+
 ## Extensibility Packages for Container Tools extension for VS Code
 This repository contains several extensibility packages for the Container Tools extension for VS Code.
 
